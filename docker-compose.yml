@@ -1,0 +1,48 @@
+# One model per role. Values come from the shell or .env, these are the defaults.
+# Override for a single run: LIGHT_MODEL=openai/gpt-oss-120b docker compose run --rm eval
+x-models: &models
+  AGENT_PROVIDER: ${AGENT_PROVIDER:-groq}           # groq or fireworks (agents only; the judge is always Groq)
+  LLM_MODEL: ${LLM_MODEL:-openai/gpt-oss-120b}      # knowledge agent
+  LIGHT_MODEL: ${LIGHT_MODEL:-openai/gpt-oss-20b}   # router, synthesizer (and support if SUPPORT_MODEL is empty)
+  SUPPORT_MODEL: ${SUPPORT_MODEL:-}                 # support agent, empty = same as LIGHT_MODEL
+  JUDGE_MODEL: ${JUDGE_MODEL:-qwen/qwen3.8-27b}     # eval judge (different family than the agents)
+  REASONING_EFFORT: ${REASONING_EFFORT:-low}
+
+services:
+  api:
+    build: .
+    image: getnet-agents:latest
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment: *models
+    volumes:
+      - data:/app/data   # named volume: Chroma, tickets, handoffs survive restarts (see README, Production hardening)
+    restart: unless-stopped
+
+  # one-off jobs (not started by `up`):
+  #   docker compose run --rm ingest   -> build the knowledge base
+  #   docker compose run --rm eval     -> run the evaluation
+  ingest:
+    image: getnet-agents:latest
+    profiles: ["tools"]
+    env_file: .env
+    volumes:
+      - data:/app/data
+    command: ["python", "-m", "app.rag.ingest"]
+
+  eval:
+    image: getnet-agents:latest
+    profiles: ["tools"]
+    env_file: .env
+    environment: *models
+    volumes:
+      - data:/app/data
+      - ./eval/reports:/app/eval/reports
+    command: ["python", "-m", "eval.run_eval"]
+
+# Named volume, not a bind mount: the container runs as uid 10001 (not root), and a bind mount takes
+# its permissions from the host folder (root-owned files on Docker Desktop, OneDrive in between).
+# Docker creates the volume with the owner of /app/data in the image, which is that user.
+volumes:
+  data:
