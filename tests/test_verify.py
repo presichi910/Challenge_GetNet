@@ -180,3 +180,73 @@ def test_without_a_verify_node_the_graph_is_what_it_was():
     g = build_graph(router, lambda s: {}, lambda s: {}, synthesizer, lambda s: {})
     out = g.invoke({"messages": [HumanMessage(content="Hi there!")]}, {"configurable": {"thread_id": "u:c"}})
     assert out["final_answer"] == "Hello!" and "verify_note" not in out
+
+
+# ---- verify_raw: the checker's raw output, for the eval rows only ----
+
+def test_verify_raw_is_off_by_default_so_production_state_and_the_api_never_carry_it():
+    import inspect
+
+    from app.graph import build_default_graph
+
+    model = FakeModel(Verification(statements=[Statement(statement="open Menu", evidence_quote="")]), replies=["Rewritten."])
+    update = make_verify_node(llm=model)(_state("How does receivables advance work?", EN_ANSWER + " Open Menu."))
+    assert "verify_raw" not in update and update["verify_note"].startswith("revised:1")
+    assert "verify_raw" not in make_verify_node(llm=FakeModel())(_state("q", "", contexts=()))
+    assert inspect.signature(build_default_graph).parameters["keep_verify_raw"].default is False
+
+
+def test_verify_raw_keeps_every_statement_with_its_quote_and_whether_the_code_found_it():
+    import json
+
+    audit = Verification(statements=[Statement(statement="you receive the money today", evidence_quote="receive today the money of sales"),
+                                     Statement(statement="open Menu > Antecipar", evidence_quote="Menu > Antecipar")])
+    update = make_verify_node(llm=FakeModel(audit, replies=["Rewritten."]), keep_raw=True)(
+        _state("How does receivables advance work?", EN_ANSWER + " Open Menu > Antecipar."))
+    raw = json.loads(update["verify_raw"])
+    assert [(s["statement"], s["quote_found"]) for s in raw["statements"]] == [
+        ("you receive the money today", True), ("open Menu > Antecipar", False)]  # the second quote is not in the evidence
+    assert raw["statements"][1]["evidence_quote"] == "Menu > Antecipar"
+
+
+def test_verify_raw_is_always_set_when_asked_even_with_nothing_to_check_or_a_provider_error():
+    import json
+
+    node = make_verify_node(llm=FakeModel(), keep_raw=True)
+    assert node(_state("q", "", contexts=()))["verify_raw"] == ""  # no answer: nothing to audit
+    assert node(_state("Hi there!", "Hello! How can I help you today?", contexts=()))["verify_raw"] == ""  # no evidence: no audit
+    failed = make_verify_node(llm=FakeModel(fail=True), keep_raw=True)(_state("How does receivables advance work?", EN_ANSWER))
+    assert json.loads(failed["verify_raw"]) == {"error": "RuntimeError"} and failed["verify_note"] == ""
+
+
+# ---- the rewrite leaves nothing pointing at deleted content ----
+
+class RecordingModel(FakeModel):
+    def invoke(self, messages, config=None):
+        self.written_with = [m.content for m in messages]
+        return super().invoke(messages, config)
+
+
+def test_the_rewrite_prompt_forbids_dangling_references_and_says_what_to_do_when_nothing_is_left():
+    from app.agents.verifier import REVISE_PROMPT
+
+    model = RecordingModel(Verification(statements=[Statement(statement="restart the terminal", evidence_quote="")]),
+                           replies=["There are no documented steps for this. I can help further."])
+    node = make_verify_node(llm=model)
+    update = node(_state("My terminal is offline, what should I do?", "Restart the terminal. After these steps, call us."))
+    system = model.written_with[0]
+    assert "- restart the terminal" in system and "English" in system  # the claims to delete and the language
+    assert "after these actions" in system and "refers to missing content" in system  # no dangling references
+    assert "no documented steps" in system and "offer to help further" in system  # nothing actionable left
+    assert "facts the evidence supports" in system and "must stay" in system  # the supported facts are not dropped with the rest
+    assert "Say nothing new" in system and update["final_answer"].startswith("There are no documented steps")
+    assert REVISE_PROMPT.count("{") == 2 and REVISE_PROMPT.count("}") == 2  # only {language} and {claims}
+
+
+def test_the_support_prompt_offers_a_ticket_instead_of_creating_it_and_still_formats():
+    from app.prompts import SUPPORT_PROMPT
+
+    text = SUPPORT_PROMPT.format(user_id="u1", language="English", prior_context="")  # no stray braces
+    assert "move closer to the router" not in text  # the example the model used to copy
+    assert "offer to open a support ticket" in text and "only after the customer asks for it or accepts your offer" in text
+    assert "TKT" not in text and "existing ticket" not in text  # duplicates are solved in code, not in the prompt

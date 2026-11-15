@@ -141,6 +141,18 @@ def split_holdout(rows: list[dict]) -> tuple[list[dict], list[dict]]:
     return [r for r in rows if not r.get("holdout")], [r for r in rows if r.get("holdout")]
 
 
+HOLDOUT_ORIGINAL_LAST = 5  # ho01-ho05 were seen during development; ho06 and later were written blind afterwards
+HOLDOUT_GROUPS = {"original": "original (ho01-ho05), seen during development",
+                  "blind": "new blind (ho06 and later), written before any prompt fix"}
+
+
+def holdout_group(case_id: str) -> str:
+    """"blind" only for ids ho06 and later; every other holdout id counts as "original" (never claim blindness
+    that the id does not show). Derived from the id, so no case in the dataset has to change."""
+    m = re.match(r"ho(\d+)", case_id)
+    return "blind" if m and int(m.group(1)) > HOLDOUT_ORIGINAL_LAST else "original"
+
+
 def summarize_all(rows: list[dict]) -> dict:
     """The main summary (holdout cases left out) plus, if there are holdout cases, their own summary
     under "holdout". `provider_errors` counts both, so a run with an error anywhere never becomes latest.md."""
@@ -148,6 +160,9 @@ def summarize_all(rows: list[dict]) -> dict:
     s = summarize(main)
     if held:
         s["holdout"] = summarize(held)
+        # the two holdouts apart: the original one was seen while developing, the new one was not
+        s["holdout_groups"] = {g: summarize([r for r in held if holdout_group(r["id"]) == g])
+                               for g in HOLDOUT_GROUPS if any(holdout_group(r["id"]) == g for r in held)}
         s["provider_errors"] = s.get("provider_errors", 0) + s["holdout"].get("provider_errors", 0)
         s.update(usage_summary(rows))  # tokens and cost: the whole run, holdout included
     return s
@@ -234,6 +249,7 @@ def evaluate(cases: list[dict], service, judge: Judge | None, pause: float,
             # what the judge saw (tool outputs). Stored so a human can check groundedness against it
             "evidence": evidence,
             "verify_note": state.get("verify_note", ""),
+            "verify_raw": state.get("verify_raw", ""),  # the verifier's statements and quotes, eval only
             # the exact calls (agent, tool, arguments), to see what the model really asked for
             "tool_calls": [{"agent": a, "name": tc["name"], "args": tc.get("args", {})}
                            for a, o in outs.items() for tc in o.get("tool_calls", [])],
@@ -362,7 +378,7 @@ def render_report(rows: list[dict], summary: dict, stamp: str, models: dict | No
                   f"{summary['holdout'].get('cases', 0)} holdout cases are summarized apart, below. "
                   "`provider_errors` counts both._", ""]
     for k, v in summary.items():
-        if k in ("cases", "tokens_by_model", "holdout"):
+        if k in ("cases", "tokens_by_model", "holdout", "holdout_groups"):
             continue
         if k.endswith("_cost_usd"):
             lines.append(f"- **{k}**: {_usd(v)}")
@@ -373,18 +389,21 @@ def render_report(rows: list[dict], summary: dict, stamp: str, models: dict | No
         else:
             lines.append(f"- **{k}**: {v}")
     if summary.get("holdout"):
-        lines += ["", "## Holdout (blind cases, never used to tune prompts)", ""]
-        for k, v in summary["holdout"].items():
-            if k == "tokens_by_model":
-                continue
-            if k.endswith("_cost_usd"):
-                lines.append(f"- **{k}**: {_usd(v)}")
-            elif k.startswith("avg_"):
-                lines.append(f"- **{k}**: {_score_pct(v)}")
-            elif k.endswith(("_accuracy", "_rate")):
-                lines.append(f"- **{k}**: {v * 100:.0f}%")
-            else:
-                lines.append(f"- **{k}**: {v}")
+        groups = summary.get("holdout_groups") or {"original": summary["holdout"]}
+        for g, part in groups.items():
+            lines += ["", f"## Holdout - {HOLDOUT_GROUPS[g]}", "",
+                      "_Never used to tune a prompt or a threshold; it only measures._", ""]
+            for k, v in part.items():
+                if k == "tokens_by_model":
+                    continue
+                if k.endswith("_cost_usd"):
+                    lines.append(f"- **{k}**: {_usd(v)}")
+                elif k.startswith("avg_"):
+                    lines.append(f"- **{k}**: {_score_pct(v)}")
+                elif k.endswith(("_accuracy", "_rate")):
+                    lines.append(f"- **{k}**: {v * 100:.0f}%")
+                else:
+                    lines.append(f"- **{k}**: {v}")
     if summary.get("tokens_by_model"):
         lines += ["", "## Tokens and estimated cost per model", "",
                   f"_Prices: app/observability.py (USD per 1M tokens, list prices of {PRICES_AS_OF}); "
@@ -403,7 +422,7 @@ def render_report(rows: list[dict], summary: dict, stamp: str, models: dict | No
         j = r.get("judge", {})
         u = r.get("usage") or {}
         h_ok = {True: "OK", False: "FAIL", None: "-"}[r.get("handoff_ok")]
-        lines.append(f"| {r['id']}{' (holdout)' if r.get('holdout') else ''} | {'OK' if r['routing_ok'] else 'FAIL'} {r.get('plan', '')} | {'OK' if r['tools_ok'] else 'FAIL'} "
+        lines.append(f"| {r['id']}{' (holdout, ' + holdout_group(r['id']) + ')' if r.get('holdout') else ''} | {'OK' if r['routing_ok'] else 'FAIL'} {r.get('plan', '')} | {'OK' if r['tools_ok'] else 'FAIL'} "
                      f"| {h_ok} {r.get('handoff') or ''} | {_score_pct(j.get('relevance'))} | {_score_pct(j.get('groundedness'))} "
                      f"| {_score_pct(j.get('completeness'))} | {_score_pct(j.get('tone'))} "
                      f"| {j.get('verdict', '-')} | {r['latency_ms']} | {u.get('total_tokens', '-')} "
@@ -471,7 +490,7 @@ def main() -> None:
     cases = load_cases(args.only)
     models = current_models()
     print("Models:", ", ".join(f"{role}={name}" for role, name in models.items()))
-    done, repeats_path = run_repeats(cases, ChatService(build_default_graph()), None if args.no_judge else Judge(),
+    done, repeats_path = run_repeats(cases, ChatService(build_default_graph(keep_verify_raw=True)), None if args.no_judge else Judge(),
                                      max(1, args.repeats), args.pause, retries=args.retries, models=models,
                                      update_latest=not args.only and not args.keep_latest)
     rows, summary, path = done[-1]

@@ -6,23 +6,31 @@ from eval.judge import Judge, parse_judgement
 from eval.run_eval import load_cases, pct, routing_ok, summarize, tools_ok
 
 
+ORIGINAL_17 = [f"q{i:02d}" for i in range(1, 11)] + [f"x0{i}" for i in range(1, 5)] + [f"h0{i}" for i in range(1, 4)]
+HOLDOUT_IDS = [f"ho{i:02d}" for i in range(1, 14)]  # ho01-ho05: seen during development; ho06-ho13: blind, written before the prompt fixes
+
+
 def test_dataset_covers_all_challenge_scenarios():
-    ids = [c["id"] for c in load_cases(None)]
-    assert len([i for i in ids if i.startswith("q")]) == 10
-    assert len([i for i in ids if i.startswith("h0")]) == 3  # handoff (ho* are the holdout cases)
-    assert all({"id", "user_id", "message", "expected_agents"} <= set(c) for c in load_cases(None))
-
-
-def test_dataset_size_and_the_blind_holdout_added_before_the_prompt_fixes():
+    """Invariants, not totals: regular cases are added in later phases and must not break this."""
     cases = load_cases(None)
     ids = [c["id"] for c in cases]
-    held = [c for c in cases if c.get("holdout")]
-    assert len(ids) == len(set(ids)) == 38  # 25 regular + 13 holdout
-    assert len(held) == 13 and [c["id"][:4] for c in held] == [f"ho{i:02d}" for i in range(1, 14)]
-    new = [c for c in held if int(c["id"][2:4]) >= 6]  # the blind holdout: every case says what correct looks like
-    assert len(new) == 8 and all(c.get("criteria") and c["holdout"] is True for c in new)
+    assert len(ids) == len(set(ids))
+    for prefix in ORIGINAL_17:  # the 17 cases of the original dataset (h01-h03 included) are still there
+        assert sum(1 for i in ids if i.startswith(prefix + "_")) == 1, prefix
+    assert all({"id", "user_id", "message", "expected_agents"} <= set(c) for c in cases)
+
+
+def test_the_holdout_is_the_frozen_set_and_the_blind_part_says_what_correct_looks_like():
+    cases = load_cases(None)
+    held = {c["id"][:4]: c for c in cases if c.get("holdout")}
+    assert sorted(held) == HOLDOUT_IDS  # no regular case is marked holdout and no holdout case is lost or added
+    new = [held[i] for i in HOLDOUT_IDS[5:]]
+    assert all(c["holdout"] is True and c.get("criteria") for c in new)
     assert {c["user_id"] for c in new} <= {"cliente1988", "cliente2024", "cliente3030"}  # real customers, no ghost user
-    assert sum(1 for c in new if c.get("history")) == 2 and sum(1 for c in new if c.get("expect_handoff")) == 1
+    assert [i for i in HOLDOUT_IDS[5:] if held[i].get("history")] == ["ho09", "ho10"]  # the multi-turn ones
+    assert [i for i in HOLDOUT_IDS[5:] if held[i].get("expect_handoff")] == ["ho11"]  # the one that asks for a person
+    assert all(held[i]["expect_handoff"] is False for i in ("ho07", "ho08", "ho09", "ho10", "ho12", "ho13"))
+    assert held["ho07"]["expected_tools"] == held["ho08"]["expected_tools"] == []  # refusals need no data tool
 
 
 def test_routing_ok_allows_optional_but_not_missing_or_extra():
@@ -333,7 +341,7 @@ def multi_turn_cases():
 
 def test_multi_turn_cases_are_well_formed():
     cases = multi_turn_cases()
-    assert 3 <= len(cases) <= 12  # 8 regular + ho09 and ho10
+    assert len(cases) >= 3
     for c in cases:
         roles = [t["role"] for t in c["history"]]
         assert roles == ["user", "assistant"] * (len(roles) // 2) and roles, c["id"]  # alternate, start with the customer, end with the assistant
@@ -407,3 +415,16 @@ def test_the_code_overrides_a_wrong_language_call_of_the_model():
 def test_the_code_catches_a_wrong_language_the_model_missed():
     out = Judge(llm=_LLM(_j())).score("Which of the two days was bigger?", "Você teve mais vendas hoje: 450 reais.", [])
     assert out["language_match"] is False and out["verdict"] == "fail"
+
+
+def test_the_eval_rows_carry_verify_raw_and_the_eval_asks_the_graph_for_it():
+    from eval.run_eval import evaluate
+
+    rows = evaluate([CASE], FakeService(good_state(verify_note="revised:1 [x]", verify_raw='{"statements": []}')), None, pause=0)
+    assert rows[0]["verify_note"] == "revised:1 [x]" and rows[0]["verify_raw"] == '{"statements": []}'
+    assert evaluate([CASE], FakeService(good_state()), None, pause=0)[0]["verify_raw"] == ""  # a state without it
+    import inspect
+
+    from eval import run_eval
+
+    assert "keep_verify_raw=True" in inspect.getsource(run_eval.main)  # production never sets it

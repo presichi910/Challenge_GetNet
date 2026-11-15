@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-SKIP = {"cases", "provider_errors", "tokens_by_model", "holdout"}
+SKIP = {"cases", "provider_errors", "tokens_by_model", "holdout", "holdout_groups"}
 
 
 def case_passes(row: dict) -> bool | None:
@@ -53,6 +53,11 @@ def aggregate(runs: list[list[dict]], summaries: list[dict]) -> dict:
     always_fail = [c for c, v in cases.items() if v["ran"] and v["passed"] == 0]
     return {"runs": len(runs), "regular": spread(summaries),
             "holdout": spread([s["holdout"] for s in summaries if s.get("holdout")]),
+            # the original holdout (seen during development) and the new blind one, never averaged together
+            "holdout_original": spread([s["holdout_groups"]["original"] for s in summaries
+                                        if s.get("holdout_groups", {}).get("original")]),
+            "holdout_blind": spread([s["holdout_groups"]["blind"] for s in summaries
+                                     if s.get("holdout_groups", {}).get("blind")]),
             "cases": cases, "unstable": unstable, "always_fail": always_fail,
             "provider_errors": sum(s.get("provider_errors", 0) for s in summaries)}
 
@@ -74,8 +79,13 @@ def render(agg: dict, stamp: str, models: dict | None = None, sources: list[str]
     if sources:
         lines += ["_Runs: " + ", ".join(f"`{s}`" for s in sources) + "_", ""]
     lines += [f"Provider errors over all runs: {agg['provider_errors']} (those case-runs are left out).", ""]
-    for title, key in (("Regular cases", "regular"), ("Holdout cases", "holdout")):
-        if not agg[key]:
+    sections = [("Regular cases", "regular"),
+                ("Holdout - original (ho01-ho05), seen during development", "holdout_original"),
+                ("Holdout - new blind (ho06 and later)", "holdout_blind")]
+    if not (agg.get("holdout_original") or agg.get("holdout_blind")):
+        sections.append(("Holdout cases", "holdout"))  # summaries without groups
+    for title, key in sections:
+        if not agg.get(key):
             continue
         lines += [f"## {title}: spread of each metric", "", "| metric | mean | min | max | runs |", "|---|---|---|---|---|"]
         for m, s in agg[key].items():
@@ -85,7 +95,9 @@ def render(agg: dict, stamp: str, models: dict | None = None, sources: list[str]
               "_Pass = routing OK, tools OK, handoff not failed and judge pass._", "",
               "| case | passed / ran | provider errors |", "|---|---|---|"]
     for cid, v in agg["cases"].items():
-        mark = " (holdout)" if v["holdout"] else ""
+        from eval.run_eval import holdout_group  # lazy: run_eval imports this module only inside run_repeats
+
+        mark = f" (holdout, {holdout_group(cid)})" if v["holdout"] else ""
         lines.append(f"| {cid}{mark} | {v['passed']}/{v['ran']} | {v['provider_errors']} |")
     lines += ["", "**Unstable (pass in some runs, not all):** " + (", ".join(agg["unstable"]) or "none"),
               "", "**Fail in every run:** " + (", ".join(agg["always_fail"]) or "none"), ""]

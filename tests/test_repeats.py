@@ -42,8 +42,20 @@ def test_aggregate_counts_passes_and_finds_unstable_and_always_failing_cases():
     assert agg["regular"]["routing_accuracy"]["min"] == pytest.approx(2 / 3)
     assert agg["holdout"]["routing_accuracy"]["n"] == 2  # the run where h hit a provider error has no holdout metrics
     text = render(agg, "stamp")
-    assert "| b | 2/3 | 0 |" in text and "| h (holdout) | 2/2 | 1 |" in text
+    assert "| b | 2/3 | 0 |" in text and "| h (holdout, original) | 2/2 | 1 |" in text
     assert "**Unstable (pass in some runs, not all):** b" in text
+
+
+def test_repeats_spreads_the_two_holdouts_apart():
+    ho_old = {**OK, "id": "ho02_a", "holdout": True}
+    ho_new = {**OK, "id": "ho07_b", "holdout": True, "routing_ok": False}
+    runs = [[{**OK, "id": "a"}, ho_old, ho_new] for _ in range(2)]
+    agg = aggregate(runs, [run_eval.summarize_all(r) for r in runs])
+    assert agg["holdout_original"]["routing_accuracy"]["mean"] == 1.0
+    assert agg["holdout_blind"]["routing_accuracy"]["mean"] == 0.0
+    text = render(agg, "stamp")
+    assert text.index("## Holdout - original (ho01-ho05), seen during development") < text.index("## Holdout - new blind (ho06 and later)")
+    assert "| ho02_a (holdout, original) | 2/2 | 0 |" in text and "| ho07_b (holdout, blind) | 0/2 | 0 |" in text
 
 
 def test_run_repeats_writes_one_report_per_run_and_only_the_first_may_become_latest(tmp_path, monkeypatch):

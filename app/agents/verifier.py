@@ -13,6 +13,7 @@ app.prompts on purpose, so the prompt-hash pin test keeps meaning "the prompts t
 """
 from __future__ import annotations
 
+import json
 import logging
 import re
 import unicodedata
@@ -48,8 +49,14 @@ REVISE_PROMPT = """\
 Rewrite the customer-support answer below in {language}. DELETE each of these statements, which the evidence \
 does not support. Delete them; do not soften, hedge or replace them:
 {claims}
-Add nothing new. Keep the rest as it is, in the same tone, and not longer than before. \
-Output only the rewritten answer."""
+Keep every other statement exactly as it is, in the same tone and not longer than before: the facts the \
+evidence supports (the customer's own account data, what the tools returned) must stay. \
+Then read the result once more. If a sentence still points at what you deleted (for example "these steps", \
+"after these actions", "the list above", "if that does not work"), delete or reword that sentence so that \
+nothing refers to missing content. \
+If, after the deletions, the answer gives the customer nothing to do (no step, figure, date or condition to \
+act on), add one sentence saying that there are no documented steps for this, and offer to help further. \
+Say nothing new. Output only the rewritten answer."""
 
 TRANSLATE_PROMPT = """\
 Translate the customer-support message below into {language}. Keep every number, date, currency amount, \
@@ -116,11 +123,22 @@ def dialogue_of(messages) -> str:
     return "\n".join(f"{'Customer' if m.type == 'human' else 'Assistant'}: {m.content}" for m in earlier)
 
 
-def make_verify_node(llm=None):
+def raw_audit(statements: list[Statement], evidence: str) -> str:
+    """What the checker returned, plus what the code decided about each quote. For the eval only (see keep_raw)."""
+    return json.dumps({"statements": [{"statement": s.statement, "evidence_quote": s.evidence_quote,
+                                       "quote_found": quote_in(s.evidence_quote, evidence)} for s in statements]},
+                      ensure_ascii=False)
+
+
+def make_verify_node(llm=None, keep_raw: bool = False):
+    """`keep_raw=True` (only the eval asks for it) also returns `verify_raw`: the checker's raw statements and quotes.
+    It is never set otherwise: the state is checkpointed, and the API and the logs must not carry evidence text."""
+
     def verify_node(state: dict) -> dict:
         original = (state.get("final_answer") or "").strip()
+        raw = ""
         if not original or original == FALLBACK_MESSAGE or state.get("synth_error"):
-            return {"verify_note": ""}
+            return {"verify_note": "", **({"verify_raw": ""} if keep_raw else {})}
 
         messages = state.get("messages") or []
         target = user_language(messages)
@@ -134,6 +152,8 @@ def make_verify_node(llm=None):
                 checker = model.with_structured_output(Verification, method="function_calling")
                 body = f"## Conversation so far\n{dialogue_of(messages)}\n\n## Evidence\n{evidence}\n\n## Answer\n{answer}"
                 audit = checker.invoke([SystemMessage(content=VERIFY_PROMPT), HumanMessage(content=body)])
+                if keep_raw:
+                    raw = raw_audit(audit.statements, evidence)
                 claims = unsupported_statements(audit.statements, evidence)
                 if claims:
                     listed = "\n".join(f"- {c}" for c in claims)
@@ -141,8 +161,10 @@ def make_verify_node(llm=None):
                                         HumanMessage(content=answer)])
                     answer = str(msg.content).strip() or answer
                     notes.append(f"revised:{len(claims)} [{' | '.join(c[:80] for c in claims)}]")
-            except Exception:  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001
                 log.exception("verify: groundedness check failed, keeping the answer")
+                if keep_raw and not raw:
+                    raw = json.dumps({"error": type(e).__name__})
 
         try:
             shown = detect_language(answer)
@@ -156,6 +178,8 @@ def make_verify_node(llm=None):
             log.exception("verify: language check failed, keeping the answer")
 
         update: dict = {"verify_note": "; ".join(notes)}
+        if keep_raw:
+            update["verify_raw"] = raw
         if answer != original:
             update["final_answer"] = answer
             if messages and getattr(messages[-1], "type", "") == "ai":
