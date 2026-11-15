@@ -233,6 +233,7 @@ def evaluate(cases: list[dict], service, judge: Judge | None, pause: float,
             "answer": state["final_answer"], "tools_called": called,
             # what the judge saw (tool outputs). Stored so a human can check groundedness against it
             "evidence": evidence,
+            "verify_note": state.get("verify_note", ""),
             # the exact calls (agent, tool, arguments), to see what the model really asked for
             "tool_calls": [{"agent": a, "name": tc["name"], "args": tc.get("args", {})}
                            for a, o in outs.items() for tc in o.get("tool_calls", [])],

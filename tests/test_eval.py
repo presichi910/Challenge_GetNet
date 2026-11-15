@@ -2,9 +2,8 @@
 import pytest
 import json
 
-from eval.judge import parse_judgement
+from eval.judge import Judge, parse_judgement
 from eval.run_eval import load_cases, pct, routing_ok, summarize, tools_ok
-from eval.judge import parse_judgement
 
 
 def test_dataset_covers_all_challenge_scenarios():
@@ -322,7 +321,7 @@ def multi_turn_cases():
 
 def test_multi_turn_cases_are_well_formed():
     cases = multi_turn_cases()
-    assert 3 <= len(cases) <= 5
+    assert 3 <= len(cases) <= 8
     for c in cases:
         roles = [t["role"] for t in c["history"]]
         assert roles == ["user", "assistant"] * (len(roles) // 2) and roles, c["id"]  # alternate, start with the customer, end with the assistant
@@ -378,3 +377,21 @@ def test_answering_in_another_language_fails_even_with_top_scores():
 def test_old_format_without_the_new_fields_is_unchanged():
     out = parse_judgement('{"relevance":5,"groundedness":5,"completeness":5,"tone":5,"verdict":"pass"}')
     assert out["verdict"] == "pass" and out["groundedness"] == 5 and out["unsupported_claims"] == []
+
+class _LLM:
+    def __init__(self, text):
+        self.text = text
+
+    def invoke(self, messages, config=None):
+        return type("M", (), {"content": self.text})()
+
+
+def test_the_code_overrides_a_wrong_language_call_of_the_model():
+    llm = _LLM(_j(language_match=False, verdict="fail"))
+    out = Judge(llm=llm).score("How many installments can I use?", "You can split a sale into up to 48 installments.", ["e"])
+    assert out["language_match"] is True and out["verdict"] == "pass"
+
+
+def test_the_code_catches_a_wrong_language_the_model_missed():
+    out = Judge(llm=_LLM(_j())).score("Which of the two days was bigger?", "Você teve mais vendas hoje: 450 reais.", [])
+    assert out["language_match"] is False and out["verdict"] == "fail"

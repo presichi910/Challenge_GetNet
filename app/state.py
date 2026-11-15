@@ -37,3 +37,4 @@ class GraphState(TypedDict, total=False):
     synth_error: str  # why the synthesizer used its fallback ("" if it didn't), for the eval
     wants_human: bool  # user asked for a person
     handoff: dict | None  # set by the handoff node
+    verify_note: str  # what the verify node changed ("" if nothing), for the eval

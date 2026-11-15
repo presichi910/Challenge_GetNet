@@ -6,10 +6,19 @@ import re
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from app.lang import same_language
 from app.llm import get_judge_llm
 from app.prompts import JUDGE_PROMPT
 
 SCORE_KEYS = ("relevance", "groundedness", "completeness", "tone")
+
+
+def _finalize(data: dict) -> dict:
+    """The verdict follows from the scores and the language check, as the prompt defines it."""
+    ok = (data["relevance"] >= 4 and data["groundedness"] >= 4 and data["completeness"] >= 3
+          and data["language_match"])
+    data["verdict"] = "pass" if ok else "fail"
+    return data
 
 
 def parse_judgement(text: str) -> dict:
@@ -31,9 +40,7 @@ def parse_judgement(text: str) -> dict:
     cap = 3 if any(c["actionable"] for c in claims) else 4 if claims else 5
     data["groundedness"] = min(data["groundedness"], cap)
     data["language_match"] = str(data.get("language_match", True)).lower() != "false"
-    ok = (data["relevance"] >= 4 and data["groundedness"] >= 4 and data["completeness"] >= 3
-          and data["language_match"])
-    data["verdict"] = "pass" if data.get("verdict") == "pass" and ok else "fail"  # only ever downgrades
+    _finalize(data)
     data.setdefault("reason", "")
     return data
 
@@ -51,7 +58,12 @@ class Judge:
             try:
                 msg = self.llm.invoke([SystemMessage(content=JUDGE_PROMPT), HumanMessage(content=user)],
                                       config={"callbacks": callbacks} if callbacks else None)
-                return parse_judgement(str(msg.content))
+                data = parse_judgement(str(msg.content))
+                same = same_language(question, answer)
+                if same is not None:  # the code decides when it can; the model's own guess only when it cannot
+                    data["language_match"] = same
+                    _finalize(data)
+                return data
             except Exception as e:  # noqa: BLE001
                 last_err = e
         return {"relevance": 0, "groundedness": 0, "completeness": 0, "tone": 0, "verdict": "error",

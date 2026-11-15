@@ -29,7 +29,8 @@ def next_node(state: GraphState) -> str:
 
 
 def build_graph(router: Callable, knowledge: Callable, support: Callable, synthesizer: Callable,
-                handoff: Callable, checkpointer=None, summarizer: Callable | None = None):
+                handoff: Callable, checkpointer=None, summarizer: Callable | None = None,
+                verify: Callable | None = None):
     """Nodes are passed in so tests can use stubs. With a `summarizer`, it runs before the router
     every turn (it only acts above the message threshold). Routing itself is unchanged."""
     g = StateGraph(GraphState)
@@ -48,7 +49,12 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
     targets = {**{n: n for n in AGENT_NODES}, "synthesizer": "synthesizer", "handoff": "handoff"}
     for src in ("router", *AGENT_NODES):
         g.add_conditional_edges(src, next_node, targets)
-    g.add_edge("synthesizer", END)
+    if verify is not None:  # synthesizer -> verify -> END; without it the graph is exactly as before
+        g.add_node("verify", verify)
+        g.add_edge("synthesizer", "verify")
+        g.add_edge("verify", END)
+    else:
+        g.add_edge("synthesizer", END)
     g.add_edge("handoff", END)
 
     # thread_id = "<user_id>:<conversation_id>" (see service.thread_id_for), so each customer
@@ -66,6 +72,7 @@ def build_default_graph(checkpointer=None, handoff_notifier=None):
     from app.agents.summarizer import make_summarizer_node
     from app.agents.support import make_support_node
     from app.agents.synthesizer import make_synthesizer_node
+    from app.agents.verifier import make_verify_node
     from app.config import get_settings
     from app.data.repository import CustomerRepository
     from app.handoff import make_handoff_node
@@ -73,4 +80,4 @@ def build_default_graph(checkpointer=None, handoff_notifier=None):
     repo = CustomerRepository(tickets_file=get_settings().tickets_file)  # shared, so handoff tickets show up for Support
     return build_graph(make_router_node(), make_knowledge_node(), make_support_node(repo=repo),
                        make_synthesizer_node(), make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
-                       summarizer=make_summarizer_node())
+                       summarizer=make_summarizer_node(), verify=make_verify_node())
