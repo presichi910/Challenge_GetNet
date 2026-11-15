@@ -5,7 +5,9 @@ Used by `python -m eval.run_eval --repeats N`; it can also aggregate saved repor
     python -m eval.repeats eval/reports/A.json eval/reports/B.json eval/reports/C.json
 
 A case "passes" a run when its routing and tool checks are OK, its handoff check is not a failure and the
-judge said pass (or there was no judge). A run where the case hit a provider error does not count for it.
+judge said pass (or there was no judge). A run where the case hit a provider error does not count for it, and
+neither does a run whose checks passed but whose JUDGE failed (verdict "error"): that says nothing about the system,
+so it is counted apart (`judge_errors`), never as a pass and never as a fail.
 """
 from __future__ import annotations
 
@@ -18,15 +20,24 @@ ROOT = Path(__file__).parent
 SKIP = {"cases", "provider_errors", "tokens_by_model", "holdout", "holdout_groups"}
 
 
+def judge_failed(row: dict) -> bool:
+    """The judge itself failed on this row (not a verdict on the system)."""
+    return not row.get("provider_error") and (row.get("judge") or {}).get("verdict") == "error"
+
+
 def case_passes(row: dict) -> bool | None:
-    """None if the case did not really run (provider error)."""
+    """True / False, or None if the run says nothing about the case: a provider error, or a judge that failed
+    while the routing, tool and handoff checks passed. A failed check is a fail even if the judge also failed."""
     if row.get("provider_error"):
         return None
     if row.get("error"):
         return False
+    if not (bool(row.get("routing_ok")) and bool(row.get("tools_ok")) and row.get("handoff_ok") is not False):
+        return False
     judge = row.get("judge")
-    judged_ok = not judge or judge.get("verdict") in ("pass", "error")
-    return bool(row.get("routing_ok")) and bool(row.get("tools_ok")) and row.get("handoff_ok") is not False and judged_ok
+    if judge and judge.get("verdict") == "error":
+        return None
+    return not judge or judge.get("verdict") == "pass"
 
 
 def spread(summaries: list[dict]) -> dict[str, dict]:
@@ -45,10 +56,12 @@ def aggregate(runs: list[list[dict]], summaries: list[dict]) -> dict:
     ids = list(dict.fromkeys(r["id"] for rows in runs for r in rows))
     cases = {}
     for cid in ids:
-        results = [case_passes(r) for rows in runs for r in rows if r["id"] == cid]
-        holdout = any(r.get("holdout") for rows in runs for r in rows if r["id"] == cid)
+        mine = [r for rows in runs for r in rows if r["id"] == cid]
+        results = [case_passes(r) for r in mine]
+        holdout = any(r.get("holdout") for r in mine)
         ran = [x for x in results if x is not None]
-        cases[cid] = {"passed": sum(ran), "ran": len(ran), "provider_errors": len(results) - len(ran), "holdout": holdout}
+        cases[cid] = {"passed": sum(ran), "ran": len(ran), "provider_errors": sum(1 for r in mine if r.get("provider_error")),
+                      "judge_errors": sum(1 for r in mine if judge_failed(r)), "holdout": holdout}
     unstable = [c for c, v in cases.items() if 0 < v["passed"] < v["ran"]]
     always_fail = [c for c, v in cases.items() if v["ran"] and v["passed"] == 0]
     return {"runs": len(runs), "regular": spread(summaries),
@@ -59,7 +72,8 @@ def aggregate(runs: list[list[dict]], summaries: list[dict]) -> dict:
             "holdout_blind": spread([s["holdout_groups"]["blind"] for s in summaries
                                      if s.get("holdout_groups", {}).get("blind")]),
             "cases": cases, "unstable": unstable, "always_fail": always_fail,
-            "provider_errors": sum(s.get("provider_errors", 0) for s in summaries)}
+            "provider_errors": sum(s.get("provider_errors", 0) for s in summaries),
+            "judge_errors": sum(v["judge_errors"] for v in cases.values())}
 
 
 def _fmt(metric: str, v: float) -> str:
@@ -78,7 +92,9 @@ def render(agg: dict, stamp: str, models: dict | None = None, sources: list[str]
         lines += ["_Models: " + ", ".join(f"{k} = `{v}`" for k, v in models.items()) + "_", ""]
     if sources:
         lines += ["_Runs: " + ", ".join(f"`{s}`" for s in sources) + "_", ""]
-    lines += [f"Provider errors over all runs: {agg['provider_errors']} (those case-runs are left out).", ""]
+    lines += [f"Provider errors over all runs: {agg['provider_errors']} (those case-runs are left out).",
+              f"Judge errors over all runs: {agg.get('judge_errors', 0)} (a case-run whose checks passed but whose judge failed "
+              "is left out of passed / ran: not a pass, not a fail).", ""]
     sections = [("Regular cases", "regular"),
                 ("Holdout - original (ho01-ho05), seen during development", "holdout_original"),
                 ("Holdout - new blind (ho06 and later)", "holdout_blind")]
