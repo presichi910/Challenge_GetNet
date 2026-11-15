@@ -293,3 +293,55 @@ def test_a_403_and_a_429_are_logged_too(client, caplog, monkeypatch):
         chat(client, make_jwt("cliente2024"))  # over the limit
     text = "\n".join(r.getMessage() for r in caplog.records if r.name == "auth.audit")
     assert "reason=wrong_role" in text and "reason=missing_scope" in text and "reason=rate_limited" in text
+
+
+# ---------- revocations survive a restart (SQLite) and are pruned by expiry ----------
+
+def test_a_revocation_survives_a_restart_of_the_api(client, svc, tmp_path):
+    db = str(tmp_path / "revocations.sqlite")
+    assert auth.open_persistent_denylist(db) == 0
+    token = make_jwt("cliente1988", jti="stolen-laptop-token")
+    assert chat(client, token).status_code == 200
+    assert revoke(client, "stolen-laptop-token").status_code == 204
+    assert chat(client, token).status_code == 401
+    auth.reset_auth_state()  # the process stops: key caches, limiters and the in-memory state are gone
+    assert chat(client, token).status_code == 200  # a fresh, EMPTY denylist would let the token back in...
+    assert auth.open_persistent_denylist(db) == 1  # ...but the API opens the file at startup and finds the entry
+    assert chat(client, token).status_code == 401
+    assert chat(client, make_jwt("cliente1988", jti="another-token")).status_code == 200
+
+
+def test_the_revocations_file_holds_only_the_jti_and_when_it_expires(tmp_path):
+    db = tmp_path / "revocations.sqlite"
+    token = make_jwt("cliente1988", jti="the-jti")
+    d = Denylist(db)
+    d.revoke("the-jti", ttl_seconds=900)
+    d.close()
+    raw = b"".join(p.read_bytes() for p in tmp_path.glob("revocations.sqlite*"))
+    assert b"the-jti" in raw and token.encode() not in raw and b"cliente1988" not in raw
+
+
+def test_expired_revocations_are_pruned_when_the_file_is_opened_and_on_every_new_revocation(tmp_path):
+    clock = Clock()
+    db = tmp_path / "revocations.sqlite"
+    d = Denylist(db, clock=clock)
+    d.revoke("old", ttl_seconds=100)
+    d.revoke("alive", ttl_seconds=5000)
+    assert d.count() == 2
+    clock.now += 200  # "old" expires
+    assert not d.is_revoked("old") and d.is_revoked("alive")
+    d.close()
+    reopened = Denylist(db, clock=clock)  # opening prunes
+    assert reopened.count() == 1 and reopened.is_revoked("alive")
+    clock.now += 6000
+    reopened.revoke("new", ttl_seconds=100)  # a new revocation prunes too
+    assert reopened.count() == 1 and reopened.is_revoked("new") and not reopened.is_revoked("alive")
+
+
+def test_the_api_opens_the_revocations_file_at_startup_and_closes_it_at_shutdown():
+    import inspect
+
+    from app import main
+
+    source = inspect.getsource(main.lifespan)
+    assert "open_persistent_denylist(s.revocations_db_path)" in source and "reset_auth_state()" in source

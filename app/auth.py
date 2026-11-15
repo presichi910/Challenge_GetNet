@@ -115,10 +115,20 @@ _denylist = Denylist()
 
 
 def reset_auth_state() -> None:
+    """Back to a clean, in-memory state (the tests, and the shutdown of the API)."""
     global _denylist
     _caches.clear()
     _limiters.clear()
+    _denylist.close()
     _denylist = Denylist()
+
+
+def open_persistent_denylist(path: str) -> int:
+    """Use the SQLite file at `path` for revocations (the API does this at startup). Returns how many entries are alive."""
+    global _denylist
+    _denylist.close()
+    _denylist = Denylist(path)
+    return _denylist.count()
 
 
 def _cache(realm: Realm) -> JwksCache:

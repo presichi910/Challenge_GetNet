@@ -7,12 +7,14 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response
 
-from app.auth import Principal, require_merchant, require_operator, revoke_token, validate_auth_config
+from app.auth import (Principal, open_persistent_denylist, require_merchant, require_operator, reset_auth_state,
+                      revoke_token, validate_auth_config)
 from app.config import get_settings
 from app.handoff_store import HandoffConflict, HandoffNotFound, HandoffStore, iso
 from app.memory import Memory, ThreadLimitExceeded
@@ -61,11 +63,21 @@ async def _purge_loop(memory: Memory, every_seconds: float, handoffs: HandoffSto
             log.exception("Thread purge failed")
 
 
+def validate_single_worker() -> None:
+    """The API keeps state in this process (rate limit, key cache) and in one SQLite file (conversations): ONE worker.
+    Docker pins `--workers 1`; this also refuses a start through WEB_CONCURRENCY (uvicorn's own variable)."""
+    raw = os.environ.get("WEB_CONCURRENCY", "").strip()
+    if raw.isdigit() and int(raw) > 1:
+        raise RuntimeError(f"WEB_CONCURRENCY={raw}: this API must run with ONE worker. The rate limit and the key cache live in "
+                           "the process and the conversation checkpointer is one SQLite file (see README, Production notes).")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logging.basicConfig(level=get_settings().log_level,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     validate_auth_config()  # fail fast: never serve without a complete, consistent auth setup
+    validate_single_worker()
     memory = None
     handoffs = None
     traces = None
@@ -77,6 +89,7 @@ async def lifespan(app: FastAPI):
         from app.rag.store import collection_size
 
         s = get_settings()
+        log.info("Revoked tokens still in force: %d (%s)", open_persistent_denylist(s.revocations_db_path), s.revocations_db_path)
         memory = open_memory(s.checkpoint_db_path, ttl_days=s.thread_ttl_days,
                              max_threads_per_user=s.max_threads_per_user)
         # the human queue: its own SQLite file. The JSONL stays as an audit copy, and what an older
@@ -120,6 +133,7 @@ async def lifespan(app: FastAPI):
             with contextlib.suppress(asyncio.CancelledError):
                 await purge_task
         if memory is not None:
+            reset_auth_state()  # closes the revocations file (the API opened it; tests never do)
             memory.close()  # flush the WAL, release the file
         if handoffs is not None:
             handoffs.close()

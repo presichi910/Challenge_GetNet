@@ -54,6 +54,7 @@ services:
     env_file: .env
     environment:
       <<: [*models, *auth]
+      WEB_CONCURRENCY: "1"   # one worker only (rate limit and key cache in the process, conversations in one SQLite file)
     depends_on:
       keycloak:
         condition: service_healthy

@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     operator_jwt_audience: str = ""
     # a token that lives longer than this is refused, whatever the identity provider is configured to issue
     jwt_max_lifetime_seconds: int = 900
+    # revoked token ids (`jti`): their own SQLite file, in the same volume as the others, so a restart keeps them
+    revocations_db_path: str = "./data/revocations.sqlite"
     jwks_cache_ttl_seconds: float = 600.0
     jwks_min_refresh_seconds: float = 30.0  # an unknown `kid` re-fetches the keys at most this often
     jwks_timeout_seconds: float = 5.0
@@ -96,6 +98,13 @@ class Settings(BaseSettings):
     # tokens and well under a cent, so these only fire on a runaway turn
     max_turn_tokens: int = 30000
     max_turn_cost_usd: float = 0.02
+
+    # the final answer may not repeat this many consecutive words of any system prompt (app/guard.py); 0 = guard off
+    prompt_leak_min_words: int = 10
+
+    # how the verify node audits an answer: "statements" (the model lists what it finds; the original check) or
+    # "segments" (the code splits the answer and the model must answer for every segment: nothing can be omitted)
+    verifier_mode: str = "statements"
 
     log_level: str = "INFO"
 

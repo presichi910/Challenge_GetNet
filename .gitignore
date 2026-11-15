@@ -12,6 +12,7 @@ data/handoffs.jsonl
 data/checkpoints.sqlite*
 data/handoffs.sqlite*
 data/traces.sqlite*
+data/revocations.sqlite*
 
 # Evaluation reports: only the published ones are tracked; every run writes more here
 eval/reports/*
