@@ -12,13 +12,13 @@ from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response
 
-from app.auth import Principal, require_merchant, require_operator, validate_jwt_secret
+from app.auth import Principal, require_merchant, require_operator, revoke_token, validate_auth_config
 from app.config import get_settings
 from app.handoff_store import HandoffConflict, HandoffNotFound, HandoffStore, iso
 from app.memory import Memory, ThreadLimitExceeded
 from app.schemas import (ChatRequest, ChatResponse, ConversationDetail, ConversationList, HandoffDetail,
                          HandoffList, HandoffStatusName, HandoffSummary, MetricsResponse, OperatorMessageList,
-                         RejectRequest, ReplyRequest, ReplyResult, is_valid_conversation_id, is_valid_handoff_id)
+                         RejectRequest, ReplyRequest, ReplyResult, RevokeRequest, is_valid_conversation_id, is_valid_handoff_id)
 from app.service import ChatService
 
 log = logging.getLogger("api")
@@ -65,7 +65,7 @@ async def _purge_loop(memory: Memory, every_seconds: float, handoffs: HandoffSto
 async def lifespan(app: FastAPI):
     logging.basicConfig(level=get_settings().log_level,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    validate_jwt_secret(get_settings().jwt_secret)  # fail fast: never serve with a weak secret
+    validate_auth_config()  # fail fast: never serve without a complete, consistent auth setup
     memory = None
     handoffs = None
     traces = None
@@ -286,6 +286,14 @@ def operator_reject(handoff_id: str, req: RejectRequest, operator: Principal = D
         raise _handoff_not_found() from e
     except HandoffConflict as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+@app.post("/operator/revocations", status_code=204)
+def operator_revoke(req: RevokeRequest, operator: Principal = Depends(require_operator)) -> Response:
+    """Stop accepting one token (by its `jti`) before it expires. Takes effect on the next request; kept in memory."""
+    revoke_token(req.jti)
+    log.warning("token revoked operator=%s jti=%s", operator.user_id, req.jti[:12])
+    return Response(status_code=204)
 
 
 # ---- observability: aggregates of the stored traces (no conversation text is stored or returned) ----

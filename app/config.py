@@ -16,10 +16,23 @@ class Settings(BaseSettings):
     tavily_api_key: str = ""
     voyage_api_key: str = ""
 
-    # auth: HS256 JWT. The secret has no default, the app refuses to start without a real one.
-    jwt_secret: str = ""
-    jwt_issuer: str = "getnet-support-demo"
-    jwt_audience: str = "getnet-support-api"
+    # auth: RS256 tokens checked against the identity provider's public keys (JWKS). There is no shared secret in
+    # the app. Merchants and operators are separate: each has its own issuer, audience and keys (in Keycloak, two
+    # realms). Nothing has a default: the app refuses to start unless all six are set and the two sides differ.
+    jwks_url: str = ""
+    jwt_issuer: str = ""
+    jwt_audience: str = ""
+    operator_jwks_url: str = ""
+    operator_jwt_issuer: str = ""
+    operator_jwt_audience: str = ""
+    # a token that lives longer than this is refused, whatever the identity provider is configured to issue
+    jwt_max_lifetime_seconds: int = 900
+    jwks_cache_ttl_seconds: float = 600.0
+    jwks_min_refresh_seconds: float = 30.0  # an unknown `kid` re-fetches the keys at most this often
+    jwks_timeout_seconds: float = 5.0
+    # requests per minute per authenticated caller (0 = no limit)
+    rate_limit_per_minute: int = 30
+    operator_rate_limit_per_minute: int = 120
 
     # models
     # provider of the agents: groq (default) or fireworks (OpenAI-compatible API). The judge is always Groq.

@@ -10,3 +10,6 @@ eval/reports
 docs
 *.md
 !README.md
+scripts
+infra
+tests

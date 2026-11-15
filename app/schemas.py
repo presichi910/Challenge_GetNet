@@ -179,6 +179,12 @@ class ReplyRequest(BaseModel):
         return clean_text(v, "message")
 
 
+class RevokeRequest(BaseModel):
+    """An operator withdrawing one token before it expires."""
+
+    jti: str = Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9_.:\-]+$", description="The token id (`jti` claim).")
+
+
 class RejectRequest(BaseModel):
     """An operator giving a case up. `reason` is for the other operators and the audit trail, not for the customer."""
 

@@ -110,5 +110,15 @@ def test_every_model_variable_is_in_docker_compose_and_env_example():
 
 def test_env_example_delivers_support_on_the_bigger_model_and_the_code_default_stays_the_light_model():
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
-    assert re.search(r"^SUPPORT_MODEL=openai/gpt-oss-120b\s*$", example, re.M)
+    # the example (and the compose defaults) are the evaluated configuration: every role on Fireworks gpt-oss-120b
+    assert re.search(r"^SUPPORT_MODEL=accounts/fireworks/models/gpt-oss-120b\s*$", example, re.M)
+    assert re.search(r"^AGENT_PROVIDER=fireworks\s*$", example, re.M)
     assert Settings(_env_file=None).support_model == ""  # without the variable, Support = LIGHT_MODEL
+
+
+def test_compose_defaults_are_the_configuration_the_reports_were_run_with():
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    for var in ("LLM_MODEL", "LIGHT_MODEL", "SUPPORT_MODEL"):
+        assert f"{var}: ${{{var}:-accounts/fireworks/models/gpt-oss-120b}}" in compose, var
+    assert "AGENT_PROVIDER: ${AGENT_PROVIDER:-fireworks}" in compose
+    assert "JUDGE_MODEL: ${JUDGE_MODEL:-qwen/qwen3.8-27b}" in compose  # the judge stays another family, on Groq

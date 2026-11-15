@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 from langchain_core.messages import AIMessage
 
-from app.auth import Principal, decode_token, validate_jwt_secret
+from app.auth import Principal, decode_token, validate_auth_config
 from app.graph import build_graph
 from app.agents.support import make_support_node
 from app.main import app
@@ -11,7 +11,7 @@ from app.schemas import ChatResponse, Routing
 from app.service import ChatService, thread_id_for
 from fastapi import HTTPException
 from scripts.issue_token import main as issue_token_main
-from tests.conftest import TEST_AUDIENCE, TEST_ISSUER, TEST_SECRET, bearer, make_jwt, scripted
+from tests.conftest import bearer, make_jwt, rsa_key, scripted
 
 
 class RecordingService:
@@ -59,7 +59,7 @@ def test_expired_token_is_401(client, svc):
 
 
 def test_wrong_signature_is_401(client, svc):
-    assert post(client, make_jwt(key="another-key-another-key-another-key-1234")).status_code == 401
+    assert post(client, make_jwt(key=rsa_key("other"))).status_code == 401  # signed by somebody else's key, kid copied
     assert svc.calls == []
 
 
@@ -80,10 +80,34 @@ def test_unsigned_alg_none_token_is_401(client, svc):
     assert svc.calls == []
 
 
+def hs256_signed_with_the_public_key(realm: str = "merchants") -> str:
+    """The classic algorithm-confusion forgery: HS256 with the PUBLIC key as the HMAC secret."""
+    import base64
+    import hashlib
+    import hmac
+    import json
+    import time
+
+    from cryptography.hazmat.primitives import serialization
+
+    from tests.conftest import KIDS, TEST_AUDIENCE, TEST_ISSUER, rsa_key
+
+    public_pem = rsa_key(realm).public_key().public_bytes(serialization.Encoding.PEM,
+                                                           serialization.PublicFormat.SubjectPublicKeyInfo)
+    b64 = lambda raw: base64.urlsafe_b64encode(raw).rstrip(b"=")
+    now = int(time.time())
+    head = b64(json.dumps({"alg": "HS256", "typ": "JWT", "kid": KIDS[realm]}).encode())
+    body = b64(json.dumps({"sub": "cliente1988", "iss": TEST_ISSUER, "aud": TEST_AUDIENCE, "iat": now, "exp": now + 600,
+                           "jti": "forged", "scope": "chat"}).encode())
+    sig = b64(hmac.new(public_pem, head + b"." + body, hashlib.sha256).digest())
+    return (head + b"." + body + b"." + sig).decode()
+
+
 @pytest.mark.filterwarnings("ignore::jwt.warnings.InsecureKeyLengthWarning")
-def test_token_signed_with_another_algorithm_is_401(client, svc):
-    # right secret, wrong algorithm: the algorithm is never taken from the token
-    assert post(client, make_jwt(algorithm="HS512")).status_code == 401
+def test_algorithm_confusion_with_the_public_key_is_401(client, svc):
+    # there is no HS256 path at all: the only accepted algorithm is RS256, fixed in code
+    assert post(client, hs256_signed_with_the_public_key()).status_code == 401
+    assert post(client, make_jwt(key="x" * 40, algorithm="HS512")).status_code == 401
     assert svc.calls == []
 
 
@@ -94,6 +118,10 @@ def test_token_signed_with_another_algorithm_is_401(client, svc):
     {"drop": ("iss",)},
     {"drop": ("aud",)},
     {"drop": ("sub",)},
+    {"drop": ("jti",)},
+    {"drop": ("iat",)},
+    {"role": "operator"},  # the issuer decides the role: a claim may only agree with it
+    {"minutes": 60},  # lives longer than JWT_MAX_LIFETIME_SECONDS
     {"user": "bad user"},
     {"user": "x:y"},
     {"user": "cliente1988\nforged log line"},
@@ -108,7 +136,7 @@ def test_invalid_claims_are_401(client, svc, token_kwargs):
 
 
 def test_the_401_does_not_say_why(client):
-    bodies = {post(client, t).text for t in (make_jwt(minutes=-1), make_jwt(iss="x"), make_jwt(key="y" * 40))}
+    bodies = {post(client, t).text for t in (make_jwt(minutes=-1), make_jwt(iss="x"), make_jwt(key=rsa_key("other")))}
     assert len(bodies) == 1  # same message for expired, wrong issuer and bad signature
 
 
@@ -196,38 +224,56 @@ def test_end_to_end_tools_only_return_the_token_users_data(auth_env, repo):
     assert "Marina Souza" not in r.json()["response"]  # cliente2024's profile was never read
 
 
-# ---------- startup: refuse a weak secret ----------
+# ---------- startup: refuse an incomplete or muddled auth setup ----------
 
-@pytest.mark.parametrize("secret", [
-    "",
-    "short",
-    "x" * 31,
-    "change-me-to-a-long-random-value-please",
-    "replace-with-a-random-secret-of-32-chars",
-    "your-jwt-secret-goes-here-0123456789abc",
-    "a" * 40,
-    "abababababababababababababababababababab",
-])
-def test_app_refuses_to_start_with_a_weak_secret(monkeypatch, secret):
+@pytest.mark.parametrize("name", ["JWKS_URL", "JWT_ISSUER", "JWT_AUDIENCE", "OPERATOR_JWKS_URL", "OPERATOR_JWT_ISSUER",
+                                  "OPERATOR_JWT_AUDIENCE"])
+def test_app_refuses_to_start_when_any_auth_setting_is_missing(auth_env, monkeypatch, name):
     from app.config import get_settings
 
-    monkeypatch.setenv("JWT_SECRET", secret)
+    monkeypatch.setenv(name, "")
     get_settings.cache_clear()
     app.state.service = RecordingService()
     try:
-        with pytest.raises(RuntimeError, match="JWT_SECRET"):
+        with pytest.raises(RuntimeError, match=name):
             with TestClient(app):
                 pass
     finally:
         app.state.service = None
-        get_settings.cache_clear()
 
 
-def test_a_missing_secret_never_validates_tokens_even_without_startup_check(monkeypatch):
-    """decode_token is a second line of defence: with no usable secret it must not validate anything."""
+@pytest.mark.parametrize("name,value,why", [
+    ("OPERATOR_JWT_ISSUER", "https://idp.test/realms/merchants", "different issuers"),
+    ("OPERATOR_JWT_AUDIENCE", "getnet-support-api", "different issuers and different audiences"),
+    ("JWKS_URL", "ftp://idp.test/certs", "http"),
+    ("OPERATOR_JWKS_URL", "file:///etc/passwd", "http"),
+    ("JWT_MAX_LIFETIME_SECONDS", "0", "positive"),
+])
+def test_app_refuses_to_start_with_a_muddled_auth_setup(auth_env, monkeypatch, name, value, why):
     from app.config import get_settings
 
-    monkeypatch.setenv("JWT_SECRET", "")
+    monkeypatch.setenv(name, value)
+    get_settings.cache_clear()
+    with pytest.raises(RuntimeError, match=why):
+        validate_auth_config()
+
+
+def test_there_is_no_shared_secret_setting_to_fall_back_on():
+    from app.config import Settings
+
+    assert not any("secret" in f for f in Settings.model_fields)
+
+
+def test_a_complete_setup_is_accepted(auth_env):
+    validate_auth_config()
+
+
+def test_with_no_auth_setup_nothing_validates_even_without_the_startup_check(monkeypatch):
+    """decode_token is a second line of defence: with no usable setup it must not validate anything."""
+    from app.config import get_settings
+
+    for name in ("JWKS_URL", "JWT_ISSUER", "JWT_AUDIENCE", "OPERATOR_JWKS_URL", "OPERATOR_JWT_ISSUER", "OPERATOR_JWT_AUDIENCE"):
+        monkeypatch.setenv(name, "")
     get_settings.cache_clear()
     try:
         with pytest.raises(RuntimeError):
@@ -236,28 +282,41 @@ def test_a_missing_secret_never_validates_tokens_even_without_startup_check(monk
         get_settings.cache_clear()
 
 
-def test_good_secret_is_accepted():
-    validate_jwt_secret(TEST_SECRET)
+# ---------- the demo token script: it asks the identity provider, it signs nothing ----------
 
+def test_issue_token_script_asks_the_identity_provider_for_a_merchant_token(auth_env, monkeypatch, capsys):
+    import scripts.issue_token as script
 
-# ---------- the demo token script ----------
+    monkeypatch.setenv("DEMO_USER_PASSWORD", "demo-password")
+    seen = {}
 
-def test_issue_token_script_makes_a_token_the_api_accepts(auth_env, capsys):
+    def fake_request(issuer, client_id, user, password, timeout=15.0):
+        seen.update(issuer=issuer, client_id=client_id, user=user, password=password)
+        return make_jwt(user)
+
+    monkeypatch.setattr(script, "request_token", fake_request)
     issue_token_main(["--user", "cliente1988"])
     out = capsys.readouterr().out
-    token = out.splitlines()[0]
-    assert decode_token(token) == Principal("cliente1988", frozenset({"chat"}))
-    assert f"Authorization: Bearer {token}" in out and "curl" in out
+    assert seen == {"issuer": "https://idp.test/realms/merchants", "client_id": "getnet-support-app",
+                    "user": "cliente1988", "password": "demo-password"}
+    assert decode_token(out.splitlines()[0]) == Principal("cliente1988", frozenset({"chat"}))
+    assert "Authorization: Bearer" in out and "curl" in out
 
 
-def test_issue_token_script_scopes_and_default_lifetime(auth_env, capsys):
-    import jwt
+def test_issue_token_script_needs_the_demo_password_and_never_prints_it(auth_env, monkeypatch, capsys):
+    monkeypatch.delenv("DEMO_USER_PASSWORD", raising=False)
+    with pytest.raises(SystemExit):
+        issue_token_main(["--user", "cliente1988"])
+    assert "DEMO_USER_PASSWORD" in capsys.readouterr().err
 
-    issue_token_main(["--user", "cliente2024", "--scopes", "chat operator"])
-    token = capsys.readouterr().out.splitlines()[0]
-    claims = jwt.decode(token, TEST_SECRET, algorithms=["HS256"], audience=TEST_AUDIENCE, issuer=TEST_ISSUER)
-    assert claims["exp"] - claims["iat"] == 15 * 60  # default 15 minutes
-    assert set(claims["scope"].split()) == {"chat", "operator"}
+
+def test_issue_token_script_is_not_in_the_docker_image():
+    from pathlib import Path
+
+    dockerfile = (Path(__file__).parent.parent / "Dockerfile").read_text(encoding="utf-8")
+    copied = [l for l in dockerfile.splitlines() if l.strip().upper().startswith(("COPY", "ADD"))]
+    assert copied and not any("scripts" in l or "infra" in l for l in copied)  # nobody in the container can mint a token
+    assert "scripts" in (Path(__file__).parent.parent / ".dockerignore").read_text(encoding="utf-8")
 
 
 def test_decode_token_raises_401_not_a_500(auth_env):

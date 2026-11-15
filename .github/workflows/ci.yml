@@ -18,11 +18,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      # Fake, only for this job. The tests set their own secret; no real key is ever needed.
-      # There is no GROQ_API_KEY, TAVILY_API_KEY or VOYAGE_API_KEY and no .env file here:
-      # none of the tests calls an LLM or the network (the `eval` marker is deselected anyway).
-      JWT_SECRET: ci-only-fake-jwt-secret-0123456789-abcdefghij
+    # No secret and no key is needed: the tests generate their own RSA keys and serve their own JWKS.
+    # There is no GROQ_API_KEY, TAVILY_API_KEY or VOYAGE_API_KEY and no .env file here: none of the tests calls an
+    # LLM or the network (the `eval` marker is deselected, and tests/test_keycloak_live.py skips itself).
     steps:
       - uses: actions/checkout@v4
 

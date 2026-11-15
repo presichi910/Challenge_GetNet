@@ -1,3 +1,7 @@
+import functools
+import json
+import time
+import uuid
 from datetime import date
 
 import pytest
@@ -23,40 +27,88 @@ def scripted(*messages: AIMessage) -> ToolFakeModel:
     return ToolFakeModel(messages=iter(messages))
 
 
-# ---- auth helpers (no network, no real keys) ----
-TEST_SECRET = "k3Jf9vQx2LmT7pRz8WnB4sYd6HcA1eUg0XoVtZiN"  # passes validate_jwt_secret
-TEST_ISSUER = "test-issuer"
-TEST_AUDIENCE = "test-audience"
+# ---- auth helpers: RSA keys generated here and a fake identity provider. No network, no real keys. ----
+TEST_ISSUER = "https://idp.test/realms/merchants"  # the merchant side
+TEST_AUDIENCE = "getnet-support-api"
+OPERATOR_ISSUER = "https://idp.test/realms/operators"  # the operator side: another issuer, audience and keys
+OPERATOR_AUDIENCE = "getnet-operator-api"
+MERCHANT_JWKS_URL = "https://idp.test/realms/merchants/certs"
+OPERATOR_JWKS_URL = "https://idp.test/realms/operators/certs"
+KIDS = {"merchants": "merchant-key-1", "operators": "operator-key-1"}
+_DEFAULT = object()
+
+
+@functools.lru_cache(maxsize=None)
+def rsa_key(name: str):
+    """A private key per name, generated once per test run: "merchants", "operators", "other" (an attacker's), "rotated"."""
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
+def jwk_of(name: str, kid: str, **extra) -> dict:
+    import jwt
+
+    d = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(rsa_key(name).public_key()))
+    return {**d, "kid": kid, "use": "sig", "alg": "RS256", **extra}
+
+
+class FakeIdp:
+    """What the identity provider publishes. A test can rotate a key, add keys, take it down and count the fetches."""
+
+    def __init__(self):
+        self.published = {MERCHANT_JWKS_URL: [("merchant-key-1", "merchants")], OPERATOR_JWKS_URL: [("operator-key-1", "operators")]}
+        self.extra: dict[str, list[dict]] = {}
+        self.fetches: list[str] = []
+        self.down = False
+
+    def fetch(self, url: str, timeout: float) -> dict:
+        self.fetches.append(url)
+        if self.down:
+            raise OSError("identity provider unreachable")
+        return {"keys": [jwk_of(name, kid) for kid, name in self.published[url]] + self.extra.get(url, [])}
 
 
 @pytest.fixture
 def auth_env(monkeypatch):
-    """App settings with a known JWT secret/issuer/audience."""
+    """App settings for two issuers (merchants, operators) and a fake IdP behind their JWKS URLs."""
+    from app import auth, jwks
     from app.config import get_settings
 
-    monkeypatch.setenv("JWT_SECRET", TEST_SECRET)
-    monkeypatch.setenv("JWT_ISSUER", TEST_ISSUER)
-    monkeypatch.setenv("JWT_AUDIENCE", TEST_AUDIENCE)
+    for k, v in {"JWKS_URL": MERCHANT_JWKS_URL, "JWT_ISSUER": TEST_ISSUER, "JWT_AUDIENCE": TEST_AUDIENCE,
+                 "OPERATOR_JWKS_URL": OPERATOR_JWKS_URL, "OPERATOR_JWT_ISSUER": OPERATOR_ISSUER,
+                 "OPERATOR_JWT_AUDIENCE": OPERATOR_AUDIENCE}.items():
+        monkeypatch.setenv(k, v)
     get_settings.cache_clear()
-    yield
+    idp = FakeIdp()
+    monkeypatch.setattr(jwks, "fetch_jwks", idp.fetch)
+    auth.reset_auth_state()
+    yield idp
     get_settings.cache_clear()
+    auth.reset_auth_state()
 
 
-def make_jwt(user: str = "cliente1988", scope: str | None = "chat", *, key: str = TEST_SECRET,
-             algorithm: str = "HS256", minutes: float = 15, drop: tuple[str, ...] = (), **overrides) -> str:
-    """Build a token. `drop` removes claims, `overrides` replaces them. Valid by default."""
-    import time
-
+def make_jwt(user: str = "cliente1988", scope: str | None = "chat", *, key=_DEFAULT, algorithm: str = "RS256",
+             minutes: float = 15, drop: tuple[str, ...] = (), realm: str = "merchants", kid: str | None = _DEFAULT,
+             headers: dict | None = None, drop_headers: tuple[str, ...] = (), **overrides) -> str:
+    """Build a token signed by the realm's key. Valid by default.
+    `drop` removes claims, `overrides` replaces them, `key` signs with another key, `kid`/`headers`/`drop_headers` shape the header."""
     import jwt
 
     now = int(time.time())
-    claims = {"sub": user, "iss": TEST_ISSUER, "aud": TEST_AUDIENCE, "iat": now, "exp": now + int(minutes * 60)}
+    iss, aud = (TEST_ISSUER, TEST_AUDIENCE) if realm == "merchants" else (OPERATOR_ISSUER, OPERATOR_AUDIENCE)
+    claims = {"sub": user, "iss": iss, "aud": aud, "iat": now, "exp": now + int(minutes * 60), "jti": uuid.uuid4().hex}
     if scope is not None:
         claims["scope"] = scope
     claims.update(overrides)
     for k in drop:
         claims.pop(k, None)
-    return jwt.encode(claims, key, algorithm=algorithm)
+    signing = rsa_key(realm) if key is _DEFAULT else key
+    header = {"kid": KIDS[realm] if kid is _DEFAULT else kid, **(headers or {})}
+    for h in drop_headers:
+        header.pop(h, None)
+    header = {k: v for k, v in header.items() if v is not None}
+    return jwt.encode(claims, signing, algorithm=algorithm, headers=header)
 
 
 def bearer(token: str) -> dict:
@@ -64,8 +116,8 @@ def bearer(token: str) -> dict:
 
 
 def operator_jwt(operator: str = "ops1", scope: str | None = "operator", **kw) -> str:
-    """A token for support staff: role operator, scope operator."""
-    return make_jwt(operator, scope, role="operator", **kw)
+    """A token for support staff: signed by the operator issuer, for the operator audience."""
+    return make_jwt(operator, scope, realm="operators", **kw)
 
 
 @pytest.fixture(autouse=True)

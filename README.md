@@ -45,30 +45,35 @@ The response also lists which agents ran, the tools they called, the sources and
 ## Run it
 
 ```bash
-cp .env.example .env            # add GROQ_API_KEY, TAVILY_API_KEY, VOYAGE_API_KEY and a real JWT_SECRET
+cp .env.example .env
+# add GROQ_API_KEY (the judge), FIREWORKS_API_KEY, TAVILY_API_KEY, VOYAGE_API_KEY, and two long random values the
+# demo identity provider needs (compose refuses to start without them, and they are never written in a repo file):
+#   KEYCLOAK_ADMIN_PASSWORD, DEMO_USER_PASSWORD     python -c "import secrets; print(secrets.token_urlsafe(24))"
 
 docker compose build
 docker compose run --rm ingest  # builds the knowledge base (slow on Voyage's free tier)
-docker compose up -d            # API on http://localhost:8000
+docker compose up -d            # Keycloak on http://localhost:8180 (first start ~30 s), API on http://localhost:8000
 ```
 
 ```bash
-# the API needs a JWT (see Authentication). This makes one for the demo customer cliente1988:
-TOKEN=$(docker compose exec -T api python -m scripts.issue_token --user cliente1988 | head -1)
+# the API needs a JWT (see Authentication). Ask the identity provider for one, as the demo customer cliente1988:
+TOKEN=$(python -m scripts.issue_token --user cliente1988 | head -1)    # needs DEMO_USER_PASSWORD in the shell
 
 curl -s -X POST http://localhost:8000/chat \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message": "My card machine won'\''t connect to the internet, what should I do?"}'
 ```
 
-Without Docker:
+`scripts/` is a development helper and is **not** in the Docker image, so run it from your checkout (`pip install -r requirements-dev.txt`).
+
+Without Docker for the API (Keycloak still comes from compose: `docker compose up -d keycloak`):
 
 ```bash
 python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
 python -m app.rag.ingest
-uvicorn app.main:app --reload
-python -m scripts.issue_token --user cliente1988     # prints a token and an example curl
+uvicorn app.main:app --reload                         # reads the auth variables of .env
+python -m scripts.issue_token --user cliente1988      # prints a token and an example curl
 ```
 
 `python -m app.rag.ingest --from-cache` re-indexes without spending Tavily credits. `GET /health` shows how many chunks are in the knowledge base.
@@ -113,21 +118,27 @@ Interactive docs at `/docs` when the API is running.
 
 ## Authentication
 
-`POST /chat` requires `Authorization: Bearer <jwt>`. `GET /health` is public. The token has a `role` (`merchant`, the default, or `operator`; see Human oversight). The rest of this section is about merchants.
+`POST /chat` requires `Authorization: Bearer <jwt>`. `GET /health` is public. There are two kinds of caller, **merchants** (`/chat`, `/conversations`) and **operators** (`/operator/*`, see Human oversight), and each one has its own issuer, audience and signing keys.
 
-- **Who is calling comes only from the token.** The JWT is verified with PyJWT: HS256 fixed in code (so `alg: none` or any other algorithm is rejected), signature, `exp`, `iss` and `aud`, and the claims `exp`, `iss`, `aud`, `sub` are required. `sub` is the customer (`user_id`). It goes to the tools, the memory thread, the tickets, the handoff records and the logs. The LLM never chooses it. The Support prompt does show the id (it comes from the verified token, never from the user's text) so the model can tell "my data" from someone else's; removing it made the cross-customer refusal case `x04` fail in 5 of 5 runs of an A/B test.
-- **Status codes.** `401`: token missing, malformed, expired, bad signature, wrong issuer/audience or invalid `sub` (always the same generic message; the real reason is only in the server log). `403`: valid token without the `chat` scope (`scope` claim, space separated), with the wrong `role` (an operator token on `/chat`), or a body `user_id` that is not the token's. `404` on `/conversations/{id}`: the conversation does not exist **or is not yours** (same answer, on purpose).
+- **Tokens are RS256 and checked against the identity provider's public keys (JWKS). There is no shared secret in the app.** Anybody who can read the whole container, the image or the repo still cannot mint a token. The demo identity provider is Keycloak (docker compose, `infra/keycloak`: two realms, `getnet-merchants` and `getnet-operators`, imported with no passwords in the files; users get `DEMO_USER_PASSWORD` from the environment). A real deployment points the six `JWKS_URL` / `JWT_ISSUER` / `JWT_AUDIENCE` variables (and the `OPERATOR_` ones) at its own identity provider.
+- **How a token is checked** (`app/auth.py`): the header must say `alg: RS256`, the only accepted algorithm, fixed in code (there is no HS256 path, so no algorithm-confusion attack; `alg: none` is refused), must carry a `kid`, and may not carry `jku`, `jwk`, `x5u` or `x5c` (a token never tells the API where its key is). The `iss` must be exactly one of the two configured issuers: it only picks which public keys to use, and the signature is then checked against that issuer's keys alone. `exp`, `iat`, `iss`, `aud`, `sub` and `jti` are required. A token that lives longer than `JWT_MAX_LIFETIME_SECONDS` (900) is refused whatever the identity provider issues; Keycloak issues 5 minutes.
+- **The JWKS cache** (`app/jwks.py`) keeps only RS256 signing keys that have a `kid` (Keycloak also publishes an encryption key; it is ignored). An unknown `kid` may trigger a re-fetch (the provider rotated its keys) **at most once every `JWKS_MIN_REFRESH_SECONDS` (30)**, so random `kid` values cannot make the API hammer the provider. If the provider is down the cached keys keep working (nobody is logged out by an outage); a cache that never got a key refuses everything.
+- **Who is calling comes only from the token.** `sub` is the customer (`user_id`). It goes to the tools, the memory thread, the tickets, the handoff records and the logs. The LLM never chooses it. The Support prompt does show the id (it comes from the verified token, never from the user's text) so the model can tell "my data" from someone else's; removing it made the cross-customer refusal case `x04` fail in 5 of 5 runs of an A/B test.
+- **Roles come from the issuer.** A token signed by the operator realm is an operator; one signed by the merchant realm is a merchant, and a `role` claim may only agree with that. A merchant token on `/operator/*` is a valid merchant token and gets `403`; it cannot be turned into an operator token by editing its claims (that breaks the signature, and the operator keys are another issuer's).
+- **Status codes.** `401`: token missing, malformed, expired, bad signature, unknown `kid` or issuer, wrong audience, too long-lived, revoked or invalid `sub` (always the same generic message). `403`: valid token without the required scope (`scope` claim, space separated) or with the wrong role, or a body `user_id` that is not the token's. `429`: over the per-caller rate limit. `404` on `/conversations/{id}`: the conversation does not exist **or is not yours** (same answer, on purpose).
+- **Audit log of refusals** (logger `auth.audit`, one line each): `auth_failure reason=<code> kid=<kid> method=<m> path=<p> client=<ip>`, `auth_denied reason=wrong_role|missing_scope|rate_limited ...`. The reason is from a fixed vocabulary; the token, its claims and the `sub` are never logged, and what the caller writes (path, `kid`) is stripped of anything that is not printable so it cannot forge a line.
+- **Rate limit per caller** (`app/ratelimit.py`): a sliding window per authenticated `sub` (`RATE_LIMIT_PER_MINUTE`, 30; operators `OPERATOR_RATE_LIMIT_PER_MINUTE`, 120). It runs after authentication, so one customer cannot spend the model quota of the others and unauthenticated traffic costs nothing. It lives in the API process, which is right for one worker (the SQLite checkpointer needs one anyway); with several workers each would count alone, and that is the point to swap in a Redis-backed limiter with the same `hit` method.
+- **Revocation** (`POST /operator/revocations {"jti": ...}`, operator only): the token id goes into an in-memory denylist for as long as a token could live. After a restart the list is empty, so a revoked token works again until it expires (at most 15 minutes): also end the session in the identity provider.
 - **Body `user_id` is optional.** It is accepted so clients that follow the original `{message, user_id}` contract keep working, but it is never used as identity: if present it must equal the token's `sub`.
 - **Conversations.** Optional `conversation_id` (`[A-Za-z0-9_.-]`, max 64) lets one customer have several conversations. The memory thread is `<sub>:<conversation_id>` (default `default`). The prefix always comes from the token, so nobody can read another customer's thread.
-- **The app won't start with a weak secret.** `JWT_SECRET` (plus `JWT_ISSUER`, `JWT_AUDIENCE`) comes from `.env`. Empty, shorter than 32 characters, repetitive or placeholder-looking values are rejected at startup.
+- **The app won't start with an incomplete setup.** All six `JWKS_URL` / `JWT_ISSUER` / `JWT_AUDIENCE` variables (merchant and operator) must be set, the two sides must have different issuers and audiences, and the JWKS URLs must be http(s).
 
 ```bash
-python -m scripts.issue_token --user cliente1988                       # chat scope, 15 min
-python -m scripts.issue_token --user cliente1988 --scopes "chat" --minutes 60
-python -m scripts.issue_token --role operator --operator ops1          # operator token
+python -m scripts.issue_token --user cliente1988                       # a merchant token (asks Keycloak, 5 min)
+python -m scripts.issue_token --role operator --operator ops1          # an operator token
 ```
 
-This is a demo: a shared secret means whoever can issue tokens can impersonate anyone. In production use an identity provider that signs with RS256 and publishes its keys (JWKS), and verify with the public key only.
+Tests sign with RSA keys generated on the fly and serve their own JWKS (no network, no real keys); `tests/test_keycloak_live.py` runs the same checks against a real Keycloak when you ask for it (`RUN_KEYCLOAK_TESTS=1`). The demo realm is a development setup (Keycloak `start-dev`, in-memory database, password grant enabled, port bound to 127.0.0.1): production needs the company's own identity provider, refresh-token handling and a shared rate-limit store.
 
 ## Human handoff
 
@@ -225,7 +236,7 @@ Every `/chat` turn is measured without touching a prompt or a node: `ChatService
 - **Metrics.** `GET /operator/metrics?since=&until=` (operator only): requests, latency p50/p95, degraded and handoff rates, provider errors, tokens and cost per node and model, tool calls and errors.
 
   ```bash
-  OP=$(python -m scripts.issue_token --role operator --operator ops1)
+  OP=$(python -m scripts.issue_token --role operator --operator ops1 | head -1)
   curl -s -H "Authorization: Bearer $OP" "localhost:8000/operator/metrics?since=2026-11-12T00:00:00"
   ```
 - **Logs and alerts.** One log line per request, ending with `tokens=<n> cost_usd=<usd>`. A turn above `MAX_TURN_TOKENS` (30000) or `MAX_TURN_COST_USD` (0.02), or one that got a 429 from the provider, logs a `WARNING` starting with `ALERT`, ready for a log-based alert rule.
@@ -296,7 +307,7 @@ These are single full runs plus three repeats, and the judge is not ground truth
 
 **Product**
 
-- Customer data is fake, and auth is a demo: HS256 with a shared secret and tokens from a local script. A real deployment needs an identity provider (RS256/JWKS), refresh tokens, revocation and rate limiting.
+- Customer data is fake. Auth is RS256 against a Keycloak in dev mode (in-memory database, password grant for the demo users): a real deployment needs the company's identity provider, refresh-token handling, a revocation list that survives a restart and a rate-limit store shared by several workers (both are in the API process today).
 - Memory is persistent but **not encrypted at rest**, and assumes one uvicorn worker.
 - The handoff queue has an API but no operator UI and no notification when a case arrives, so "a human will follow up" is only as true as somebody polling `/operator/handoffs`. A real setup needs Slack/Teams/helpdesk behind `HandoffNotifier`. There is no way to hand a claimed case straight to a named operator (release it and let them claim it).
 - Not done: guardrails, visual dashboards, OpenTelemetry/Langfuse export and alert delivery.
@@ -328,7 +339,8 @@ app/
   data/     customers.json, repository.py
 eval/       dataset.jsonl, retrieval.jsonl, run_eval.py, run_retrieval.py, repeats.py, judge.py,
             calibration/, reports/
-scripts/    issue_token.py (demo JWT, merchant or operator)
+scripts/    issue_token.py (asks Keycloak for a demo token; not in the Docker image)
+infra/      keycloak/ (the two demo realms, merchants and operators)
 tests/
 docs/       SPEC.md, CHALLENGE.md
 ```

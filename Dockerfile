@@ -16,9 +16,10 @@ RUN groupadd --gid 10001 app \
  && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin app
 
 # Code stays owned by root and read-only for the app user: the process cannot rewrite its own code.
+# `scripts/` (the demo token helper) and `infra/` (the Keycloak realms) are NOT copied: nobody who can open a shell in
+# this container should be able to mint a token.
 COPY app ./app
 COPY eval ./eval
-COPY scripts ./scripts
 
 # Only two places are writable: /app/data (Chroma, crawl cache, tickets, handoffs) and
 # /app/eval/reports. /app/data is a named volume in docker-compose.yml: Docker initialises a new

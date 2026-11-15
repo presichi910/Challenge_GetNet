@@ -7,7 +7,7 @@ from app.main import app
 from app.schemas import ChatResponse, Routing
 from fastapi import HTTPException
 from scripts.issue_token import main as issue_token_main
-from tests.conftest import TEST_AUDIENCE, TEST_ISSUER, TEST_SECRET, bearer, make_jwt, operator_jwt
+from tests.conftest import bearer, make_jwt, operator_jwt
 
 
 class StubService:
@@ -52,9 +52,16 @@ def test_a_token_without_a_role_claim_is_a_merchant(auth_env):
     assert decode_token(make_jwt("cliente1988")) == Principal("cliente1988", frozenset({"chat"}), "merchant")
 
 
-def test_the_role_claim_is_read(auth_env):
-    p = decode_token(operator_jwt("ops1"))
+def test_the_role_comes_from_the_issuer_that_signed_the_token(auth_env):
+    p = decode_token(operator_jwt("ops1"))  # signed by the operator issuer: no `role` claim needed
     assert (p.user_id, p.role, p.scopes) == ("ops1", "operator", frozenset({"operator"}))
+    assert decode_token(make_jwt("cliente1988", role="merchant")).role == "merchant"  # a claim may agree with the issuer
+
+
+def test_a_role_claim_can_not_promote_a_merchant_token(auth_env):
+    with pytest.raises(HTTPException) as e:
+        decode_token(make_jwt("cliente1988", "operator", role="operator"))  # merchant issuer, operator claim
+    assert e.value.status_code == 401
 
 
 @pytest.mark.parametrize("role", ["admin", "OPERATOR", "", " operator", ["operator"], 1, None])
@@ -82,21 +89,23 @@ def test_a_merchant_still_uses_chat_even_with_the_operator_scope(client):
     assert r.status_code == 200  # the scope gives a merchant nothing extra, see test_operator_api
 
 
-def test_issue_token_makes_an_operator_token(auth_env, capsys):
+def test_issue_token_asks_the_operator_realm_for_an_operator_token(auth_env, monkeypatch, capsys):
+    import scripts.issue_token as script
+
+    monkeypatch.setenv("DEMO_USER_PASSWORD", "demo-password")
+    seen = {}
+
+    def fake_request(issuer, client_id, user, password, timeout=15.0):
+        seen.update(issuer=issuer, client_id=client_id, user=user)
+        return operator_jwt(user)
+
+    monkeypatch.setattr(script, "request_token", fake_request)
     issue_token_main(["--role", "operator", "--operator", "ops1"])
     out = capsys.readouterr().out
+    assert seen == {"issuer": "https://idp.test/realms/operators", "client_id": "getnet-operator-app", "user": "ops1"}
     p = decode_token(out.splitlines()[0])
     assert (p.user_id, p.role, p.scopes) == ("ops1", "operator", frozenset({"operator"}))
     assert "/operator/handoffs" in out and "/chat" not in out
-
-
-def test_issue_token_always_writes_the_role(auth_env, capsys):
-    import jwt
-
-    issue_token_main(["--user", "cliente1988"])
-    claims = jwt.decode(capsys.readouterr().out.splitlines()[0], TEST_SECRET, algorithms=["HS256"],
-                        audience=TEST_AUDIENCE, issuer=TEST_ISSUER)
-    assert claims["role"] == "merchant"
 
 
 @pytest.mark.parametrize("argv", [["--role", "operator", "--user", "x"], ["--role", "operator"],

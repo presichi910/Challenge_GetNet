@@ -9,7 +9,7 @@ from app.config import get_settings
 from app.main import app
 from app.memory import Memory
 from app.service import ChatService
-from tests.conftest import bearer, make_jwt
+from tests.conftest import bearer, make_jwt, rsa_key
 from tests.test_memory import make_graph
 
 A, B = "cliente1988", "cliente2024"
@@ -166,7 +166,7 @@ def test_all_three_need_a_valid_token_with_the_chat_scope(client, method, path):
     call = getattr(client, method)
     assert call(path).status_code == 401  # no token
     assert call(path, headers={"Authorization": "Bearer not-a-jwt"}).status_code == 401
-    assert call(path, headers=h(A, key="another-secret-another-secret-another-1")).status_code == 401  # forged
+    assert call(path, headers=h(A, key=rsa_key("other"))).status_code == 401  # forged
     assert call(path, headers=h(A, minutes=-5)).status_code == 401  # expired
     assert call(path, headers=h(A, scope="other")).status_code == 403  # valid token, wrong scope
     assert call(path, headers=h(A, scope=None)).status_code == 403  # no scope claim

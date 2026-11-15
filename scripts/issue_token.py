@@ -1,55 +1,65 @@
-"""Issue a demo JWT for the API (HS256, same secret/issuer/audience as the app).
+"""Ask the identity provider (Keycloak, from docker-compose) for a demo token. Development helper.
 
-    python -m scripts.issue_token --user cliente1988
-    python -m scripts.issue_token --user cliente1988 --scopes "chat" --minutes 60
-    docker compose exec api python -m scripts.issue_token --user cliente1988
-    python -m scripts.issue_token --role operator --operator ops1      # for /operator/*
+    python -m scripts.issue_token --user cliente1988                   # a merchant, for /chat
+    python -m scripts.issue_token --role operator --operator ops1      # support staff, for /operator/*
 
-Demo only. In production the identity provider issues the tokens.
+It signs nothing: the identity provider does. It needs the demo password in DEMO_USER_PASSWORD (the one compose gives
+Keycloak) and the issuers in .env (JWT_ISSUER / OPERATOR_JWT_ISSUER, as the host sees them, e.g. http://localhost:8180/...).
+It is NOT copied into the Docker image: nobody who can open a shell in the API container can mint a token.
 """
 from __future__ import annotations
 
 import argparse
-import time
+import json
+import os
+import urllib.error
+import urllib.parse
+import urllib.request
 
-import jwt
-
-from app.auth import ALGORITHM, validate_jwt_secret
 from app.config import get_settings
 
+CLIENTS = {"merchant": "getnet-support-app", "operator": "getnet-operator-app"}  # public clients of infra/keycloak
 
-def make_token(user: str, scopes: str, minutes: float, secret: str, issuer: str, audience: str,
-               now: float | None = None, role: str = "merchant") -> str:
-    iat = int(now if now is not None else time.time())
-    claims = {"sub": user, "scope": scopes, "role": role, "iss": issuer, "aud": audience,
-              "iat": iat, "exp": iat + int(minutes * 60)}
-    return jwt.encode(claims, secret, algorithm=ALGORITHM)
+
+def request_token(issuer: str, client_id: str, user: str, password: str, timeout: float = 15.0) -> str:
+    """Password grant against the realm of `issuer` (demo only: the realm files enable it)."""
+    body = urllib.parse.urlencode({"grant_type": "password", "client_id": client_id, "username": user,
+                                   "password": password}).encode()
+    req = urllib.request.Request(f"{issuer.rstrip('/')}/protocol/openid-connect/token", data=body)
+    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 - the URL comes from our own settings
+        return json.load(r)["access_token"]
 
 
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--role", choices=("merchant", "operator"), default="merchant",
                     help="merchant (default) uses /chat; operator uses /operator/* and can not use /chat")
-    ap.add_argument("--user", help="merchant id, becomes the `sub` claim (e.g. cliente1988). Role merchant only")
-    ap.add_argument("--operator", help="operator id, becomes the `sub` claim (e.g. ops1). Role operator only")
-    ap.add_argument("--scopes", default=None, help='space separated scopes (default: "chat", or "operator" for an operator)')
-    ap.add_argument("--minutes", type=float, default=15, help="token lifetime (default: 15)")
+    ap.add_argument("--user", help="merchant id, the `sub` of the token (e.g. cliente1988). Role merchant only")
+    ap.add_argument("--operator", help="operator id, the `sub` of the token (e.g. ops1). Role operator only")
     ap.add_argument("--url", default="http://localhost:8000", help="base URL used in the example curl")
     args = ap.parse_args(argv)
     if args.role == "operator":
         if not args.operator or args.user:
             ap.error("--role operator needs --operator <id> and takes no --user")
-        subject, scopes = args.operator, args.scopes or "operator"
+        subject = args.operator
     else:
         if not args.user or args.operator:
             ap.error("--role merchant needs --user <id> and takes no --operator")
-        subject, scopes = args.user, args.scopes or "chat"
+        subject = args.user
 
+    password = os.environ.get("DEMO_USER_PASSWORD", "")
+    if not password:
+        ap.error("set DEMO_USER_PASSWORD (the demo password compose gave Keycloak)")
     s = get_settings()
-    validate_jwt_secret(s.jwt_secret)
-    token = make_token(subject, scopes, args.minutes, s.jwt_secret, s.jwt_issuer, s.jwt_audience, role=args.role)
+    issuer = s.operator_jwt_issuer if args.role == "operator" else s.jwt_issuer
+    if not issuer:
+        ap.error("JWT_ISSUER / OPERATOR_JWT_ISSUER are not set (see .env.example)")
+    try:
+        token = request_token(issuer, CLIENTS[args.role], subject, password)
+    except (urllib.error.URLError, KeyError, ValueError) as e:
+        raise SystemExit(f"could not get a token from {issuer}: {type(e).__name__}. Is Keycloak up (docker compose up -d keycloak)?")
     print(token)
-    print(f"\n# valid for {args.minutes:g} min, {args.role}={subject}, scopes={scopes!r}. Try it:\n")
+    print(f"\n# {args.role}={subject}, issued by {issuer}. Try it:\n")
     if args.role == "operator":
         print(f"curl -s \"{args.url}/operator/handoffs?status=pending\" \\\n"
               f"  -H \"Authorization: Bearer {token}\"")
