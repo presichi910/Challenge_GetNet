@@ -13,6 +13,18 @@ def test_dataset_covers_all_challenge_scenarios():
     assert all({"id", "user_id", "message", "expected_agents"} <= set(c) for c in load_cases(None))
 
 
+def test_dataset_size_and_the_blind_holdout_added_before_the_prompt_fixes():
+    cases = load_cases(None)
+    ids = [c["id"] for c in cases]
+    held = [c for c in cases if c.get("holdout")]
+    assert len(ids) == len(set(ids)) == 38  # 25 regular + 13 holdout
+    assert len(held) == 13 and [c["id"][:4] for c in held] == [f"ho{i:02d}" for i in range(1, 14)]
+    new = [c for c in held if int(c["id"][2:4]) >= 6]  # the blind holdout: every case says what correct looks like
+    assert len(new) == 8 and all(c.get("criteria") and c["holdout"] is True for c in new)
+    assert {c["user_id"] for c in new} <= {"cliente1988", "cliente2024", "cliente3030"}  # real customers, no ghost user
+    assert sum(1 for c in new if c.get("history")) == 2 and sum(1 for c in new if c.get("expect_handoff")) == 1
+
+
 def test_routing_ok_allows_optional_but_not_missing_or_extra():
     case = {"expected_agents": ["support"], "optional_agents": ["knowledge"]}
     assert routing_ok(case, ["support"]) and routing_ok(case, ["support", "knowledge"])
@@ -321,7 +333,7 @@ def multi_turn_cases():
 
 def test_multi_turn_cases_are_well_formed():
     cases = multi_turn_cases()
-    assert 3 <= len(cases) <= 8
+    assert 3 <= len(cases) <= 12  # 8 regular + ho09 and ho10
     for c in cases:
         roles = [t["role"] for t in c["history"]]
         assert roles == ["user", "assistant"] * (len(roles) // 2) and roles, c["id"]  # alternate, start with the customer, end with the assistant

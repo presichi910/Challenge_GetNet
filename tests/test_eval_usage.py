@@ -85,7 +85,8 @@ def test_holdout_cases_are_summarized_apart_and_never_mixed_into_the_main_metric
     text = render_report(rows, s, "stamp")
     assert "## Holdout (blind cases, never used to tune prompts)" in text and "| ho1 (holdout) |" in text
     held = [c for c in load_cases(None) if c.get("holdout")]
-    assert [c["id"][:4] for c in held] == ["ho01", "ho02", "ho03", "ho04", "ho05"]
+    # ho01-ho05: the original holdout, seen during development; ho06-ho13: the blind one, added before the prompt fixes
+    assert [c["id"][:4] for c in held] == [f"ho{i:02d}" for i in range(1, 14)]
 
 
 def test_rows_of_holdout_cases_are_marked(monkeypatch):
