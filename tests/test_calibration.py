@@ -100,3 +100,34 @@ def test_export_reads_a_report_file_from_the_command_line(tmp_path, monkeypatch,
     export.main()
     assert "3 cases" in capsys.readouterr().out and out.exists()
     assert export.newest_report(tmp_path) == src
+
+
+# ---- evidence in the sheet, blind sheet, join with the judge key ----
+
+def test_the_sheet_carries_the_evidence_the_judge_saw_and_says_so_when_a_report_has_none():
+    from eval.calibration.export import NO_EVIDENCE
+    report = {"rows": [{"id": "a", "message": "q", "answer": "x", "evidence": ["[t] one", "[t] two"],
+                        "judge": {"relevance": 5, "groundedness": 5, "completeness": 5, "tone": 5, "verdict": "pass"}},
+                       {"id": "b", "message": "q", "answer": "x",
+                        "judge": {"relevance": 5, "groundedness": 5, "completeness": 5, "tone": 5, "verdict": "pass"}}]}
+    rows = to_label_rows(report)
+    assert rows[0]["evidence"] == "[t] one\n\n[t] two"
+    assert rows[1]["evidence"] == NO_EVIDENCE
+
+
+def test_the_blind_sheet_has_no_judge_column_and_the_key_joins_back_by_id(tmp_path):
+    from eval.calibration.agreement import merge_judge
+    from eval.calibration.export import BLIND_COLUMNS
+    report = {"rows": [{"id": "a", "message": "q", "answer": "x", "evidence": ["e"],
+                        "judge": {"relevance": 5, "groundedness": 4, "completeness": 5, "tone": 5, "verdict": "pass",
+                                  "reason": "ok"}}]}
+    rows = to_label_rows(report)
+    blind, key = tmp_path / "blind.csv", tmp_path / "key.csv"
+    write_csv(rows, blind, BLIND_COLUMNS)
+    write_csv(rows, key)
+    head = blind.read_text(encoding="utf-8").splitlines()[0]
+    assert "judge" not in head and "evidence" in head
+    filled = [{**r, "human_pass": "no"} for r in csv.DictReader(blind.open(encoding="utf-8"))]
+    merged = merge_judge(filled, list(csv.DictReader(key.open(encoding="utf-8"))))
+    assert merged[0]["judge_verdict"] == "pass" and merged[0]["judge_grounded"] == "4"
+    assert agreement(merged)["confusion"]["fp"] == 1

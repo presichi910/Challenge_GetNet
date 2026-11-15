@@ -19,7 +19,21 @@ def parse_judgement(text: str) -> dict:
     data = json.loads(m.group(0))
     for k in SCORE_KEYS:
         data[k] = max(1, min(5, int(data[k])))
-    data["verdict"] = "pass" if data.get("verdict") == "pass" else "fail"
+    raw = data.get("unsupported_claims")
+    claims = []
+    for c in raw if isinstance(raw, list) else []:
+        if isinstance(c, str) and c.strip():
+            claims.append({"claim": c, "actionable": False})
+        elif isinstance(c, dict) and c.get("claim"):
+            claims.append({"claim": str(c["claim"]), "actionable": c.get("actionable") is True})
+    data["unsupported_claims"] = claims
+    # the caps are enforced here, so a model that lists a claim but still scores 5 cannot pass it
+    cap = 3 if any(c["actionable"] for c in claims) else 4 if claims else 5
+    data["groundedness"] = min(data["groundedness"], cap)
+    data["language_match"] = str(data.get("language_match", True)).lower() != "false"
+    ok = (data["relevance"] >= 4 and data["groundedness"] >= 4 and data["completeness"] >= 3
+          and data["language_match"])
+    data["verdict"] = "pass" if data.get("verdict") == "pass" and ok else "fail"  # only ever downgrades
     data.setdefault("reason", "")
     return data
 

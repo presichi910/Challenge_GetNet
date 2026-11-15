@@ -345,7 +345,7 @@ def test_chat_through_the_api_carries_usage(auth_env, tmp_path, priced):
 # ---- nothing in the agents changed ----
 
 PROMPT_SHA256 = {
-    "JUDGE_PROMPT": "80f52019fb280750536f951ed21bd4607772c1a00af62e787f4cc2163cca03dd",
+    "JUDGE_PROMPT": "0aeacc9b867fb96992537ed75a51b3cccfb55353f8f871bda8740f16e8b11e51",
     "KNOWLEDGE_PROMPT": "de14433fd4badce8622520cf95ff59cb7e23268af150f99c0e2961960a1aec1e",
     "ROUTER_PROMPT": "991ab27c7e18644499336197a5912c7657923aa453929510d178d3a32ec12e64",
     "SUMMARIZER_PROMPT": "b7bc7fccb60b8954a85589562e3ecff2a66a1f83a5549fd61608524c791168f9",

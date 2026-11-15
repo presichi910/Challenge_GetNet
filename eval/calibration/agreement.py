@@ -63,6 +63,13 @@ def mae(pairs: list[tuple[int, int]]) -> float | None:
     return sum(abs(a - b) for a, b in pairs) / len(pairs) if pairs else None
 
 
+def merge_judge(rows: list[dict], key_rows: list[dict]) -> list[dict]:
+    """Rows of a blind sheet (no judge columns) plus the judge columns of the key file, joined by id."""
+    key = {r["id"]: r for r in key_rows}
+    cols = ("judge_relevance", "judge_grounded", "judge_complete", "judge_tone", "judge_verdict", "judge_reason")
+    return [{**{c: key.get(r["id"], {}).get(c, "") for c in cols}, **r} for r in rows]
+
+
 def agreement(rows: list[dict]) -> dict:
     labeled = [r for r in rows if to_bool(r.get("human_pass", "")) is not None]
     pairs = [(str(r.get("judge_verdict", "")).strip().lower() == "pass", to_bool(r["human_pass"])) for r in labeled]
@@ -102,9 +109,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("labels", help="the filled CSV (columns of export.py)")
     ap.add_argument("-o", "--out", help="also write the markdown report here")
+    ap.add_argument("--judge-key", help="CSV with the judge columns (export.py -o file), when `labels` is a blind sheet")
     args = ap.parse_args()
     with open(args.labels, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
+    if args.judge_key:
+        with open(args.judge_key, newline="", encoding="utf-8") as f:
+            rows = merge_judge(rows, list(csv.DictReader(f)))
     text = render(agreement(rows), args.labels)
     print(text)
     if args.out:

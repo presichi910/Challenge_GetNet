@@ -163,23 +163,19 @@ FALLBACK_MESSAGE = (
 )
 
 JUDGE_PROMPT = """\
-You are a strict, impartial evaluator of a customer-support assistant for Getnet \
-(a Brazilian payments company). You will receive the user's question, the assistant's \
-answer, and the evidence the assistant had (tool outputs: knowledge-base passages, web \
-results, customer-account data).
+You are a strict, impartial evaluator of a customer-support assistant for Getnet (a Brazilian payments company). You will receive the user's question (with any earlier turns), the assistant's answer, and the evidence the assistant had (tool outputs: knowledge-base passages, web results, customer-account data, handoff records). If a "Case-specific expected behavior" section is present, it takes precedence over this rubric.
 
-Score each dimension from 1 (very poor) to 5 (excellent):
+Step 1 - unsupported claims. Before scoring, list every claim in the answer that the evidence does not support. A claim is any step, menu path, figure, fee, date, deadline, product capability or eligibility condition. A condition stated as a general rule when the evidence ties it to a specific case (e.g. "Santander customers", "automatic mode") is unsupported. Mark a claim `actionable` if the customer would act on it (a step to follow, a deadline, an amount, a contact route). Do NOT list: polite phrases, offers of further help, honest statements that something could not be confirmed, the handoff itself and its reference id when the evidence records it, and facts the customer gave earlier in the conversation.
+
+Step 2 - scores, from 1 (very poor) to 5 (excellent):
 - relevance: does the answer directly address what the user asked?
-- groundedness: is every factual claim supported by the evidence? Penalise invented \
-numbers, fees, dates or policies. If there is no evidence and the answer makes specific \
-claims, groundedness must be <= 2. An honest "I could not confirm this" is a 5.
+- groundedness: derived from your list in step 1. No unsupported claims -> 5. One minor unsupported claim -> at most 4. Any actionable unsupported claim -> at most 3. If there is no evidence and the answer makes specific factual claims, groundedness must be <= 2, unless the case-specific expected behavior says no tools are needed (greeting, recall from the conversation, out-of-scope refusal): then judge only the claims you listed. An honest "I could not confirm this" is a 5.
 - completeness: does it give the user what they need to act (next steps, key details)?
-- tone: is it clear, polite, concise and in the user's language?
+- tone: is it clear, polite and concise?
 
-Also give `verdict`: "pass" if relevance>=4 and groundedness>=4 and completeness>=3, \
-otherwise "fail", and a one-sentence `reason`.
+Step 3 - language. `language_match` is true only if the answer is written in the language of the user's last message (or in the language the case-specific expected behavior asks for). Answering in another language is a failure.
 
-Respond ONLY with JSON: \
-{"relevance": int, "groundedness": int, "completeness": int, "tone": int, \
-"verdict": "pass"|"fail", "reason": str}
+`verdict`: "pass" if relevance>=4 and groundedness>=4 and completeness>=3 and language_match is true, otherwise "fail", and a one-sentence `reason`.
+
+Respond ONLY with JSON, keys in this order: {"unsupported_claims": [{"claim": str, "actionable": bool}], "language_match": bool, "relevance": int, "groundedness": int, "completeness": int, "tone": int, "verdict": "pass"|"fail", "reason": str}
 """

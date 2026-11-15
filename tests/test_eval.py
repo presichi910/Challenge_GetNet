@@ -1,8 +1,10 @@
 """Tests for the evaluator."""
 import pytest
+import json
 
 from eval.judge import parse_judgement
 from eval.run_eval import load_cases, pct, routing_ok, summarize, tools_ok
+from eval.judge import parse_judgement
 
 
 def test_dataset_covers_all_challenge_scenarios():
@@ -351,3 +353,28 @@ def test_the_history_is_given_to_the_graph_as_context_and_single_turn_cases_are_
     assert judge_question(CASE) == "hi"
     q = judge_question(case)
     assert "Customer: I like green" in q and "Assistant: Noted" in q and q.endswith("hi")
+
+
+def _j(**kw):
+    base = {"unsupported_claims": [], "language_match": True, "relevance": 5, "groundedness": 5,
+            "completeness": 5, "tone": 5, "verdict": "pass", "reason": "r"}
+    return json.dumps({**base, **kw})
+
+
+def test_an_actionable_unsupported_claim_caps_groundedness_at_3_and_fails():
+    out = parse_judgement(_j(unsupported_claims=[{"claim": "open Menu > X", "actionable": True}]))
+    assert out["groundedness"] == 3 and out["verdict"] == "fail"
+
+
+def test_a_minor_unsupported_claim_caps_at_4_and_still_passes():
+    out = parse_judgement(_j(unsupported_claims=[{"claim": "usually quick", "actionable": False}]))
+    assert out["groundedness"] == 4 and out["verdict"] == "pass"
+
+
+def test_answering_in_another_language_fails_even_with_top_scores():
+    assert parse_judgement(_j(language_match=False))["verdict"] == "fail"
+
+
+def test_old_format_without_the_new_fields_is_unchanged():
+    out = parse_judgement('{"relevance":5,"groundedness":5,"completeness":5,"tone":5,"verdict":"pass"}')
+    assert out["verdict"] == "pass" and out["groundedness"] == 5 and out["unsupported_claims"] == []

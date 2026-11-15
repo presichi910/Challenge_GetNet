@@ -1,0 +1,139 @@
+diff --git a/eval/calibration/agreement.py b/eval/calibration/agreement.py
+index ef5205e..ca3d2e7 100644
+--- a/eval/calibration/agreement.py
++++ b/eval/calibration/agreement.py
+@@ -63,6 +63,13 @@ def mae(pairs: list[tuple[int, int]]) -> float | None:
+     return sum(abs(a - b) for a, b in pairs) / len(pairs) if pairs else None
+ 
+ 
++def merge_judge(rows: list[dict], key_rows: list[dict]) -> list[dict]:
++    """Rows of a blind sheet (no judge columns) plus the judge columns of the key file, joined by id."""
++    key = {r["id"]: r for r in key_rows}
++    cols = ("judge_relevance", "judge_grounded", "judge_complete", "judge_tone", "judge_verdict", "judge_reason")
++    return [{**{c: key.get(r["id"], {}).get(c, "") for c in cols}, **r} for r in rows]
++
++
+ def agreement(rows: list[dict]) -> dict:
+     labeled = [r for r in rows if to_bool(r.get("human_pass", "")) is not None]
+     pairs = [(str(r.get("judge_verdict", "")).strip().lower() == "pass", to_bool(r["human_pass"])) for r in labeled]
+@@ -102,9 +109,13 @@ def main() -> None:
+     ap = argparse.ArgumentParser()
+     ap.add_argument("labels", help="the filled CSV (columns of export.py)")
+     ap.add_argument("-o", "--out", help="also write the markdown report here")
++    ap.add_argument("--judge-key", help="CSV with the judge columns (export.py -o file), when `labels` is a blind sheet")
+     args = ap.parse_args()
+     with open(args.labels, newline="", encoding="utf-8") as f:
+         rows = list(csv.DictReader(f))
++    if args.judge_key:
++        with open(args.judge_key, newline="", encoding="utf-8") as f:
++            rows = merge_judge(rows, list(csv.DictReader(f)))
+     text = render(agreement(rows), args.labels)
+     print(text)
+     if args.out:
+diff --git a/eval/calibration/export.py b/eval/calibration/export.py
+index a75a1e1..675292c 100644
+--- a/eval/calibration/export.py
++++ b/eval/calibration/export.py
+@@ -19,10 +19,13 @@ ROOT = Path(__file__).resolve().parent.parent
+ REPORTS = ROOT / "reports"
+ DEFAULT_OUT = Path(__file__).resolve().parent / "labels_template.csv"
+ 
+-COLUMNS = ["id", "holdout", "question", "answer", "evidence_summary", "judge_relevance", "judge_grounded",
++COLUMNS = ["id", "holdout", "question", "answer", "evidence_summary", "evidence", "judge_relevance", "judge_grounded",
+            "judge_complete", "judge_tone", "judge_verdict", "judge_reason",
+            "human_grounded", "human_complete", "human_pass", "notes"]
+ HUMAN_COLUMNS = ("human_grounded", "human_complete", "human_pass", "notes")
++# the sheet the human fills in: no judge score or reason, so the human label is not anchored on the judge
++BLIND_COLUMNS = ["id", "holdout", "question", "answer", "evidence", *HUMAN_COLUMNS]
++NO_EVIDENCE = "(not stored in this report: re-run the eval with the current run_eval.py)"
+ 
+ 
+ def newest_report(reports: Path = REPORTS) -> Path:
+@@ -59,6 +62,7 @@ def to_label_rows(report: dict) -> list[dict]:
+             continue
+         out.append({"id": r["id"], "holdout": "yes" if r.get("holdout") else "", "question": question_of(r),
+                     "answer": r.get("answer", ""), "evidence_summary": evidence_summary(r),
++                    "evidence": "\n\n".join(r["evidence"]) if r.get("evidence") else NO_EVIDENCE,
+                     "judge_relevance": j.get("relevance"), "judge_grounded": j.get("groundedness"),
+                     "judge_complete": j.get("completeness"), "judge_tone": j.get("tone"),
+                     "judge_verdict": j.get("verdict"), "judge_reason": j.get("reason", ""),
+@@ -66,10 +70,10 @@ def to_label_rows(report: dict) -> list[dict]:
+     return out
+ 
+ 
+-def write_csv(rows: list[dict], path: Path) -> None:
++def write_csv(rows: list[dict], path: Path, columns: list[str] = COLUMNS) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+     with path.open("w", newline="", encoding="utf-8") as f:
+-        w = csv.DictWriter(f, fieldnames=COLUMNS)
++        w = csv.DictWriter(f, fieldnames=columns, extrasaction="ignore")
+         w.writeheader()
+         w.writerows(rows)
+ 
+@@ -78,10 +82,14 @@ def main() -> None:
+     ap = argparse.ArgumentParser()
+     ap.add_argument("report", nargs="?", help="eval report JSON (default: the newest in eval/reports)")
+     ap.add_argument("-o", "--out", default=str(DEFAULT_OUT))
++    ap.add_argument("--blind", metavar="PATH", help="also write the sheet to label: no judge columns "
++                    "(agreement.py --judge-key <the -o file> joins them back by id)")
+     args = ap.parse_args()
+     src = Path(args.report) if args.report else newest_report()
+     rows = to_label_rows(json.loads(src.read_text(encoding="utf-8")))
+     write_csv(rows, Path(args.out))
++    if args.blind:
++        write_csv(rows, Path(args.blind), BLIND_COLUMNS)
+     print(f"{len(rows)} cases from {src} -> {args.out}. Fill human_grounded, human_complete (1-5), "
+           "human_pass (yes/no), notes; then: python -m eval.calibration.agreement <file>")
+ 
+diff --git a/eval/run_eval.py b/eval/run_eval.py
+index 0fd6cf2..ac7bb46 100644
+--- a/eval/run_eval.py
++++ b/eval/run_eval.py
+@@ -231,6 +231,8 @@ def evaluate(cases: list[dict], service, judge: Judge | None, pause: float,
+         row = {
+             "id": c["id"], "message": c["message"], "plan": state.get("plan", []),
+             "answer": state["final_answer"], "tools_called": called,
++            # what the judge saw (tool outputs). Stored so a human can check groundedness against it
++            "evidence": evidence,
+             # the exact calls (agent, tool, arguments), to see what the model really asked for
+             "tool_calls": [{"agent": a, "name": tc["name"], "args": tc.get("args", {})}
+                            for a, o in outs.items() for tc in o.get("tool_calls", [])],
+diff --git a/tests/test_calibration.py b/tests/test_calibration.py
+index 6102f9f..4dc4af7 100644
+--- a/tests/test_calibration.py
++++ b/tests/test_calibration.py
+@@ -100,3 +100,34 @@ def test_export_reads_a_report_file_from_the_command_line(tmp_path, monkeypatch,
+     export.main()
+     assert "3 cases" in capsys.readouterr().out and out.exists()
+     assert export.newest_report(tmp_path) == src
++
++
++# ---- evidence in the sheet, blind sheet, join with the judge key ----
++
++def test_the_sheet_carries_the_evidence_the_judge_saw_and_says_so_when_a_report_has_none():
++    from eval.calibration.export import NO_EVIDENCE
++    report = {"rows": [{"id": "a", "message": "q", "answer": "x", "evidence": ["[t] one", "[t] two"],
++                        "judge": {"relevance": 5, "groundedness": 5, "completeness": 5, "tone": 5, "verdict": "pass"}},
++                       {"id": "b", "message": "q", "answer": "x",
++                        "judge": {"relevance": 5, "groundedness": 5, "completeness": 5, "tone": 5, "verdict": "pass"}}]}
++    rows = to_label_rows(report)
++    assert rows[0]["evidence"] == "[t] one\n\n[t] two"
++    assert rows[1]["evidence"] == NO_EVIDENCE
++
++
++def test_the_blind_sheet_has_no_judge_column_and_the_key_joins_back_by_id(tmp_path):
++    from eval.calibration.agreement import merge_judge
++    from eval.calibration.export import BLIND_COLUMNS
++    report = {"rows": [{"id": "a", "message": "q", "answer": "x", "evidence": ["e"],
++                        "judge": {"relevance": 5, "groundedness": 4, "completeness": 5, "tone": 5, "verdict": "pass",
++                                  "reason": "ok"}}]}
++    rows = to_label_rows(report)
++    blind, key = tmp_path / "blind.csv", tmp_path / "key.csv"
++    write_csv(rows, blind, BLIND_COLUMNS)
++    write_csv(rows, key)
++    head = blind.read_text(encoding="utf-8").splitlines()[0]
++    assert "judge" not in head and "evidence" in head
++    filled = [{**r, "human_pass": "no"} for r in csv.DictReader(blind.open(encoding="utf-8"))]
++    merged = merge_judge(filled, list(csv.DictReader(key.open(encoding="utf-8"))))
++    assert merged[0]["judge_verdict"] == "pass" and merged[0]["judge_grounded"] == "4"
++    assert agreement(merged)["confusion"]["fp"] == 1
