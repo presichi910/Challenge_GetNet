@@ -31,7 +31,7 @@ _Not generated yet._
 <!-- results:end -->
 
 How to read it: the routing, tool, handoff and memory rates are over the case-runs that have that check, and the judge-based rates (groundedness, completeness, pass rate) are over
-the rows the judge scored, each with its n. A row the judge has not scored is **pending**, never a pass. The pass rate of the current judge is **not comparable** to the 86% of the
+the rows the judge scored, each with its n; the original holdout (`ho01`-`ho05`) and the blind one (`ho06`-`ho13`) are separate columns. A repetition scored in part is shown as such, not as a whole. A row the judge has not scored is **pending**, never a pass. The pass rate of the current judge is **not comparable** to the 86% of the
 2026-11-12 report: the judge changed after that run (see section 7).
 
 ## 3. Does the judge agree with a human? (V3)
@@ -67,13 +67,14 @@ _Not generated yet._
 ## 4. The observe step (replan): measured, not adopted
 
 The step re-queries the knowledge base once with the claims the verifier could not back, re-checks the same answer, and (with `REPLAN_MAX=2`) offers a ticket or escalates when nothing actionable is left.
-It is **off by default and off in the main run.**
+It is **off by default and off in the main run.** As built, it runs **once, after the synthesizer** (not after each agent), and the design's "add another agent" branch is **not implemented**: the only actions are the knowledge-base retry, a ticket offer and an escalation.
 
 - **Paired measurement with the judge** (`eval/replan_ab.py`, the same 30 saved drafts through both arms, only the 6 whose text differs were scored, one judge score per text, n = 6):
   unsupported actionable claims 1 -> 2, completeness 2.67 -> 3.17, pass 4/6 -> 4/6 (unsupported claims in total 6 -> 11). One case improved (`q08`), one got worse (`q05`: after the retry the verifier backed
   everything and the judge still found six unsupported claims). The only measured benefit is completeness, with n = 6 and a judge that scores the same text differently between passes.
 - **A branch of the real run with the step on** (`--replan-max 2 --label "replan on"`, 2 x 40 case-runs, not scored): it acted in 9 of 80 case-runs (11%), escalated 0 times and offered a ticket once;
-  p95 latency 16.3 s -> 26.3 s (+10 s), p50 3.9 s -> 4.5 s; the same cost per case-run and the same handoff rate (15%). Every action is one extra Voyage call.
+  p95 latency 16.3 s -> 26.3 s (+10 s), p50 3.9 s -> 4.5 s, mean 5.49 s -> 8.26 s; agent cost $0.0012 per case-run in both arms (5,924 against 5,923 tokens) and the same handoff rate (15%). Every action is one extra Voyage call (9 in all), which is not in that agent cost.
+  The cost of the step is therefore latency, not agent tokens (`eval/reports/REPLAN_ON-20261115.md`).
 - **Decision:** `REPLAN_MAX=0`.
 
 ## 5. Did the work after the final run change the behavior?
@@ -82,6 +83,8 @@ After the final run came the operator webhook, the handoff SLA, metrics and trac
 $0.042) on commit `0835e91f81556587124e12aa81fe82556f775c24`, compared with the five repetitions on `22423e2f1024` (`eval/same_behavior.py`, `eval/reports/SMOKE-0835e91.md`):
 routing, tool use, handoff and memory all fall inside the spread the five repetitions showed among themselves, and no case that passed a check in every repetition fails it in the smoke.
 **Verdict: no change.** This compares only the checks that need no judge; it says nothing about the quality of the texts.
+Every later commit up to this report leaves `app/` byte-identical to `0835e91` (`git diff 0835e91 HEAD -- app` is empty), so the smoke covers the code as it stands now; between `22423e2` and `0835e91`, 22 files under `app/` changed
+(new modules for the webhook and telemetry, the handoff store and its SLA, configuration, and small type and lint fixes in the router, the verifier and the agent runner), while the prompts and the judge did not.
 
 ## 6. What was built and how it was checked
 
@@ -101,30 +104,39 @@ routing, tool use, handoff and memory all fall inside the spread the five repeti
 1. **Not every repetition was scored.** The judge runs on Groq's free tier (200,000 tokens per rolling day, about 1.7K tokens per row), so the scoring was done in sessions after the run, repetition by repetition
    (`eval/rejudge.py`, resumable, stopping before the cap). The generated block says how many rows of each repetition were scored; the rates are over those rows, and a repetition scored in part is not weighted as a whole one.
 2. **The judge is not the one of the earlier reports.** After V2 its verdict became a function of its scores (relevance and groundedness at least 4, completeness at least 3, language by code, caps for unsupported claims).
-   The 86% regular pass rate of 2026-11-12 was measured with the previous judge and cannot be compared with today's.
+   The 86% regular pass rate of 2026-11-12 was measured with the previous judge and cannot be compared with today's. Whatever the generated block shows against it is a difference of at least four things at once (another judge, other agent prompts, another set of cases, another run),
+   so it is **not** attributed to the product getting better or worse; at most it is read as a direction, with caution.
 3. **The agreement figures are small-sample figures** (15 rows in V3; 19 in the V2 re-score). A one-row difference is 6.7 and 5.3 points. V3 was sampled on purpose to include two edge cases.
-4. **V2 is not independent.** The judge was adjusted on its disagreements.
+4. **V2 is not independent.** The judge was adjusted on its disagreements. The 19-row re-score is also an **atypical subset**: the draw happens to hold all seven rows where the old judge and the human disagreed (section 3.1), so the old judge starts from a lower agreement there than on the 27.
+5. **The judge's free-text reason can be wrong about the language.** On `m04` it says the user wrote in Portuguese when they wrote in English. The verdict does not depend on that sentence (the language rule is applied by code with its own detector, and the cause of that verdict was groundedness),
+   but the reason of a single row must not be quoted as evidence.
 
 **About what the evaluation covers**
-5. **The eval does not exercise** ticket approval, provider failover, the webhook, the SLA or the telemetry (the eval runs with approval and failover off). They are covered by tests, and approval by one real-model run.
-6. **The holdout was never used to tune.** `ho06`-`ho13` were written before any prompt change and committed first; the original `ho01`-`ho05` were seen during development. `ho02` (routing) is unstable
-   and `ho13` (tool use) fails in every repetition; both are reported as they are. `ho06` and `ho12` are also two of the 15 calibration rows (measurement only).
-7. **Tuning discipline.** Prompts changed in three steps, each tuned on REGULAR cases only. (a) After the blind holdout was committed and its baseline measured (pass 16/24 over three repetitions, with the judge of that day), the support rules for declining and for offering a ticket and the router and synthesizer rules for recall were changed using `q05`, `q08` and `x04`, then the holdout was measured once more (21/24) and nothing was adjusted after seeing it. (b) A rule against revealing the instructions, with a guard in code, tuned on `inj01` and `inj02`. (c) A regression found by repeating `h03` (it passed 2 of 5 runs, down from 15 of 16 earlier): the support rules 3 and 7 were narrowed using only `h03` and `x04`, 5 repetitions each, with `h01` and `h02` as controls; `h03` went from 2/5 to 5/5. `PROMPT_SHA256` pins every prompt. The judge was not changed after the final run.
-8. **Run-to-run variation is real.** The model is not deterministic: `ho02` passes in some repetitions and not in others, and the judge scores the same text differently between passes. Read directions, not decimals.
+6. **The eval does not exercise** ticket approval, provider failover, the webhook, the SLA or the telemetry (the eval runs with approval and failover off). They are covered by tests, and approval by one real-model run.
+7. **The holdout was not used to tune, but it was not written before every prompt change.** `ho06`-`ho13` entered the repository in commit `9326b88` (2026-11-15 12:12), **after** two earlier prompt changes: the rewrite of the judge prompt (`0ab2bc3`, 2026-11-14) and, in `f156a9e` (2026-11-15 11:59),
+   a router rule and a synthesizer rule for questions about the conversation itself, a narrowing of the support rule on other customers' data, and the verifier's prompts, all made for regular cases. They were committed before the baseline (`8ced5df`) and before every prompt change after it.
+   The later changes were tuned on regular cases only (see item 8), but whoever made them had read the baseline of the blind holdout, so the holdout is blind to the cases' content, not to the baseline result. `ho01`-`ho05` were seen during development. `ho02` (routing) is unstable
+   and `ho13` (tool use) fails in every repetition; both are reported as they are. `ho06` and `ho12` are also two of the 15 calibration rows (measurement only). The generated block reports `ho01`-`ho05` and `ho06`-`ho13` as separate columns, never pooled.
+8. **Tuning discipline.** Prompts changed in three steps, each tuned on REGULAR cases only. (a) After the blind holdout was committed and its baseline measured (pass 16/24 over three repetitions, with the judge of that day), the support rules for declining and for offering a ticket and the router and synthesizer rules for recall were changed using `q05`, `q08` and `x04`, then the holdout was measured once more (21/24) and nothing was adjusted after seeing it. (b) A rule against revealing the instructions, with a guard in code, tuned on `inj01` and `inj02`. (c) A regression found by repeating `h03` (it passed 2 of 5 runs, down from 15 of 16 earlier): the support rules 3 and 7 were narrowed using only `h03` and `x04`, 5 repetitions each, with `h01` and `h02` as controls; `h03` went from 2/5 to 5/5. `PROMPT_SHA256` pins every prompt. The judge was not changed after the final run.
+9. **Run-to-run variation is real.** The model is not deterministic: `ho02` passes in some repetitions and not in others, and the judge scores the same text differently between passes. Read directions, not decimals.
 
 **About known defects**
-9. The verifier removes unbacked claims but cannot add the right ones: a case such as `ho06` can end as an honest, nearly empty answer ("no documented steps"). It audits about 72% of an answer's sentences and cannot tell a real quote that does not
+10. The verifier removes unbacked claims but cannot add the right ones: a case such as `ho06` can end as an honest, nearly empty answer ("no documented steps"). It audits about 72% of an answer's sentences and cannot tell a real quote that does not
    back its claim. A stricter segment-by-segment verifier was built, measured on 15 drafts and **not adopted**: it covered every segment but flagged 1.87 per answer against 0.8 (mostly false positives: lead-in lines, derived figures) and did not leave fewer unsupported claims (7 actionable against 5 for the one in use; completeness 3.08 against 3.31).
-10. `inj01` still ends as a fail with the judge, on the groundedness of its harmless part (contact data the judge disputes although the verifier found the quotes), not on the injection: the leak of the system prompt is gone.
-11. The language of the answer to `m08` is wrong (Portuguese to an English question), see section 3.
+11. `inj01` still ends as a fail with the judge, on the groundedness of its harmless part (contact data the judge disputes although the verifier found the quotes), not on the injection: the leak of the system prompt is gone.
+12. The language of the answer to `m08` is wrong (Portuguese to an English question), see section 3.
 
 **About the environment and the process**
-12. **CI.** The quality gates were verified **locally**, one by one; **the workflow has not yet run on GitHub, and its first run there is pending.** Five findings in ChromaDB 1.5.9 (four ids: PYSEC-2026-311, PYSEC-2026-3813, PYSEC-2026-3814, PYSEC-2026-3815) are accepted by id: they concern its server, which this project
-    does not use (Chroma is embedded), no fixed release exists, and a test fails if the code starts using the server.
-13. **Model risk.** Fireworks announced the removal of `gpt-oss-120b` from its serverless service on 2026-11-07; it was still being served during the run. A failover to the same model on Groq exists and is tested, but was not used in the eval.
-14. **Scale limits.** One worker (the rate limit and the key cache live in the process), SQLite for conversations, queues and approvals, no Postgres, metrics per process, no Alertmanager.
-15. **Dependencies** were approved by the owner: `cryptography`, `rank_bm25`, `prometheus-client`, `opentelemetry-sdk` and `opentelemetry-exporter-otlp-proto-grpc`, and for development `ruff`, `mypy`, `bandit`, `pip-audit` and `pyyaml`.
-16. **Process.** One commit per phase, nothing squashed; the raw JSON of every cited run is versioned; the final run, the replan branch and the smoke each cite their commit.
+13. **CI.** The quality gates were verified **locally**, one by one; **the workflow has not yet run on GitHub, and its first run there is pending.** `pip-audit` on the pinned versions (`constraints.txt`, 126 packages) reports **5 entries, all for ChromaDB 1.5.9, which are 4 distinct ids**
+    (`PYSEC-2026-311`, listed twice, = CVE-2026-45829; `PYSEC-2026-3813` = CVE-2026-45830; `PYSEC-2026-3814` = CVE-2026-45833; `PYSEC-2026-3815` = CVE-2026-45831); none has a fixed version. They are accepted by id (with the four `--ignore-vuln` flags the tool ends with
+    "No known vulnerabilities found, 5 ignored" and exit code 0): they concern Chroma's server, which this project does not use (Chroma is embedded), and a test fails if the code starts using the server. Any other advisory fails the build.
+14. **Model risk.** Fireworks announced the removal of `gpt-oss-120b` from its **serverless** service on 2026-11-07 (a dedicated deployment is the only stated alternative); it was still being served during the run, but the agents depend on it. A failover to the same model on Groq exists and is tested, but was not used in the eval.
+    Moving the judge to Fireworks was also looked at and **discarded**: its model (`qwen3p8-27b`) is offered there only as a dedicated deployment, not serverless, with no published per-token price, so the judge stayed on Groq's free tier, which is the reason the scoring is partial (item 1).
+15. **The judged numbers are for commit `22423e2`.** The repository has moved since (webhook, SLA, telemetry, quality-gate fixes: 22 files under `app/`); `app/prompts.py` and `eval/judge.py` are byte-identical to the run. What the later code does is checked by the deterministic smoke test of section 5, not by a new judged run.
+16. **Scale limits.** One worker (the rate limit and the key cache live in the process), SQLite for conversations, queues and approvals, no Postgres, metrics per process, no Alertmanager.
+17. **Dependencies** were approved by the owner: `cryptography`, `rank_bm25`, `prometheus-client`, `opentelemetry-sdk` and `opentelemetry-exporter-otlp-proto-grpc`, and for development `ruff`, `mypy`, `bandit`, `pip-audit` and `pyyaml`.
+18. **Process.** One commit per phase, nothing squashed; the raw JSON of every cited run is versioned; the final run, the replan branch and the smoke each cite their commit. The owner made every commit and labeled the calibration sheets blind.
+19. **Assisted development.** The code, tests and drafts of this project were produced with Claude Code (Anthropic's coding assistant) under the owner's direction and review.
 
 ## 8. Not done
 
