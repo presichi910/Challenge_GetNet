@@ -4,7 +4,10 @@ Three triggers:
   user_requested     the user asked for a human, agents are skipped
   technical_failure  every agent in the plan failed
   agent_unresolved   every agent that answered called `escalate_to_human`
-                     (if only some did, we don't escalate, the user got something useful)
+                     (if only some did, we don't escalate, the user got something useful),
+                     OR any agent escalated in a turn that also proposed a ticket for approval: there the
+                     ESCALATION ALWAYS WINS (precedence P1, decided 2026-11-15). The proposal is dropped, nobody is asked to
+                     approve it, and the handoff opens its own ticket (a system action, `human_handoff`)
 
 A retrieval score doesn't work as a trigger: answerable and unanswerable questions scored
 about the same (0.41-0.67 vs 0.37-0.50).
@@ -28,6 +31,7 @@ from typing import Protocol
 from langchain_core.messages import AIMessage
 
 from app.agents.common import recent_dialogue
+from app.approvals import proposals_in
 from app.config import get_settings
 from app.data.repository import CustomerRepository
 from app.handoff_store import case_summary
@@ -73,6 +77,8 @@ def handoff_reason(state: dict) -> str | None:
         return "technical_failure"
     if all(o.get("unresolved") for o in ok):
         return "agent_unresolved"
+    if any(o.get("unresolved") for o in ok) and proposals_in(state):
+        return "agent_unresolved"  # a person is taking the case: they decide what to open, not an approval queue next to them
     return None
 
 
