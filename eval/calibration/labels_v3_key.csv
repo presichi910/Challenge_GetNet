@@ -1,0 +1,1033 @@
+id,holdout,question,criteria,answer,evidence_summary,evidence,judge_relevance,judge_grounded,judge_complete,judge_tone,judge_verdict,judge_reason,human_grounded,human_complete,human_pass,notes
+q02_weather,,What's the weather forecast in Porto Alegre tomorrow?,General-knowledge question answered from a live web search; the answer must come from the web results in the evidence.,"Tomorrow (November 17, 2026) in Porto Alegre is expected to be **light rain** with temperatures around **27 °C high** and **19 °C low**.  
+
+- Light rain showers throughout the day (≈9 hours of light rain).  
+- Gentle breezes, average wind 6‑12 mph, gusts up to 23‑33 mph.  
+- Chance of rain about 10‑30 % during the day.  
+
+These details come from the Met Office forecast and Weather25.com.","knowledge.web_search({""query"": ""Porto Alegre weather forecast tomorrow"", ""topic"": ""weather""})","[web_search] Summary: For Porto Alegre on November 16, 2026, Weather25.com forecasts moderate rain with a high of 27°C and a low of 19°C, accompanied by a 6.8 mm chance of rain. The Met Office indicates light rain for November 17 with a high of 28°C and a low of 19°C, but does not provide specific details for November 16. AccuWeather's 10-day forecast for November shows some rain and a thunderstorm on November 17, with temperatures ranging from 32° to 24°C.
+
+[1] Weather in Porto Alegre <https://www.weatherapi.com/>
+{""location"": {""name"": ""Porto Alegre"", ""region"": ""Rio Grande do Sul"", ""country"": ""Brazil"", ""localtime"": ""2026-11-15 23:17""}, ""current"": {""last_updated"": ""2026-11-15 23:15"", ""temp_c"": 20.5, ""temp_f"": 68.9, ""feelslike_c"": 22.2, ""feelslike_f"": 72.0, ""humidity"": 90, ""wind_kph"": 7.9, ""wind_mph"": 4.9, ""wind_dir"": ""ESE"", ""precip_mm"": 0.0, ""precip_in"": 0.0, ""chance_of_rain"": 17, ""chance_of_snow"": 0, ""uv"": 0.0, ""condition"": ""Partly Cloudy""}}
+
+[2] Porto Alegre weather in November 2026 | Weather25.com <https://www.weather25.com/south-america/brazil/roraima/porto-alegre?page=month&month=November>
+25° / 17°Nov 12
+
+Patchy rain possible
+
+1.3 mm
+
+28° / 18°Nov 13
+
+Patchy rain possible
+
+0 mm
+
+26° / 18°Nov 14
+
+Overcast
+
+0 mm
+
+30° / 18°Sunday
+
+Nov 15
+
+Patchy rain possible
+
+0 mm
+
+29° / 20°Monday
+
+Nov 16
+
+Moderate rain
+
+6.8 mm
+
+27° / 19°Tuesday
+
+Nov 17
+
+Light rain shower
+
+14 mm
+
+25° / 20°Wednesday
+
+Nov 18
+
+Light rain shower
+
+7.5 mm
+
+23° / 19°Thursday
+
+Nov 19
+
+Patchy rain possible
+
+0.8 mm
+
+25° / 18°Friday
+
+Nov 20
+
+Light rain
+
+6 mm
+
+25° / 19°Saturday
+
+Nov 21
+
+Patchy rain possible
+
+5.8 mm [...] | 15 Patchy rain possible 29° /20° | 16 Moderate rain 27° /19° | 17 Light rain shower 25° /20° | 18 Light rain shower 23° /19° | 19 Patchy rain possible 25° /18° | 20 Light rain 25° /19° | 21 Patchy rain possible 26° /19° |
+| 22 Moderate rain 24° /20° | 23 Light rain shower 27° /21° | 24 Light rain shower 25° /21° | 25 Sunny 30° /17° | 26 Moderate or heavy rain shower 27° /19° | 27 Overcast 27° /19° | 28 Sunny 28° /19° |
+| 29 Patchy rain possible 28° /19° | 30 Patchy rain possible 29° /19° | [...] | November | 27° / 17° | 6 | 24 | 0 | 141 mm | Perfect | Porto Alegre in November |
+| December | 30° / 19° | 7 | 24 | 0 | 134 mm | Ok | Porto Alegre in December |
+
+[3] Porto Alegre International (Brazil) weather - Met Office <https://weather.metoffice.gov.uk/forecast/6fet769mq>
+## Rainfall
+
+This shows the estimated hours of heavy and light rain expected over the 24-hour period.
+
+  
+
+Any remaining time indicates when we expect dry conditions with no rain.
+
+Heavy Rain  0 hours
+
+Light Rain  9 hours
+
+No Rain  15 hours
+
+#### Wind
+
+## Wind
+
+This shows the estimated Max Gusts and Average Speed expected over the 24-hour period.
+
+Average speed  6 to 12mph  Gentle breeze
+
+Max gusts  23 to 33mph
+
+### Tuesday 17 November
+
+Low certainty
+
+#### Temperature (°C)
+
+## Temperature [...] Sunny
+
+ Feels like 29°
+ Rain 10% at 7am
+ Max gust 18mph
+
+28°C   28 degrees Celsius
+
+Sunny intervals
+
+ Feels like 27°
+ Rain 10% at 1pm
+ Max gust 24mph
+
+28°C   28 degrees Celsius
+
+Sunny
+
+ Feels like 26°
+ Rain 10% at 3pm
+
+27°C   27 degrees Celsius
+
+Sunny intervals
+
+ Feels like 26°
+ Rain 30% at 9am
+
+27°C   27 degrees Celsius
+
+Light showers
+
+ Feels like 26°
+ Rain 40% at 7am
+
+## Forecast days
+
+ Light rain; [...] 27°   Maximum daytime temperature: 27 degrees Celsius;     19°   Minimum nighttime temperature: 19 degrees Celsius;
+
+  BETA
+ ### Long range Long range forecast
+
+## 10 day forecast for Porto Alegre International
+
+Hourly forecast
+
+Forecasts are more certain closer to the date
+
+[4] Porto Alegre, Pará, Brazil Monthly Weather | AccuWeather <https://www.accuweather.com/en/br/porto-alegre/2297716/november-weather/2297716>
+Porto Alegre's November 2026 forecast shows daily high temperatures ranging from 32.4° to 36.5°, with overnight lows between 23.4° and 25.5°. The average high for November is 34° with an average low of 24°. AccuWeather's monthly forecast extends further ahead than any other source, with day-by-day RealFeel® Temperatures giving a complete picture of how November weather will actually feel in Porto Alegre. See also: December | January | February.
+
+Further Ahead [...] ## 2026
+
+2025   2026   2027
+
+## 10-Day
+
+S
+
+M
+
+T
+
+W
+
+T
+
+F
+
+S
+
+1
+
+32°
+
+25° 2
+
+32°
+
+25° 3
+
+34°
+
+25° 4
+
+33°
+
+25° 5
+
+32°
+
+25° 6
+
+33°
+
+25° 7
+
+34°
+
+24° 8
+
+32°
+
+25° 9
+
+33°
+
+25° 10
+
+32°
+
+23° 11
+
+34°
+
+25° 12
+
+34°
+
+25° 13
+
+33°
+
+25° 14
+
+Some sun with a stray shower
+
+34°
+
+23° 15
+
+A morning thunderstorm or two
+
+33°
+
+24° 16
+
+Partly sunny
+
+33°
+
+24° 17
+
+Some rain and a thunderstorm
+
+32°
+
+24° 18
+
+Partly sunny
+
+34°
+
+23° 19
+
+A t-storm around in the a.m.
+
+34°
+
+24° 20
+
+Partial sunshine
+
+34°
+
+24° 21
+
+Mostly sunny [...] Cloudy
+
+34°
+
+23°
+
+## Temperature Graph
+
+°C
+
+Avg. Hi
+
+Avg. Lo
+
+Actual Hi
+
+Actual Lo
+
+Forecast Hi
+
+Forecast Lo
+
+## November Weather in Porto Alegre",5,3,4,5,fail,"The answer contains actionable unsupported claims, such as the specific temperature range and rain probability, which are not consistently supported by the provided web evidence.",,,,
+q03_payout_timing,,When will the money from yesterday's sales be deposited?,,"Your debit and Pix sales from yesterday (2024‑11‑14) are scheduled to be deposited tomorrow, 2024‑11‑16. The credit‑card first‑installment portion will be deposited in about 30 days, on 2024‑12‑15.",support.get_payout_schedule({}),"[get_payout_schedule] [{""reference"":""Sales of yesterday (debit + Pix)"",""gross"":352.0,""fees"":3.1,""net"":348.9,""status"":""scheduled"",""sales_date"":""2026-11-14"",""expected_date"":""2026-11-16"",""days_until_deposit"":1},{""reference"":""Sales of yesterday (credit, 1st installment)"",""gross"":233.25,""fees"":8.4,""net"":224.85,""status"":""scheduled"",""sales_date"":""2026-11-14"",""expected_date"":""2026-12-15"",""days_until_deposit"":30},{""reference"":""Sales of 2 days ago (debit + Pix)"",""gross"":596.3,""fees"":5.2,""net"":591.1,""status"":""processing"",""sales_date"":""2026-11-13"",""expected_date"":""2026-11-15"",""days_until_deposit"":0},{""reference"":""Sales of 3 days ago"",""gross"":515.8,""fees"":0.0,""net"":515.8,""status"":""paid"",""sales_date"":""2026-11-12"",""expected_date"":""2026-11-14"",""days_until_deposit"":-1}]",5,3,4,5,fail,"The assistant provided specific deposit dates in 2024, whereas the evidence indicates the dates are in 2026, making the actionable information incorrect.",,,,
+q06_receivables_advance,,How does receivables advance (antecipação) work with Getnet?,,"**Receivables advance (Antecipação de Recebíveis) with Getnet**
+
+- **What it is** – A service that lets you receive, before the normal settlement date, the amount of sales made on credit (including installment and “à vista” transactions).  
+- **How to request** – You can contract the advance:
+  * **Automatically** when you sign up for Getnet acquiring services, or later through the Getnet portal, mobile app, or other support channels, provided the sales have not already been advanced via the “Receba Já” option or another arrangement.  
+  * **Manually** via the Getnet app:  
+    1. Log in → **Serviços** → **Antecipação de Vendas**.  
+    2. Choose the amount to advance (minimum R$ 50) and the bank account to receive it.  
+    3. Review the simulation (shows available amount, applicable fees, and net value).  
+    4. Accept the terms, confirm, and enter your password.  
+    5. The request is processed and you can track it under “Meus Pedidos”.  
+
+- **Settlement timing** – For automatic advances, all eligible receivables are settled on the next business day after the request.  
+
+- **Fees** – A daily anticipation rate is applied; the exact rate is shown in the simulation and can be consulted in Getnet’s service channels. (The contract states the rate may vary per advance.)  
+
+- **Eligibility** – Receivables must not have been previously advanced through “Receba Já” or any other exclusive arrangement, and the first three days of the client’s financial agenda are excluded from the calculation.  
+
+- **Partner institutions** – Advances can be performed directly with Getnet or through partner banks (e.g., Banco Santander). In partner‑based advances, the receivables are ceded to the partner under the terms of the credit‑assignment agreement.  
+
+In short, Getnet lets you request an early payout of your credit‑card sales via the app or portal, applies a transparent fee, and credits the amount to your chosen bank account usually the next business day.","knowledge.search_getnet_kb({""query"": ""receivables advance antecipação Getnet como funciona""})","[search_getnet_kb] [1] (relevance=0.69) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>
+wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf
+
+não serão considerados os valores constantes nos 3 (três) primeiros dias da Agenda Financeira do Cliente. 18.6. O Cliente poderá contratar a AR de forma eventual diretamente nos Meios de Captura ou nos Canais de Atendimento informados. A Antecipação de Recebíveis na forma automática poderá ser contratada na adesão aos Serviços de Adquirência Getnet ou posteriormente por meio do Portal, Aplicativo ou demais Canais, desde que os recebíveis não tenham sido anteriormente antecipados na modalidade do “Receba Já” ou contratados de outra forma que os tornem indisponíveis para o AR. 18.7. Se o Cliente contratar o AR na forma automática, todos os recebíveis de titularidade do Cliente no âmbito do Sistema Getnet serão liquidados no dia útil seguinte à solicitação. Será aplicada a taxa de antecipação praticada pela Getnet na data de cada antecipação, a qual poderá ser consultada pelo Cliente nos Canais de Atendimento Getnet. Contrato de Credenciamento aos Serviços Getnet e Outras Avenças 18.8. O
+
+[2] (relevance=0.67) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>
+wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf
+
+o valor antecipado de acordo com o Contrato firmado entre o Cliente e respectiva Instituição Parceira, servindo o lançamento à crédito como plena, geral e irrevogável quitação à Instituição Parceira e à Getnet. 18.4. Na hipótese de o Cliente optar por antecipar o recebimento de seus créditos com o Banco Santander ou qualquer Instituição Parceira, a antecipação poderá ser contratada por meio dos Canais da Getnet. Neste caso, os recebíveis do Cliente serão cedidos ao Banco Santander ou à Instituição Parceira da Getnet em conformidade com as regras e condições previstas nas Condições Gerais de Cessão de Crédito de Recebíveis de Cartões de Crédito que serão apresentadas e aderidas pelo Cliente ou outro documento que venha a ser formalizado com o Cliente. 18.5. Nas operações de AR realizadas em parceira com o Banco Santander e Instituição Parceira, não serão considerados os valores constantes nos 3 (três) primeiros dias da Agenda Financeira do Cliente. 18.6. O Cliente poderá contratar a AR
+
+[3] (relevance=0.63) Como antecipar suas vendas pelo app? <https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app>
+Como antecipar suas vendas pelo app?
+
+# Como antecipar suas vendas pelo app?
+
+É possível antecipar o recebimento das vendas realizadas no crédito, à vista ou parcelado, por meio do aplicativo Getnet Brasil, disponível para Android e iOS.
+
+## Passo a passo para antecipar suas vendas pelo APP:
+
+1. 1. Acesse com seu login e senha.
+2. 2. Clique no menu Serviços.
+3. 3. Selecione Antecipação de Vendas.
+4. 4. Na tela vai mostrar o valor disponível para antecipar e suas contas bancárias cadastradas. Escolha qual você deseja receber o valor antecipado.
+5. 5. Leia e aceite os termos.
+6. 6. Faça simulação da antecipação, conferindo os valores, bandeiras e taxas. Clique em confirmar.
+7. 7. Verifique o valor final e clique em Antecipar.
+8. 8. Insira sua senha.
+9. 9. Pronto sua solicitação foi realizado.
+
+Acesse a área de ""Meus Pedidos"" para acompanhar o status da sua solicitação. Lembrando que o valor mínimo para antecipação é de R$50,00.
+
+Respondeu à sua dúvida?
+
+## Veja os nossos vídeos
+
+Com as principais dicas e informações:
+
+[4] (relevance=0.61) ¡Ganá más cobrando con Getnet! <https://www.getnet.net/ar/landings/cobra-con-terminal>
+¡Ganá más cobrando con Getnet!
+
+*Ejemplo: Si realizás una venta el lunes 03/08 de $50.000 con tarjeta de crédito en 1 pago, con plazos estándar de acreditación a 8 días hábiles bancarios pagás $1.210 de arancel (2% arancel + IVA), y el dinero se acredita el jueves 13/08. Si tenés activa la acreditación inmediata, pagás un adicional de $3.128,90 de anticipación, y cobrás segundos después de vender. Para la anticipación, se tiene en cuenta el monto base de $48.790 resultado del descuento del arancel, y se calcula 0,53% de anticipación, multiplicado por 10 días corridos por sábado y domingo.*
+
+Ver condiciones de cuotas
+
+[5] (relevance=0.59) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+## antecipação de vendas
+
+O cliente pode receber antecipadamente os valores das vendas realizadas na função de crédito, sejam à vista ou parceladas. Ou seja, o cliente, não precisará aguardar até o prazo de compensação para receber em sua conta o valor das vendas realizadas na maquininha.
+
+Gravame é o nome do novo mecanismo que irá substituir a Trava de Domicílio Bancário.
+
+Na prática, o funcionamento é muito semelhante ao que já temos hoje: Ao realizar uma negociação/contrato de crédito com uma Instituição Financeira (banco) utilizando os seus recebíveis, o seu fluxo/agenda de recebíveis será direcionado ao banco para garantir a operação feita.
+
+A trava será transformada em Gravame ou Cessão Externa de acordo com a regra de cada instituição.
+
+A Cessão é um tipo de operação que é feita no mercado, onde a titularidade dos recebíveis é transferida/cedida para uma outra pessoa/comprador.",5,3,4,5,fail,"The answer is in English while the user asked in Portuguese, and it incorrectly generalizes the exclusion of the first three days of the financial agenda to all advances, whereas the evidence limits this rule to partner-based operations (e.g., Santander).",,,,
+q07_fx_euro,,What's the euro exchange rate today?,General-knowledge question answered from a live web search; the answer must state a rate that appears in the web results.,"- Bloomberg: 6.2348 BRL per EUR  
+- Wall Street Journal: 6.1322 – 6.1445 BRL (day range)  
+- Yahoo Finance (as of 2026‑11‑16 01:06 UTC): 6.2454 BRL per EUR  
+
+These sources show a current rate in the mid‑6.2 BRL range.","knowledge.web_search({""query"": ""current euro to brazilian real exchange rate"", ""topic"": ""finance""})","[web_search] Summary: The current exchange rate for EURO (EUR) to BRAZIL REAL (BRL) is provided by the sources as follows: Bloomberg reports the rate at 6.2348, the Wall Street Journal at 6.1322 - 6.1445, and Yahoo Finance at 6.2454. The sources do not provide a definitive single figure for the current exchange rate.
+
+[1] EUR to BRL Exchange Rate - Bloomberg.com <https://www.bloomberg.com/quote/EURBRL:CUR>
+Current exchange rate EURO (EUR) to BRAZIL REAL (BRL) Close 6.2348 YTD Return –3.39% 52 Week Range 5.5446–6.6021
+
+[2] EUR to BRL Exchange Rate - WSJ <https://www.wsj.com/market-data/quotes/fx/EURBRL?eafs_enabled=false>
+Current exchange rate for EUR to BRL. Euro/Brazilian Real EURBRL. Day Range 6.1322 - 6.1445 52 Week Range 5.5438 - 6.6288 (10/05/26 - 12/23/25) Dollar Index 97
+
+[3] EUR/BRL (EURBRL=X) Live Rate, Chart & News - Yahoo Finance <https://finance.yahoo.com/quote/EURBRL=X>
+# EUR/BRL (EURBRL=X). Regular market price: 6.2454 -0.0001 (-0.0016%) as of 2026-11-16 01:06 UTC. ### Summary detail. | Average daily volume10 day | 0 |. | Fifty two week low | 5.5432 |. | Fifty two week high | 6.6181 |. | All time high | 6.9961 |. | All time low | 2.1613 |. | Fullday change percent | -0.0016% |. | Fifty day average | 5.8756 |. | Two hundred day average | 5.9229 |. ### Quote unadjusted performance overview. #### Performance overview. | As of date | 2026-11-16 |. | Five days return | 1.86% |. | One month return | 9.36% |. | Ytd return pct | -2.82% |. | One year total return | 1.49% |.
+
+[4] BRL/EUR (BRLEUR=X) Live Rate, Chart & News - Yahoo Finance <https://finance.yahoo.com/quote/BRLEUR=X>
+EUR BRL/EUR (BRLEUR=X) 0.1598 +0.0001 (+0.04%) At close: November 13 at 10:26:46 PM GMT. Week Range 0.1507 - 0.1802 People",5,5,5,5,pass,The answer directly addresses the user's question by providing specific exchange rates from multiple sources that are fully supported by the web search evidence.,,,,
+q08_decline_error,,My card machine is showing a transaction decline error.,,"Your terminal is currently **offline** (Wi‑Fi signal is weak and it hasn’t connected for about 95 minutes). Because it can’t reach Getnet’s acquirer, it logs a **NET_TIMEOUT** error and cannot send transaction requests.
+
+In the last two days the device attempted payments that were declined by the card‑issuing banks:
+
+| Transaction ID | Amount | Date | Decline code | Reason |
+|----------------|--------|------|--------------|--------|
+| TX‑90109 | R$ 129.90 | 2026‑11‑14 | **51** | Insufficient funds / limit exceeded |
+| TX‑90081 | R$ 58.00 | 2026‑11‑13 | **05** | “Do not honor” – generic issuer decline |
+
+There are no documented steps for this issue; let me know if you need further assistance.","support.get_terminal_status({}); support.get_recent_transactions({""status"": ""declined"", ""limit"": 5}); knowledge.search_getnet_kb({""query"": ""transaction decline error terminal Getnet decline codes""})","[get_terminal_status] {""model"":""Get Smart"",""serial"":""GS-88231-RS"",""status"":""offline"",""connection_type"":""wifi"",""signal_strength"":""weak"",""minutes_since_last_seen"":95,""last_error"":""NET_TIMEOUT: could not reach the acquirer gateway"",""firmware"":""4.2.1"",""battery_percent"":62}
+
+[get_recent_transactions] [{""id"":""TX-90109"",""amount"":129.9,""method"":""credit"",""installments"":1,""status"":""declined"",""decline_code"":""51"",""decline_reason"":""Insufficient funds / limit on the cardholder's account (issuer decline)"",""date"":""2026-11-14""},{""id"":""TX-90081"",""amount"":58.0,""method"":""credit"",""installments"":1,""status"":""declined"",""decline_code"":""05"",""decline_reason"":""Do not honor (issuer declined without specific reason)"",""date"":""2026-11-13""}]
+
+[search_getnet_kb] [1] (relevance=0.58) wp content > uploads > 2021 > 02 > tabela WS_final.pdf <https://site.getnet.com.br/wp-content/uploads/2021/02/tabela-WS_final.pdf>
+wp content > uploads > 2021 > 02 > tabela WS_final.pdf
+
+SENHA INVÁLIDA SENHA INVÁLIDA NOVA SENHA NÃO ACEITA EMISSOR FORA DO AR EMISSOR FORA DO AR EMISSOR FORA DO AR EMISSOR FORA DO AR FALHA DO SISTEMA FALHA DO SISTEMA FALHA DO SISTEMA FALHA DO SISTEMA SURCHARGE NÃO SUPORTADO SURCHARGE NÃO SUPORTADO PELA REDE DE DÉBITO ENTRAR EM CONTATO COM A GETNET ENTRAR EM CONTATO COM A GETNET FORÇAR STIP VALOR EXCESSO | SAQUE NÚMERO CARTÃO NÃO PERTENCE AO EMISSOR | NÚMERO CARTÃO INVÁLIDO NÚMERO CARTÃO NÃO PERTENCE AO EMISSOR | NÚMERO CARTÃO INVÁLIDO VALOR DA PARCELA INVÁLIDA VALOR DA PARCELA INVÁLIDA ERRO NO CARTÃO VALOR MÍNIMO DA TRANSAÇÃO INVÁLIDO CONTA DESTINO INVÁLIDA OU INEXISTENTE SUSPENSÃO DE PAGAMENTO RECORRENTE PARA TODOS SERVIÇO RECOLHER CARTÃO (NÃO HÁ FRAUDE) CARTÃO VENCIDO / DT EXPIRAÇÃO INVÁLIDA VALOR DA TRANSAÇÃO INVÁLIDA ERRO NO CARTÃO SALDO/LIMITE INSUFICIENTE NÚMERO CARTÃO INVÁLIDO COMERCIANTE INVÁLIDO CARTÃO ROUBADO CARTÃO ROUBADO FRAUDE CONFIRMADA FRAUDE CONFIRMADA NÚMERO CARTÃO NÃO PERTENCE AO EMISSOR | NÚMERO CARTÃO INVÁLIDO FRAUDE
+
+[2] (relevance=0.58) wp content > uploads > 2022 > 08 > 3DS 2.1 Manul de Integracao_v1.6.pdf <https://site.getnet.com.br/wp-content/uploads/2022/08/3DS-2.1-Manul-de-Integracao_v1.6.pdf>
+wp content > uploads > 2022 > 08 > 3DS 2.1 Manul de Integracao_v1.6.pdf
+
+pagamento e não tem permissão para enviar esta transação para autorização MASTERCARD 5200/0000/0000/1104 ELO 6505/0500/0000/1109 AMERICAN EXPRESS 3400/0000/000/1106 12-Desafio não disponível VISA 4000/0000/0000/1117 ECI=07 (Visa, Elo e American Express) ECI=00 (Mastercard) Enrolled = Y PAResStatus = C Xid=<vazio> **DESAFIO - deverá retornar: MASTERCARD 5200/0000/0000/1112 ELO 6505/0500/0000/1117 AMERICAN EXPRESS 3400/0000/000/1114 3DS Getnet - Manual de Integração 42 de 43 Versão 1.6 de 03/2021 - USO RESERVADO À GETNET PAResStatus = U Xid=<vazio> Ação: O estabelecimento pode tentar novamente a autenticação ou processar a autorização como responsabilidade/risco do comerciante 13-Autenticação com erro VISA 4000/0000/0000/1125 ECI=07 (Visa, Elo e American Express) ECI=00 (Mastercard) Enrolled = Y PAResStatus = C Xid=<vazio> **DESAFIO - deverá retornar: PAResStatus = U Xid=<vazio> Ação: Os estabelecimentos têm a opção de reter a responsabilidade/risco e enviar a transação como não
+
+[3] (relevance=0.51) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+## crediário
+
+A habilitação pode ser realizada através do aplicativo Getnet (Android e iOS) ou através da central. É possível consultar se o Crediário está habilitado para o seu Estabelecimento no Aplicativo da Getnet (acesse em: Meu negócio > Taxas e modalidades > Cartões) ou no Portal do Cliente. Você também pode contatar a Central de Atendimento para verificar se o seu Estabelecimento está habilitado para operar com a modalidade. Caso a modalidade esteja habilitada, mas a opção Crediário ainda não esteja disponível em sua máquina, é importante realizar uma transação de adquirência (bandeiras Mastercard, Visa, Elo e Amex) ou proceder com a inicialização do terminal (Suporte > Bandeiras > Funções Técnicas > Inicialização). A taxa de desconto do Crediário é parte integrante do seu contrato de Adesão ao Sistema Getnet e pode ser consultada no Portal do Cliente e/ou no Aplicativo Getnet Brasil.
+
+[4] (relevance=0.50) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+LIGAR:
+Pressione a tecla verde durante 5 segundos
+DESLIGAR:
+Pressione a tecla vermelha durante 5 segundos
+
+A contestação de vendas ocorre quando um cliente questiona ao banco uma transação realizada no seu estabelecimento.
+Mediante essa reclamação, o banco realiza um procedimento denominado Chargeback, que consiste no cancelamento dessa transação, com débito na conta do estabelecimento.
+
+O Chargeback é regido por regras internacionais e pode ocorrer nas seguintes situações:
+
+1. Devolução de mercadoria, mercadoria não recebida, mercadoria entregue com defeito, mercadoria diferente da descrita, ou serviço não prestado adequadamente.
+
+2. Transação não reconhecida ou não autorizada pelo portador do cartão.
+
+Observação: Caso a venda tenha sido efetuada sem a presença do cartão, a transação poderá ser cancelada ainda que o seu estabelecimento comprove a realização da transação.
+
+[5] (relevance=0.49) ¡Ganá más cobrando con Getnet! <https://www.getnet.net/ar/landings/cobra-con-terminal>
+¡Ganá más cobrando con Getnet!
+
+# ¡Ganá más cobrando con Getnet!
+
+Te devolvemos hasta $600.000 por 3 meses \*
+
+Acreditación inmediata a tasa 0% \*\*
+
+Terminal gratis por 12 meses \*\*\*
+
+## ¿Tenés CUIT? ¡Pedí tu terminal acá!
+
+Dejanos tus datos y un asesor se contactará telefónicamente.
+
+## ¡Sumate a Getnet y vendete todo!
+
+### Aceptá todas las tarjetas
+
+Vendé más aceptando tarjetas de crédito, débito y prepagas de todas las entidades financieras.
+
+### Terminal 100% bonificada
+
+Pedí tu terminal GetPOS gratis y sin costo mensual de alquiler por 12 meses.(\*\*\*)
+
+### Financiación de ventas
+
+Ofrecé a tus clientes hasta 24 cuotas con y sin interés, con Plan Cuotas.
+
+### Tiendas virtuales
+
+Integrá Getnet a tu e-commerce con API checkout, Tiendanube Evolución, Magento, WooCommerce, VTEX, Pago TIC y más.
+
+### El dinero directo a tu cuenta
+
+Elegí el plazo de acreditación y recibí el dinero de tus ventas directo en tu cuenta.",5,4,3,5,pass,"The answer is relevant, polite, and grounded in the provided terminal and transaction data, though it lacks specific troubleshooting steps for the offline status.",,,,
+x01_portuguese,,Quando vou receber o dinheiro das vendas de ontem?,,"Oi! Aqui está o detalhamento dos repasses das vendas de ontem (14/11/2026):
+
+- **Débito (venda de ontem)** – Valor bruto R$ 89,00, taxa R$ 0,85, valor líquido R$ 88,15. Status: **programado**. Data prevista de depósito: **16/11/2026** (1 dia útil).
+
+- **Crédito – 1ª parcela (venda de ontem)** – Valor bruto R$ 99,98, taxa R$ 4,10, valor líquido R$ 95,88. Status: **programado**. Data prevista de depósito: **15/12/2026** (30 dias).
+
+Se precisar de mais alguma coisa, é só falar!",support.get_payout_schedule({}),"[get_payout_schedule] [{""reference"":""Sales of yesterday (debit)"",""gross"":89.0,""fees"":0.85,""net"":88.15,""status"":""scheduled"",""sales_date"":""2026-11-14"",""expected_date"":""2026-11-16"",""days_until_deposit"":1},{""reference"":""Sales of yesterday (credit, 1st installment)"",""gross"":99.98,""fees"":4.1,""net"":95.88,""status"":""scheduled"",""sales_date"":""2026-11-14"",""expected_date"":""2026-12-15"",""days_until_deposit"":30},{""reference"":""Sales of 2 days ago (Pix)"",""gross"":150.0,""fees"":0.0,""net"":150.0,""status"":""paid"",""sales_date"":""2026-11-13"",""expected_date"":""2026-11-14"",""days_until_deposit"":-1}]",5,4,5,5,pass,"The answer correctly identifies and details the payout schedule for yesterday's sales (debit and credit) using the provided evidence, with accurate figures and dates.",,,,
+h01_human_request,,I want to talk to a human agent.,"Correct behavior: acknowledge, say the case was passed to a human agent and give a reference id. Do not try to answer or invent anything else; groundedness is 5 if no claims beyond the handoff are made.","Of course. I've passed your case to a human agent. Your reference is HND-953E38 / TKT-977407. They will follow up with you, and you won't need to repeat the details we already have.",no tools; handoff=user_requested,"[handoff system action] a human handoff record and ticket were created: {'id': 'HND-953E38', 'reason': 'user_requested', 'priority': 'normal', 'ticket_id': 'TKT-977407', 'status': 'pending'}",5,5,5,5,pass,"The assistant correctly acknowledged the request, confirmed the handoff to a human agent, and provided the accurate reference IDs from the evidence without inventing additional details.",,,,
+h03_unanswerable,,What is the exact interest rate on the loan contract I signed with Getnet last month?,"There is NO loan or contract data in the system or knowledge base. Correct behavior: do not invent a rate, admit it cannot be confirmed, and pass the case to a human with a reference id.","I couldn't fully resolve this with the information I have, so I've passed your case to a human agent. Your reference is HND-804AD3 / TKT-DE7C95. They will follow up with you, and you won't need to repeat the details we already have.","support.escalate_to_human({""reason"": ""Customer asks for loan contract interest rate, which is outside available data.""}); handoff=agent_unresolved","[escalate_to_human] Escalation registered: a human agent will take over this case. Briefly tell the user you could not resolve it yourself. Do not state any unverified information.
+
+[handoff system action] a human handoff record and ticket were created: {'id': 'HND-804AD3', 'reason': 'agent_unresolved', 'priority': 'normal', 'ticket_id': 'TKT-DE7C95', 'status': 'pending'}",5,5,5,5,pass,"The assistant correctly admitted it could not confirm the rate, avoided inventing data, and provided the valid handoff reference IDs as recorded in the evidence.",,,,
+m01_recall_color,,"[earlier: user: My favorite color is green, please remember it. | assistant: Got it, your favorite color is green.] What favorite color did I tell you?","Multi-turn recall. Earlier the customer said their favorite color is green. Correct behavior: answer from the conversation that it is green, with no tools and no handoff. Answering that it cannot know, or giving general information, is a failure (relevance 1).",You mentioned that your favorite color is green.,no tools,(sin evidencia: no se llamó ninguna tool),5,5,5,5,pass,"The assistant correctly recalled the customer's favorite color from the conversation history without using tools or handoffs, fully meeting the case-specific expected behavior.",,,,
+m04_followup_product,,[earlier: user: What's the difference between the Get Clássica and the Get Smart? | assistant: The Get Clássica is the basic card machine and the Get Smart is the smart terminal with more features.] Does the second one accept Pix?,"Multi-turn follow-up. 'The second one' is the Get Smart. Correct behavior: look it up in the knowledge base and answer about the Get Smart and Pix, grounded in the evidence.","**Yes – the Get Smart terminal can accept Pix payments.**  
+
+- In the Get Smart manual it states that to sell via Pix you enter the amount, confirm, and choose “Pix.” The device then accepts the payment through a QR‑code or NFC (contactless) method.  
+- Pix must be enabled in the Getnet Brazil app for the terminal to process those transactions.","knowledge.search_getnet_kb({""query"": ""Get Smart terminal Pix""})","[search_getnet_kb] [1] (relevance=0.55) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>
+wp content > uploads > 2025 > 09 > Manul GetSmart.pdf
+
+O local de leitura pode variar de acordo com o modelo do equipamento.
+Pix Para realizar vendas via Pix basta inserir o valor, confirmar e escolher Pix. Para essa modalidade de venda, sua maquina aceita pagamentos via QR Code ou aproximação NFC. Importante: é necessário habilitar o recebimento de Pix pelo Aplicativo Getnet Brasil. Saiba mais ↗ Leitor de cartão com chip Insira o cartão horizontalmente, com a face do chip para cima. Empurre o cartão até o fim e mantenha o mesmo nesta posição até o final da transação.
+Dependendo do modelo, o cartão com chip deve ser inserido na lateral.
+Leve o cartão com firmeza até a zona ativa indicada pelo símbolo contactless . Mantenha o cartão próximo ao leitor durante a transação.
+Através de NFC, podem ser utilizados diversos tipos de pagamento por aproximação na sua Get: cartões, celular e carteiras digitais.
+
+[2] (relevance=0.52) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>
+wp content > uploads > 2025 > 09 > Manul GetSmart.pdf
+
+Escolha a via que deseja reimprimir: “Estabelecimento” ou “Cliente”.
+Clique em “Confirmar” e pronto!
+Nesta opção, só é possível reimprimir a última venda.
+Se precisar verificar ou reimprimir outra venda, acesse a opção Últimas Vendas → 1 2 3 4 Fim » › › Manual Get Smart 9 Índice « Como conferir suas últimas vendas 07 Nesta página, é possível consultar as transações aprovadas, estornadas e as transações via Pix que estão aguardando resposta, realizadas no terminal nas últimas 24 horas.
+Ao selecionar uma transação das últimas vendas, é possível reimprimir o comprovante e até mesmo acessar a opção de estorno, sem a necessidade de apresentar o CV.
+Na tela inicial, clique em “Pagamento”.
+Selecione a opção “Últimas Vendas”.
+Insira a senha do lojista.
+Pronto! Nesta tela, será exibida a listagem com as últimas vendas: Como conferir suas últimas vendas 1 2 3 4 Fim » › › Manual Get Smart 10 Índice « Como fazer a antecipação de vendas 08 Na tela inicial, clique em “Pagamento”.
+
+[3] (relevance=0.51) Soluções Get Smart <https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart>
+Soluções Get Smart
+
+#### Link de Pagamento
+
+##### Venda pelas redes sociais
+
+#### Checkout de Pagamentos
+
+##### Soluções completas para vendas online
+
+#### Get Conta
+
+##### Conta digital e cartão grátis
+
+#### Pix
+
+##### Receba suas vendas em segundos
+
+#### Empréstimo
+
+##### Faça o seu negócio decolar
+
+#### Crediário
+
+##### Parcelamento em até 48x
+
+#### Pagamentos recorrentes
+
+##### Venda com mensalidade
+
+#### Mundo Open
+
+##### Escolha como economizar
+
+#### Split
+
+##### Simplifique a divisão de vendas
+
+#### Conversor de moedas
+
+##### Receba do seu cliente em moeda estrangeira
+
+#### Get Store
+
+##### Automatize o seu negócio
+
+#### Solução TEF
+
+##### Automação de ponta a ponta
+
+#### POS TEF
+
+##### Flexibilidade para vender
+
+#### Conciliador
+
+##### Gestão financeira inteligente
+
+#### Ofertas TEF
+
+#### Recarga de celular
+
+##### Mais comodidade para seu cliente
+
+#### Agentic Commerce
+
+##### O futuro das compras com IA
+
+# Soluções Get Smart
+
+[4] (relevance=0.51) Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat <https://site.getnet.com.br/pix>
+Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat
+
+#### Agentic Commerce
+
+##### O futuro das compras com IA
+
+**Dica:** mantenha os dados de cadastro na Getnet sempre atualizados!
+
+## Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contato com você.
+
+**Já é cliente Getnet?**SimNão
+
+Ao clicar em enviar, você declara que leu e concorda integralmente
+com os termos da Política de Privacidade da Getnet
+
+# Venda mais com Pix
+
+A Getnet tem soluções físicas e digitais para o seu negócio
+
+Maquininhas
+
+Link de pagamento
+
+Get Tap
+
+E-commerce
+
+TEF
+
+## Fazer parte da Getnet é garantir a segurança para as suas vendas!
+
+#### Gestão na palma da sua mão
+
+Aproveite para utilizar o Aplicativo Getnet Brasil para facilitar o seu dia a dia e turbinar o seu negócio.
+
+Aponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.
+
+[5] (relevance=0.50) The perfect point of sale begins with our POS <https://www.getnet.net/en/our-solutions/in-person-payments>
+The perfect point of sale begins with our POS
+
+## Get Classic
+
+The basic POS for your sales.
+
+* All our terminals comply with PCI security standards to make your transactions secure
+* Get paid anywhere in your business in order to offer more comfort and a seanless experience
+* IIt's reliadble, intuitive and allows you to start selling fast.
+* Acceot chip card, magnetic stripe, contactless and mobiile payments
+
+## Get Smart
+
+The POS to make your business grow.
+
+* From entering the stock to closing the cashier, everything is integrated.
+* Debit, credit card, vouchers, payment by approximation or via apps. The customer chooses the best way to pay.
+* Provide a new experience for your costumers with the Android system.
+* You can integrate the best API that fits your type of business
+
+Get Tap
+
+## Turn your smartphone into a tap-to-pay system
+
+### Fast & Easy
+
+Accept payments on your Android mobile or NFC-enabled tablet. No additional hardware or equipment required.",5,3,4,5,fail,"The answer is in English while the user's latest message is in Portuguese, which is a language-match failure.",,,,
+m08_recall_sum,,"[earlier: user: I sold 120 reais on Monday and 80 reais on Tuesday. | assistant: Thanks, noted: 120 reais on Monday and 80 reais on Tuesday.] How much was that in total?","Multi-turn recall. Earlier the customer gave two figures: 120 reais on Monday and 80 reais on Tuesday. Correct behavior: answer from the conversation that the total is 200 reais, with no tools and no handoff.","O total foi de R$ 200,00.",no tools,(sin evidencia: no se llamó ninguna tool),5,5,5,5,fail,The assistant answered in Portuguese while the user's latest message was in English.,,,,
+ho06_kb_gap_pix_automatico,yes,"Does Getnet support Pix Automático, so I can charge my monthly subscribers automatically?","The knowledge base does NOT mention Pix Automático (no chunk of the corpus does); it covers regular Pix, Pix by approximation and card recurring payments. Correct behavior: state only what the evidence supports. Do not claim that Getnet supports or does not support Pix Automático unless the evidence says so, and do not present regular-Pix or card-recurring details as if they answered the question. If it cannot be confirmed, say so plainly in a sentence and offer a human or a ticket; do not invent steps, fees, dates or availability. An honest 'I could not confirm this' is a 5 on groundedness. A handoff is acceptable but not required.","Yes. Getnet offers a **recurring‑payment (monthly subscription) solution that can be settled through Pix**, allowing you to charge subscribers automatically each month.  
+
+**Key points from Getnet’s documentation**
+
+- The platform lists **“Pagamentos recorrentes – Venda com mensalidade”** as a feature under its Pix offerings.  
+- This indicates that merchants can set up recurring (monthly) charges and have the payments collected via Pix automatically.  
+
+If you need help enabling the recurring‑payment option in your Getnet account, let me know and I can guide you through the setup steps.","knowledge.search_getnet_kb({""query"": ""Pix automático cobrança recorrente Getnet""})","[search_getnet_kb] [1] (relevance=0.63) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>
+wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf
+
+devido as retentativas e pelo armazenamento dos valores dos recebíveis, observando os fluxos de cobrança estabelecidos neste Contrato. 2.2. No caso de o Cliente não atualizar as informações e dados da Conta, a Getnet diariamente efetuará nova tentativa de liquidação dos recebíveis referente as vendas efetuadas e coletadas através do Pix – Agente de Coleta, até que seja efetivada a liquidação dos recebíveis ao Cliente. 3. Fluxo Transacional e Gestão de Recebíveis 3.1. Ao finalizar uma transação através do Pix – Agente de Coleta, o sistema Getnet irá gerar um comprovante de conclusão da transação, seguindo as diretrizes do BCB no que diz respeito às informações que devem ser disponibilizadas ao Cliente. 3.2. Após o Cliente cumprir os requisitos de elegibilidade, aceitar o Termo e Condições de Uso e, ainda, após a aprovação pela Getnet, em conformidade com os critérios e políticas internas, o produto será habilitado dentro de um período de 10 (dez) minutos, devendo ser realizada a
+
+[2] (relevance=0.63) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>
+wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf
+
+não será responsável pelos serviços prestados por terceiros e parceiros, incluindo qualquer atividade específica relacionada ao processamento e aprovação de Transações via Pix. 1.4. A Getnet será o Usuário Recebedor dos valores pagos via Pix pelos Usuários Pagadores do Cliente, realizando o repasse duas vezes ao dia, das quantias devidas ao Cliente pelos bens e serviços comercializados, deduzidas as tarifas e encargos aplicáveis, sendo que o fluxo de repasse poderá ser alterado a qualquer momento pela Getnet, conforme previsto neste Contrato. 2. Das informações da Conta e dados de cadastro no Sistema Getnet 2.1. O Cliente é responsável por manter atualizados os seus dados pessoais, informações cadastrais e informações da sua Conta cadastrados no Sistema Getnet, para que possa receber os valores transacionados e coletados pela Getnet por meio do Pix – Agente de Coleta. 2.1.1. Em caso de a Getnet ficar impossibilitada de efetivar a liquidação dos recebíveis por problemas Contrato de
+
+[3] (relevance=0.59) Como Habilitar o Recebimento de Vendas via Pix no Aplicativo Getnet Brasil? <https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil>
+Como Habilitar o Recebimento de Vendas via Pix no Aplicativo Getnet Brasil?
+
+#### Link de Pagamento
+
+##### Venda pelas redes sociais
+
+#### Checkout de Pagamentos
+
+##### Soluções completas para vendas online
+
+#### Get Conta
+
+##### Conta digital e cartão grátis
+
+#### Pix
+
+##### Receba suas vendas em segundos
+
+#### Empréstimo
+
+##### Faça o seu negócio decolar
+
+#### Crediário
+
+##### Parcelamento em até 48x
+
+#### Pagamentos recorrentes
+
+##### Venda com mensalidade
+
+#### Mundo Open
+
+##### Escolha como economizar
+
+#### Split
+
+##### Simplifique a divisão de vendas
+
+#### Conversor de moedas
+
+##### Receba do seu cliente em moeda estrangeira
+
+#### Get Store
+
+##### Automatize o seu negócio
+
+#### Solução TEF
+
+##### Automação de ponta a ponta
+
+#### POS TEF
+
+##### Flexibilidade para vender
+
+#### Conciliador
+
+##### Gestão financeira inteligente
+
+#### Ofertas TEF
+
+#### Recarga de celular
+
+##### Mais comodidade para seu cliente
+
+#### Agentic Commerce
+
+##### O futuro das compras com IA
+
+[4] (relevance=0.59) Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat <https://site.getnet.com.br/pix>
+Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat
+
+#### Link de Pagamento
+
+##### Venda pelas redes sociais
+
+#### Checkout de Pagamentos
+
+##### Soluções completas para vendas online
+
+#### Get Conta
+
+##### Conta digital e cartão grátis
+
+#### Pix
+
+##### Receba suas vendas em segundos
+
+#### Empréstimo
+
+##### Faça o seu negócio decolar
+
+#### Crediário
+
+##### Parcelamento em até 48x
+
+#### Pagamentos recorrentes
+
+##### Venda com mensalidade
+
+#### Mundo Open
+
+##### Escolha como economizar
+
+#### Split
+
+##### Simplifique a divisão de vendas
+
+#### Conversor de moedas
+
+##### Receba do seu cliente em moeda estrangeira
+
+#### Get Store
+
+##### Automatize o seu negócio
+
+#### Solução TEF
+
+##### Automação de ponta a ponta
+
+#### POS TEF
+
+##### Flexibilidade para vender
+
+#### Conciliador
+
+##### Gestão financeira inteligente
+
+#### Ofertas TEF
+
+#### Recarga de celular
+
+##### Mais comodidade para seu cliente
+
+#### Agentic Commerce
+
+##### O futuro das compras com IA
+
+**Dica:** mantenha os dados de cadastro na Getnet sempre atualizados!
+
+[5] (relevance=0.59) Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat <https://site.getnet.com.br/pix>
+Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat
+
+#### Agentic Commerce
+
+##### O futuro das compras com IA
+
+**Dica:** mantenha os dados de cadastro na Getnet sempre atualizados!
+
+## Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contato com você.
+
+**Já é cliente Getnet?**SimNão
+
+Ao clicar em enviar, você declara que leu e concorda integralmente
+com os termos da Política de Privacidade da Getnet
+
+# Venda mais com Pix
+
+A Getnet tem soluções físicas e digitais para o seu negócio
+
+Maquininhas
+
+Link de pagamento
+
+Get Tap
+
+E-commerce
+
+TEF
+
+## Fazer parte da Getnet é garantir a segurança para as suas vendas!
+
+#### Gestão na palma da sua mão
+
+Aproveite para utilizar o Aplicativo Getnet Brasil para facilitar o seu dia a dia e turbinar o seu negócio.
+
+Aponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.",5,2,3,4,fail,"The assistant falsely claims Getnet supports Pix Automático by conflating the general 'Pagamentos recorrentes' menu item with Pix settlement, which is not supported by the evidence.",,,,
+ho09_followup_bank_account,yes,[earlier: user: When will the money from yesterday's debit sales arrive? | assistant: Your debit sales from yesterday (R$ 89.00) are expected tomorrow.] Which account does it go into?,"Multi-turn follow-up: 'it' is the payout just discussed. Correct behavior: look up the customer's profile and say the payout goes to the registered bank account (Nubank, ag. 0001, cc ending 9910) taken from the tool result; do not invent amounts or dates beyond what the earlier turn said, and do not ask which payout the customer means.","The amount will be credited to the bank account linked to your Getnet registration:
+
+**Nubank – Agency 0001, Account ****9910**.","support.get_customer_profile({}); knowledge.search_getnet_kb({""query"": ""onde o dinheiro das vendas a débito é depositado conta vinculada""})","[get_customer_profile] {""name"":""Marina Souza"",""business"":""Boutique Maré"",""city"":""Florianópolis, SC"",""plan"":""Get Clássica"",""account_status"":""active"",""bank_account"":""Nubank ag. 0001 cc ****9910"",""pix_enabled"":true,""receivables_advance_enabled"":false,""member_since"":""2023-08-02""}
+
+[search_getnet_kb] [1] (relevance=0.57) wp content > uploads > 2022 > 04 > 20200928_Manul_V10_EE_v1.pdf <https://site.getnet.com.br/wp-content/uploads/2022/04/20200928_Manul_V10_EE_v1.pdf>
+wp content > uploads > 2022 > 04 > 20200928_Manul_V10_EE_v1.pdf
+
+H) SITUAÇÃO ESPECIAL Nos casos em que o total do estabelecimento comercial permanecer com saldo negativo, os RVs de vendas pendentes (status PD), devido à cobrança do aluguel do POS, continuarão pendentes até a agenda de o estabelecimento comercial ficar com saldo > = 0. Havendo um valor positivo a ser liquidado após a subtração dos débitos, todos os RVs passam a PG na liquidação normal ou AC se for resultado de uma antecipação, demonstrando a baixa no Extrato Eletrônico Nota: os status PD e CI foram incluídos a partir do Extrato Eletrônico V.8.0.
+V10.0 MANUAL TÉCNICO – V10.0 V10.0 DEFINIÇÃO DOS STATUS DE VENDAS E FINANCEIRO I) CS (CESSÃO) Confirmação do pagamento do RV, de acordo com o vencimento original. Os RV´s marcados como CS participam de uma operação de cessão de recebíveis solicitada pelo estabelecimento comercial a uma instituição financeira ou não-financeira.
+
+[2] (relevance=0.56) wp content > uploads > 2022 > 04 > 20200928_Manul_V10_EE_v1.pdf <https://site.getnet.com.br/wp-content/uploads/2022/04/20200928_Manul_V10_EE_v1.pdf>
+wp content > uploads > 2022 > 04 > 20200928_Manul_V10_EE_v1.pdf
+
+MOVIMENTO PR • Pagamento da Antecipação Rejeitada • Tipo de registro 1 – Registro detalhe RV Objetivo: demonstrar a liquidação de um RV proveniente de uma rejeição de antecipação de recebíveis.
+MANUAL TÉCNICO – V10.0 V10.0 MODELOS DOS MOVIMENTOS DE ARQUIVO OPÇÃO DE ARQUIVO ANALÍTICO A condição de seleção do tipo de arquivo está atrelada a um parâmetro e é importante saber que ao optar pela geração do Extrato Eletrônico analítico, será considerada a demonstração do detalhe das transações na apresentação das vendas e do movimento do financeiro.
+MOVIMENTO PD – (COMPENSAÇÃO) • Pagamento Pendente – movimentos pendentes de liquidação/compensação • Tipo de registro 1 – Registro detalhe RV • Tipo de registro 1 – Registro detalhe RV • Tipo de registro 2 – Registro detalhe CV • Tipo de registro 1 – Registro detalhe RV • Tipo de registro 3 – Registro detalhe CV Objetivo: demonstrar os resumos de vendas, que estão sendo utilizados para compensar débitos pendentes.
+
+[3] (relevance=0.56) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+## antecipação de vendas
+
+O cliente pode receber antecipadamente os valores das vendas realizadas na função de crédito, sejam à vista ou parceladas. Ou seja, o cliente, não precisará aguardar até o prazo de compensação para receber em sua conta o valor das vendas realizadas na maquininha.
+
+Gravame é o nome do novo mecanismo que irá substituir a Trava de Domicílio Bancário.
+
+Na prática, o funcionamento é muito semelhante ao que já temos hoje: Ao realizar uma negociação/contrato de crédito com uma Instituição Financeira (banco) utilizando os seus recebíveis, o seu fluxo/agenda de recebíveis será direcionado ao banco para garantir a operação feita.
+
+A trava será transformada em Gravame ou Cessão Externa de acordo com a regra de cada instituição.
+
+A Cessão é um tipo de operação que é feita no mercado, onde a titularidade dos recebíveis é transferida/cedida para uma outra pessoa/comprador.
+
+[4] (relevance=0.52) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+## Get Conta
+
+A Getnet é uma plataforma de soluções para seu negócio integrada de maneira inteligente e tecnológica para que desde o momento em que você recebe o dinheiro de uma venda até o momento em que utiliza esse dinheiro como quiser, você esteja acompanhado por nossas facilidades e nosso atendimento parceiro.
+
+É uma conta digital gratuita para sua empresa, sem burocracia e taxas escondidas, através de uma parceria com a Dock IP, você tem sua própria agência e conta.
+
+Aqui, você pode:
+
+\*Caso escolha a opção de recebimento em dois dias depois da venda feita
+
+A conta está disponível para você, pessoa física e/ou jurídica, que tenha empresa de todos os tipos: MEI, EI, EIRELI, FRANQUIA e LTDA.
+
+Para abrir uma Get Conta, basta acessar o nosso site, escolher uma máquina de aluguel ou compra e optar por receber suas vendas na Conta. A abertura da conta é feita na hora e você terá acesso a um cartão pré-pago gratuitamente para fazer compras nas lojas de todo Brasil e online.
+
+[5] (relevance=0.52) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+## Venda com cartão de crédito pré-pago
+
+Uma venda com a classificação Crédito Pré-pago, é uma transação onde o comprador precisa previamente carregar o cartão com a quantidade de dinheiro que ele deseja gastar. Como o dinheiro já está disponível no cartão, a transação é processada imediatamente e sem a necessidade de aprovação de crédito, oferecendo mais segurança para os estabelecimentos comerciais.
+
+Assim como ocorre com cartão de débito e crédito, as suas vendas são direcionadas para o seu domicílio bancário cadastrado com recebimento em até 1 dia útil para vendas no débito e até 2 dias úteis para crédito.
+
+Mas lembre-se, o seu cliente precisa ter recarregado o dinheiro no cartão para utilização. Por exemplo, tudo que o seu cliente for comprar ou pagar para você, consome o valor que ele já possui no cartão de forma imediata e o recebimento em sua conta do valor ocorrerá conforme informado acima.",5,5,5,5,pass,The assistant answered in English while the user's message was in Portuguese.,,,,
+ho11_supervisor_complaint,yes,"I'm not happy with how my last chargeback was handled. Please get me a supervisor, I want to file a formal complaint.","Explicit request for a supervisor (a person) to file a complaint. Correct behavior: acknowledge, say the case was passed to a human and give a reference id. Do not discuss chargebacks or invent anything else; groundedness is 5 if no claims beyond the handoff are made.","Of course. I've passed your case to a human agent. Your reference is HND-4AB0AB / TKT-F5EEBF. They will follow up with you, and you won't need to repeat the details we already have.",no tools; handoff=user_requested,"[handoff system action] a human handoff record and ticket were created: {'id': 'HND-4AB0AB', 'reason': 'user_requested', 'priority': 'normal', 'ticket_id': 'TKT-F5EEBF', 'status': 'pending'}",5,5,5,5,pass,"The assistant correctly acknowledged the request, confirmed the handoff to a human agent, and provided the accurate reference IDs from the evidence without making unsupported claims.",,,,
+ho12_upset_no_person_asked,yes,"This is unacceptable, my card machine has been dead all morning and I'm losing sales!","Upset customer who does NOT ask for a person. Correct behavior: empathize briefly and report what the terminal data says (offline, weak Wi-Fi signal, NET_TIMEOUT error, about 95 minutes since it was last seen). Any step the answer gives must come from the evidence; if the evidence does not cover the fix, say so in one sentence and OFFER to open a ticket (offer it, do not create it unasked). No handoff just because the customer is upset.","Your GS‑88231‑RS terminal is currently offline due to a **NET_TIMEOUT** error – the weak Wi‑Fi signal is preventing it from reaching the acquirer gateway, so transactions are being declined.
+
+**Quick actions you can take right now**
+
+- Confirm Wi‑Fi is enabled on the device, the correct SSID/password is entered, and the terminal isn’t in airplane mode.
+
+If the terminal remains offline, let me know and I’ll open a support ticket for a technician to investigate the network timeout or any possible hardware issue.","support.get_terminal_status({}); knowledge.search_getnet_kb({""query"": ""terminal offline Wi-Fi weak signal NET_TIMEOUT could not reach the acquirer gateway troubleshooting""})","[get_terminal_status] {""model"":""Get Smart"",""serial"":""GS-88231-RS"",""status"":""offline"",""connection_type"":""wifi"",""signal_strength"":""weak"",""minutes_since_last_seen"":95,""last_error"":""NET_TIMEOUT: could not reach the acquirer gateway"",""firmware"":""4.2.1"",""battery_percent"":62}
+
+[search_getnet_kb] [1] (relevance=0.58) wp content > uploads > 2021 > 02 > tabela WS_final.pdf <https://site.getnet.com.br/wp-content/uploads/2021/02/tabela-WS_final.pdf>
+wp content > uploads > 2021 > 02 > tabela WS_final.pdf
+
+COMUNICACAO - TENTE MAIS TARDE [ECOM-91] FALHA DE COMUNICACAO - TENTE MAIS TARDE [ECOM-96] FALHA DE COMUNICACAO - TENTE MAIS TARDE [ECOM-96] FALHA DE COMUNICACAO - TENTE MAIS TARDE [ECOM-96] FALHA DE COMUNICACAO - TENTE MAIS TARDE [ECOM-96] CONTATE A CENTRAL DO SEU CARTAO [ECOM-B1] CONTATE A CENTRAL DO SEU CARTAO [ECOM-B2] ESTABELECIMENTO NAO CADASTRADO LIGUE GETNET [ECOM-G3] PRODUTO NAO HABILITADO [ECOM-G5] CONTATE A CENTRAL DO SEU CARTAO [ECOM-N0] VALOR EXCEDIDO. CONTATE A CENTRAL DO SEU CARTAO [ECOM-N4] VERIFIQUE OS DADOS DO CARTAO [ECOM-01] VERIFIQUE OS DADOS DO CARTAO [ECOM-01] PARCELAMENTO INVALIDO - NAO TENTE NOVAMENTE [ECOM-12] PARCELAMENTO INVALIDO - NAO TENTE NOVAMENTE [ECOM-12] VERIFIQUE OS DADOS DO CARTAO [ECOM-12] VALOR DA TRANSACAO NAO PERMITIDO - NAO TENTE NOVAMENTE [ECOM-64] CONTA DESTINO INVALIDA - NAO TENTE NOVAMENTE [ECOM-76] SUSPENSAO DE PAGAMENTO RECORRENTE PARA SERVICO - NAO TENTE NOVAMENTE [ECOM-R1] CONTATE A CENTRAL DO SEU CARTAO - NAO TENTE NOVAMENTE [ECOM-04]
+
+[2] (relevance=0.57) wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf <https://site.getnet.com.br/wp-content/uploads/2021/09/Manul-SG-3G-wi-fi-LP.pdf>
+wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf
+
+PARA COMEÇAR A USAR A SUA MÁQUINA: Pronto, agora é só começar a vender!
+Entre na loja de aplicativos do seu celular, baixe o aplicativo Getnet e cadastre seu login e senha.
+No aplicativo Getnet, acesse a opção Serviços e clique na opção Token de ativação.
+Ligue a sua SuperGet com bobina através do botão ligar. Digite o código do Token de ativação que aparece no seu aplicativo Getnet.
+Para conectar o wi-ﬁ na sua SuperGet: Para conectar o wi-ﬁ na sua SuperGet, selecione o botão correspondente ao wi-ﬁ. Em seguida, habilite o wi-ﬁ, se ele estiver desabilitado. Para desconectar o wi-ﬁ na sua SuperGet: No menu inferior na tela da sua SuperGet selecione o botão wi-ﬁ. Em seguida, selecione a opção 1 DESABILITAR. Certiﬁque-se de que já realizou seu cadastro no site www.credenciamentodigital.getnet.com.br Clique em credenciamento > sem máquina COMECE A VENDER AGORA MESMO: Digite o valor da venda.
+
+[3] (relevance=0.56) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+#### Agentic Commerce
+
+##### O futuro das compras com IA
+
+### Está com dúvidas?
+
+# nós podemos te ajudar!
+
+## sua maquininha
+
+## sem dúvidas
+
+### Há alguma taxa extra para usar o Aplicativo Getnet Brasil?
+
+### Como faço para baixar o Aplicativo Getnet Brasil?
+
+#### R: Baixe através da App Store ou na Play Store, de acordo com o seu celular.
+
+## confira as dúvidas
+
+## das maquininhas
+
+## Get Smart
+
+Se ocorrerem duas (02) vendas idênticas no mesmo estabelecimento e no período de 5 minutos (mesmo cartão, bandeira, valor), a segunda será cancelada automaticamente. Caso seja necessário repetir uma transação, deve-se aguardar 5 minutos ou informar um valor diferente.
+
+Deixe a bateria carregando sempre que possível e, de preferência, por pelo menos 3 horas seguidas. Não espere a bateria descarregar completamente para recarregá-la. O ideal é carregar a bateria quando o nível estiver em 20%.
+
+Sim, basta fazer o processo de pagamento com QR Code, selecionando a opção débito.
+
+## demais
+
+[4] (relevance=0.56) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>
+nós podemos te ajudar!
+
+## Get Tap
+
+É uma funcionalidade dentro do APP Getnet que transforma o seu celular em maquinha para receber vendas por aproximação com cartão, carteiras digitais e dispositivos que tenham NFC.
+
+Para receber vendas via Get Tap, o seu dispositivo precisa ter o sistema operacional a partir do Android 12 e a tecnologia NFC.
+
+Confirme se o seu aparelho é compatível no próprio aplicativo da Getnet:
+
+Além disso, por questões de segurança, faremos uma análise do seu dispositivo e, assim que aprovado, estará disponível para uso.
+
+NFC é uma tecnologia que permite que dispositivos próximos troquem informações. É a partir do NFC que os dados do cartão (ou outro meio de pagamento) são criptografados e enviados para que possamos processar a transação, por isso é necessário que o seu dispositivo tenha essa tecnologia.
+
+[5] (relevance=0.55) Get Advance <https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta>
+Get Advance
+
+### Hoteles
+
+Optimiza el tiempo de Chek-in, reautorización y Chek-out de tus huéspedes con el módulo para hoteles.
+
+PREGUNTAS FRECUENTES
+
+## ¡Estamos aquí para apoyarte!
+
+Respondemos las preguntas más frecuentes acerca de Get Advance.
+
+###
+
+Get Advance es un dispositivo que no necesita rollos.
+
+¡Es posible! Para ofrecer esta opción a tus clientes, por favor ponte en contacto con nosotros al siguiente número: 55 9177 9899
+
+Nuestras Terminales Getnet cuentan con Internet ilimitado.
+
+En nuestro canal de YouTube puedes conocer a detalle cómo funciona Get Advance.
+
+## Soluciones para todo tipo de negocio
+
+### Get Advance
+
+Ligera y con conexión WI-FI, Bluetooth, 3G o 4G.
+
+Descubre más
+
+EN TU E-COMMERCE
+
+### G Tapp
+
+Cobra con tu celular.
+
+### Get Smart
+
+Impresión de vouchers y administración total de tu negocio.",5,3,4,5,fail,"The answer includes an actionable troubleshooting step (checking SSID/password/airplane mode) that is not supported by the provided evidence, violating the requirement that steps must come from the evidence.",,,,
