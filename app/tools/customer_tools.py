@@ -6,13 +6,34 @@ another customer (even with a prompt injection).
 from __future__ import annotations
 
 import json
+import re
 from typing import Literal
 
 from langchain_core.tools import BaseTool, tool
+from pydantic import BaseModel, ConfigDict
 
 from app.data.repository import CustomerRepository
 
 NOT_FOUND = json.dumps({"error": "customer_not_found", "message": "No account data was found for this user."})
+SUMMARY_MIN, SUMMARY_MAX = 10, 500
+INVALID_SUMMARY = json.dumps({"error": "invalid_summary", "message": f"`summary` must be {SUMMARY_MIN}-{SUMMARY_MAX} characters "
+                                                                    "describing the problem. No ticket was opened."})
+
+
+class TicketArgs(BaseModel):
+    """Strict: an argument the tool does not declare (a hostile `user_id`, `status`, `priority`...) is an error, not ignored."""
+    model_config = ConfigDict(extra="forbid")
+    category: Literal["terminal", "payout", "billing", "account", "other"]
+    summary: str
+
+
+def clean_summary(text: str) -> str | None:
+    """Control characters (newlines included) become spaces, so a ticket is always one line of one record; the length is
+    bounded. None when what is left is too short to describe anything."""
+    one_line = re.sub(r"\s+", " ", re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", text)).strip()
+    if len(one_line) < SUMMARY_MIN:
+        return None
+    return one_line[:SUMMARY_MAX]
 
 
 def _dump(obj) -> str:
@@ -55,12 +76,16 @@ def make_support_tools(user_id: str, repo: CustomerRepository) -> list[BaseTool]
         tickets = repo.get_tickets(user_id)
         return _dump(tickets) if tickets is not None else NOT_FOUND
 
-    @tool
+    @tool(args_schema=TicketArgs)
     def create_support_ticket(category: Literal["terminal", "payout", "billing", "account", "other"], summary: str) -> str:
         """Open a support ticket for a human agent/technician. Only use when the issue cannot be
         solved with the available data or the customer asks for it. `summary` must be a concise,
-        self-contained description of the problem (include codes/errors found)."""
-        ticket = repo.create_ticket(user_id, category, summary)
+        self-contained description of the problem (include codes/errors found). Asking again for the
+        same issue returns the ticket that is already open (`already_existed`), it never opens a second."""
+        clean = clean_summary(summary)
+        if clean is None:
+            return INVALID_SUMMARY
+        ticket = repo.create_ticket(user_id, category, clean)
         return _dump(ticket) if ticket else NOT_FOUND
 
     return [

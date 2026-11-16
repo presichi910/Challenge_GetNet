@@ -55,6 +55,8 @@ services:
     environment:
       <<: [*models, *auth]
       WEB_CONCURRENCY: "1"   # one worker only (rate limit and key cache in the process, conversations in one SQLite file)
+      # if Fireworks has an outage (5xx, 429, timeout) the same model on Groq answers instead (needs GROQ_API_KEY); "" = no failover
+      FALLBACK_PROVIDER: ${FALLBACK_PROVIDER-groq}
     depends_on:
       keycloak:
         condition: service_healthy
@@ -77,7 +79,9 @@ services:
     image: getnet-agents:latest
     profiles: ["tools"]
     env_file: .env
-    environment: *models
+    environment:
+      <<: *models
+      FALLBACK_PROVIDER: ""   # a measurement runs on ONE provider: no silent switch to another model in the middle of a report
     volumes:
       - data:/app/data
       - ./eval/reports:/app/eval/reports

@@ -29,20 +29,37 @@ def _embed_with_backoff(embeddings, query: str, attempts: int = 3, wait_s: float
             time.sleep(wait_s)
 
 
-def retrieve(query: str, k: int) -> list[tuple]:
-    """Search web pages and PDFs separately, with a cap on PDFs.
+def search(query: str, k: int, mode: str | None = None, rerank_attempts: int = 1, **tuning):
+    """The search of the knowledge base, with what it did (`SearchResult`: hits, mode, stages that were skipped).
 
-    PDFs are ~60% of the chunks and would crowd out the pages that actually answer the question.
-    The query is embedded once for both searches.
+    `rag_mode` picks the method (see app/rag/hybrid.py). In `dense` it is the original: web pages and PDFs searched apart, with
+    a cap on PDFs (they are ~60% of the chunks and would crowd out the pages that actually answer the question), the query
+    embedded once. The embedding comes from the disk cache when this query was paid for before. `tuning` (pool, rrf_k,
+    rerank_model) overrides the settings for one call: it is what the eval grid varies.
     """
+    from app.rag.hybrid import SearchResult, embed_cached, get_cache, get_corpus, hybrid_search
     from app.rag.store import get_embeddings, get_vector_store
 
-    store = get_vector_store()
-    vec = _embed_with_backoff(get_embeddings(), query)
-    pages = store.similarity_search_by_vector_with_relevance_scores(vec, k=k - PDF_SLOTS, filter={"is_pdf": False})
-    pdfs = store.similarity_search_by_vector_with_relevance_scores(vec, k=PDF_SLOTS, filter={"is_pdf": True})
-    # careful: despite the name, this returns cosine distance (lower is better), relevance = 1 - distance
-    return sorted(pages + pdfs, key=lambda x: x[1])
+    s = get_settings()
+    mode = mode or s.rag_mode
+    vec = embed_cached(query, get_cache(), lambda q: _embed_with_backoff(get_embeddings(), q))
+    if mode == "dense":
+        store = get_vector_store()
+        pages = store.similarity_search_by_vector_with_relevance_scores(vec, k=k - PDF_SLOTS, filter={"is_pdf": False})
+        pdfs = store.similarity_search_by_vector_with_relevance_scores(vec, k=PDF_SLOTS, filter={"is_pdf": True})
+        # careful: despite the name, this returns cosine distance (lower is better), relevance = 1 - distance
+        return SearchResult(sorted(pages + pdfs, key=lambda x: x[1]), "dense")
+    if mode not in ("hybrid", "hybrid_rerank"):
+        raise ValueError(f"RAG_MODE must be dense, hybrid or hybrid_rerank, got {mode!r}")
+    return hybrid_search(query, k, vec, mode, get_corpus(), get_cache(), rerank_attempts=rerank_attempts, **tuning)
+
+
+def retrieve(query: str, k: int) -> list[tuple]:
+    """[(chunk, cosine distance)] for the query: what the Knowledge agent and the observe step get. See `search`."""
+    result = search(query, k)
+    if result.degraded:
+        log.warning("KB search ran degraded (%s skipped)", ", ".join(result.degraded))
+    return result.hits
 
 
 @tool(response_format="content_and_artifact")

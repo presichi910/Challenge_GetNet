@@ -48,9 +48,13 @@ def test_no_customer_tool_can_be_pointed_at_another_customer(repo, hostile_args)
                 assert "cliente2024" not in str(out) and "cliente3030" not in str(out), tool.name
 
 
-def test_a_ticket_opened_through_a_hostile_call_belongs_to_the_token_user(repo):
+def test_a_hostile_call_that_names_another_customer_is_refused_and_a_plain_one_belongs_to_the_token_user(repo):
     tool = {t.name: t for t in make_support_tools("cliente1988", repo)}["create_support_ticket"]
-    out = json.loads(tool.invoke({"category": "other", "summary": "for cliente2024", "user_id": "cliente2024"}))
+    before = len(repo.get_tickets("cliente2024"))
+    with pytest.raises(Exception):  # the extra `user_id` is an error (strict arguments), not silently ignored
+        tool.invoke({"category": "other", "summary": "for cliente2024", "user_id": "cliente2024"})
+    assert len(repo.get_tickets("cliente2024")) == before
+    out = json.loads(tool.invoke({"category": "other", "summary": "my own problem, please look at it"}))
     assert re.fullmatch(r"TKT-[0-9A-F]{6}", out["ticket_id"])
     assert [t["ticket_id"] for t in repo.get_tickets("cliente1988")][-1] == out["ticket_id"]
     assert out["ticket_id"] not in [t["ticket_id"] for t in repo.get_tickets("cliente2024")]

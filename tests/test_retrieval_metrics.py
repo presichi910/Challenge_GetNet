@@ -64,3 +64,69 @@ def test_the_dataset_has_about_twenty_questions_and_a_third_holdout():
     assert 18 <= len(cases) <= 25 and 0.25 <= len(held) / len(cases) <= 0.35
     assert all(c["expected_urls"] and c["question"] for c in cases)
     assert len({c["id"] for c in cases}) == len(cases)
+
+
+# ---- Phase 5: halves, modes, the cache warm-up ---------------------------------------------------------------------
+def test_the_regular_questions_are_split_in_two_halves_and_the_holdout_is_never_tuned_on():
+    from eval.run_retrieval import group_of
+
+    cases = load()
+    regular = [c for c in cases if not c.get("holdout")]
+    tune = [c for c in regular if group_of(c) == "tune"]
+    report = [c for c in regular if group_of(c) == "report"]
+    assert tune and report and abs(len(tune) - len(report)) <= 1  # halves
+    assert not any(c.get("split") for c in cases if c.get("holdout"))  # a holdout question has no tune mark
+    assert all(group_of(c) == "holdout" for c in cases if c.get("holdout"))
+    assert {c["id"] for c in tune}.isdisjoint({c["id"] for c in report})
+
+
+def test_the_report_has_a_row_per_half_only_when_the_questions_are_marked():
+    def row(i, **extra):
+        return {"id": i, "ranking": R, "expected_urls": [i], "scores": score(R, [i]), **extra}
+
+    text = render([row("a", split="tune"), row("b"), row("c", holdout=True)], 5, "s", "hybrid")
+    assert "mode `hybrid`" in text and "| regular, tune half | 1 |" in text and "| regular, report half | 1 |" in text
+    assert "tune half" not in render([row("b")], 5, "s")
+
+
+def test_a_question_that_ran_with_the_reranker_skipped_is_flagged_not_hidden():
+    def retrieve(q, k):
+        retrieve.last_degraded = ["rerank"]
+        return [(doc("u1"), 0.1)]
+
+    rows = evaluate([{"id": "q1", "question": "x", "expected_urls": ["u1"]}], retrieve, 5)
+    assert rows[0]["degraded"] == ["rerank"]
+    assert "ran with a stage skipped" in render(rows, 5, "s", "hybrid_rerank") and "q1 (rerank)" in render(rows, 5, "s")
+
+
+def test_the_modes_side_by_side_are_one_table_per_group():
+    from eval.run_retrieval import render_compare
+
+    good = [{"id": "a", "split": "tune", "scores": score(R, ["a"])}]
+    bad = [{"id": "a", "split": "tune", "scores": score(R, ["e"])}]
+    text = render_compare({"dense": bad, "hybrid": good}, 5, "s")
+    assert "### regular, tune half" in text and "| dense | 1 | 0.00 |" in text and "| hybrid | 1 | 1.00 |" in text
+
+
+def test_warming_the_cache_embeds_all_missing_questions_in_one_request(tmp_path, monkeypatch):
+    import voyageai
+
+    from app.rag import hybrid
+    from app.rag.cache import DiskCache
+    from eval.run_retrieval import warm_cache
+
+    requests = []
+
+    class FakeClient:
+        def __init__(self, **kw):
+            pass
+
+        def embed(self, texts, model, input_type):
+            requests.append((list(texts), input_type))
+            return SimpleNamespace(embeddings=[[float(len(t)), 1.0] for t in texts])
+
+    monkeypatch.setattr(voyageai, "Client", FakeClient)
+    monkeypatch.setattr(hybrid, "get_cache", lambda: DiskCache(tmp_path / "w.sqlite"))
+    assert warm_cache(["one", "three", "five"]) == 3 and len(requests) == 1 and requests[0][1] == "query"
+    assert warm_cache(["one", "three", "five", "seven"]) == 1 and requests[1][0] == ["seven"]  # only what was missing
+    assert warm_cache(["one", "seven"]) == 0 and len(requests) == 2  # all cached: no request at all

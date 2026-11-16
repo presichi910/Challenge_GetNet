@@ -122,10 +122,16 @@ def operator_jwt(operator: str = "ops1", scope: str | None = "operator", **kw) -
 
 @pytest.fixture(autouse=True)
 def _isolated_traces(tmp_path, monkeypatch):
-    """No test ever writes the real ./data/traces.sqlite (the API lifespan opens TRACES_DB_PATH)."""
+    """No test ever writes the real ./data/traces.sqlite (the API lifespan opens TRACES_DB_PATH) nor the real
+    ./data/rag_cache.sqlite: a test that embeds with a fake model would leave a FAKE vector there, and the next real search
+    for the same text would read it back. Tests get an empty path (no cache) unless they build their own `DiskCache`."""
     from app.config import get_settings
+    from app.rag.hybrid import get_cache
 
     monkeypatch.setenv("TRACES_DB_PATH", str(tmp_path / "traces.sqlite"))
+    monkeypatch.setenv("RAG_CACHE_PATH", "")
     get_settings.cache_clear()
+    get_cache.cache_clear()
     yield
     get_settings.cache_clear()
+    get_cache.cache_clear()

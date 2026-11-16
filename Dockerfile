@@ -1,17 +1,32 @@
+# Two stages: the dependencies are installed in a virtualenv in `build`, and only that folder is copied into the final image.
+# pip, its caches and everything it needed to install stay behind in `build`.
+FROM python:3.12-slim AS build
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# `constraints.txt` pins EVERY dependency, transitive ones included (it was generated inside python:3.12-slim on Linux, see
+# README, Production notes): a rebuild installs the same versions, it cannot pick up a newer release of a sub-dependency.
+# Deps first, before the code, so this layer is cached.
+COPY requirements.txt constraints.txt ./
+RUN pip install -r requirements.txt -c constraints.txt
+
+
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
 
-# deps first so this layer is cached
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY --from=build /opt/venv /opt/venv
 
 # Unprivileged user with a fixed uid/gid, so volume ownership is predictable.
-# Created after pip install so the dependency layer stays cached.
+# Created after the dependencies so their layer stays cached.
 RUN groupadd --gid 10001 app \
  && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin app
 
@@ -32,7 +47,8 @@ ENV CHROMA_DIR=/app/data/chroma \
     HANDOFFS_FILE=/app/data/handoffs.jsonl \
     HANDOFFS_DB_PATH=/app/data/handoffs.sqlite \
     CHECKPOINT_DB_PATH=/app/data/checkpoints.sqlite \
-    REVOCATIONS_DB_PATH=/app/data/revocations.sqlite
+    REVOCATIONS_DB_PATH=/app/data/revocations.sqlite \
+    RAG_CACHE_PATH=/app/data/rag_cache.sqlite
 
 USER app
 

@@ -41,16 +41,49 @@ def _fireworks(name: str, temperature: float, max_tokens: int | None, timeout: f
                       extra_body=extra_body, stream_usage=True)
 
 
+def outage_errors() -> tuple[type[BaseException], ...]:
+    """What a provider outage looks like to either SDK: no connection, a timeout, a 429, a 5xx. A 400 (a broken tool call,
+    a bad request) is the model's or our own problem, not an outage: another provider would not fix it, and
+    `run_tool_agent` already retries the broken tool call."""
+    import groq
+    import openai
+
+    return tuple(getattr(sdk, n) for sdk in (openai, groq) for n in ("APIConnectionError", "RateLimitError", "InternalServerError"))
+
+
+FIREWORKS_PREFIX = "accounts/fireworks/models/"
+
+
+def fallback_model_name(name: str, provider: str) -> str:
+    """The same model under the other provider's id: Fireworks `accounts/fireworks/models/gpt-oss-120b` is Groq
+    `openai/gpt-oss-120b`. A name that has no Fireworks prefix is used as it is."""
+    if provider == "groq" and name.startswith(FIREWORKS_PREFIX):
+        return "openai/" + name[len(FIREWORKS_PREFIX):]
+    if provider == "fireworks" and name.startswith("openai/gpt-oss"):
+        return FIREWORKS_PREFIX + name[len("openai/"):]
+    return name
+
+
 def get_llm(temperature: float = 0.0, model: str | None = None, max_tokens: int | None = None,
             timeout: float = 60, max_retries: int = 2) -> BaseChatModel:
-    """The model of an agent, on AGENT_PROVIDER."""
+    """The model of an agent, on AGENT_PROVIDER. With FALLBACK_PROVIDER set (and different), a provider outage
+    (see `outage_errors`) is answered by the same model on the other provider instead of failing the turn: the customer
+    does not end in the human queue because Fireworks is down. `bind_tools` and `with_structured_output` reach both."""
     s = get_settings()
     name = model or s.llm_model
     provider = s.agent_provider.lower()
     if provider not in PROVIDERS:
         raise ValueError(f"AGENT_PROVIDER must be one of {PROVIDERS}, got {s.agent_provider!r}")
     build = _fireworks if provider == "fireworks" else _groq
-    return build(name, temperature, max_tokens, timeout, max_retries)
+    primary = build(name, temperature, max_tokens, timeout, max_retries)
+    backup = s.fallback_provider.lower()
+    if not backup or backup == provider:
+        return primary
+    if backup not in PROVIDERS:
+        raise ValueError(f"FALLBACK_PROVIDER must be one of {PROVIDERS} or empty, got {s.fallback_provider!r}")
+    build_backup = _fireworks if backup == "fireworks" else _groq
+    secondary = build_backup(fallback_model_name(name, backup), temperature, max_tokens, timeout, max_retries)
+    return primary.with_fallbacks([secondary], exceptions_to_handle=outage_errors())
 
 
 def get_judge_llm(temperature: float = 0.0, max_tokens: int | None = 500, timeout: float = 60,

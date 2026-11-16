@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     # models
     # provider of the agents: groq (default) or fireworks (OpenAI-compatible API). The judge is always Groq.
     agent_provider: str = "groq"
+    # the other provider that answers when AGENT_PROVIDER has an outage (5xx, 429, no connection, timeout); empty = no
+    # failover. The same model under the other provider's id (app/llm.py::fallback_model_name). Needs its API key
+    fallback_provider: str = ""
     llm_model: str = "openai/gpt-oss-120b"
     # smaller model for router and synthesizer (Groq limits are per model)
     light_model: str = "openai/gpt-oss-20b"
@@ -53,6 +56,14 @@ class Settings(BaseSettings):
     chroma_dir: str = "./data/chroma"
     chroma_collection: str = "getnet_kb"
     retrieval_k: int = 5
+    # how the knowledge base is searched (app/rag/hybrid.py): "dense" (Voyage embeddings only), "hybrid" (dense + BM25,
+    # fused with RRF) or "hybrid_rerank" (hybrid, then Voyage's reranker reorders the best `rag_pool`)
+    rag_mode: str = "dense"
+    rag_pool: int = 10  # candidates the reranker reads (chosen on the tune half, see eval/run_retrieval.py --grid)
+    rag_rrf_k: int = 60  # RRF constant: the larger, the flatter the weight of the top ranks
+    rerank_model: str = "rerank-2.5"
+    # query embeddings and rerank scores, kept on disk (a hash of the query, never its text); "" = no cache
+    rag_cache_path: str = "./data/rag_cache.sqlite"
     chunk_size: int = 1000
     chunk_overlap: int = 150
     ingest_batch_size: int = 16
@@ -61,6 +72,9 @@ class Settings(BaseSettings):
 
     # support / handoff files
     tickets_file: str = "./data/tickets.jsonl"
+    # a second ticket of the same category from the same customer within this many seconds is the same issue worded
+    # differently (a retried agent): the ticket already open is returned instead (0 = only the exact same summary counts)
+    ticket_dedup_window_s: float = 600.0
     handoffs_file: str = "./data/handoffs.jsonl"  # audit copy of every handoff (and the source of the one-time import)
     # the handoff queue the operators work through (claim / reply). Its own file: it does not depend on the
     # conversation checkpointer, and the conversation retention purge never touches it

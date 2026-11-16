@@ -84,7 +84,7 @@ def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_ra
     from app.data.repository import CustomerRepository
     from app.handoff import make_handoff_node
 
-    repo = CustomerRepository(tickets_file=get_settings().tickets_file)  # shared, so handoff tickets show up for Support
+    repo = CustomerRepository(tickets_file=get_settings().tickets_file, dedup_window_s=get_settings().ticket_dedup_window_s)  # shared, so handoff tickets show up for Support
     return build_graph(make_router_node(), make_knowledge_node(), make_support_node(repo=repo),
                        make_synthesizer_node(), make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
                        summarizer=make_summarizer_node(), verify=verify_node or make_verify_node(keep_raw=keep_verify_raw),

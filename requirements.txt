@@ -14,3 +14,4 @@ uvicorn[standard]==0.54.0
 pydantic-settings==2.16.2
 PyJWT==2.15.1
 cryptography==50.0.2  # RS256 verification against the identity provider JWKS
+rank_bm25==0.2.2  # BM25 half of the hybrid knowledge-base search
