@@ -32,7 +32,7 @@ def test_no_judged_rate_is_typed_by_hand_outside_the_generated_blocks():
 
 
 def test_it_carries_the_disclosures_the_project_notes_require():
-    for phrase in ("DRAFT", "ho06", "ho12", "ON PURPOSE", "20261116", "not independent", "Not every repetition was scored", "first run there is pending",
+    for phrase in ("DRAFT", "ho06", "ho12", "ON PURPOSE", "20261116", "not independent", "Not every repetition was scored", "first run on GitHub",
                    "REPLAN_MAX=0", "false fails", "m04_followup_product", "m08_recall_sum", "0835e91f81556587124e12aa81fe82556f775c24",
                    "22423e2f10249eb38bcaa8e8583bdaac49b5b35a", "PYSEC", "not comparable"):
         assert phrase.lower() in TEXT.lower() or phrase in TEXT, phrase
