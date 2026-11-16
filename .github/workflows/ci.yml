@@ -120,11 +120,10 @@ jobs:
           docker compose --profile observability config -q
 
       - name: Vulnerabilities in the image (trivy, HIGH and CRITICAL that have a fix)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
-        with:
-          image-ref: getnet-agents:ci
-          format: table
-          exit-code: "1"
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          vuln-type: os,library
+        # The official image run directly (no action in between: trivy-action pulled a second action by a tag that no longer exists), pinned by the
+        # digest of aquasec/trivy:0.70.0. It reads the image built above through the docker socket. A fixable HIGH or CRITICAL makes it exit 1.
+        run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+          aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
+          image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --pkg-types os,library
+          getnet-agents:ci
