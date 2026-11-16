@@ -114,6 +114,8 @@ jobs:
           KEYCLOAK_ADMIN_PASSWORD: ci
           DEMO_USER_PASSWORD: ci
         run: |
+          # `.env` is not in git and the api, ingest and eval services read it (`env_file: .env`): `compose config` fails without it
+          cp .env.example .env
           docker compose config -q
           docker compose --profile observability config -q
 

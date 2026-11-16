@@ -125,6 +125,7 @@ def test_the_real_models_with_a_fallback_still_bind_tools_and_structured_output_
 
     monkeypatch.setenv("AGENT_PROVIDER", "fireworks")
     monkeypatch.setenv("FALLBACK_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "dummy")  # ChatGroq refuses to be built without a key (no .env in CI); nothing is sent
     get_settings.cache_clear()
     try:
         model = llm_module.get_llm(model="accounts/fireworks/models/gpt-oss-20b")

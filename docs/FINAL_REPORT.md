@@ -135,6 +135,11 @@ Every later commit up to this report leaves `app/` byte-identical to `0835e91` (
 17. **Dependencies** were approved by the owner: `cryptography`, `rank_bm25`, `prometheus-client`, `opentelemetry-sdk` and `opentelemetry-exporter-otlp-proto-grpc`, and for development `ruff`, `mypy`, `bandit`, `pip-audit` and `pyyaml`.
 18. **Process.** One commit per phase, nothing squashed; the raw JSON of every cited run is versioned; the final run, the replan branch and the smoke each cite their commit. The owner made every commit and labeled the calibration sheets blind.
 19. **Assisted development.** The code, tests and drafts of this project were produced with Claude Code (Anthropic's coding assistant) under the owner's direction and review.
+20. **The evaluation runs and the image do not use the same interpreter or the same package versions.** The runs were made from the project's local virtualenv, Python 3.13.7 (the working method of the project notes; the run JSON files record the commit but not the interpreter or the package versions).
+    That virtualenv differs from `constraints.txt` in 15 of the pinned packages, for example `openai` 3.49.0 (pinned 3.51.0), `voyageai` 0.5.0 (0.6.0) and `numpy` 2.5.4 (2.5.5). All 15 were installed between 2026-11-08 and 2026-11-12, before the runs of 2026-11-15,
+    and `constraints.txt` at the run commit pins the same versions for them. The `Dockerfile` and the CI use Python 3.12. The `Dockerfile` installs with `pip install -r requirements.txt -c constraints.txt`, so the image holds the pinned versions; the CI installs `requirements-dev.txt` without the constraints file.
+    No evaluation was re-run on 3.12 with the pinned versions: the numbers of this report belong to the virtualenv, not to the image. What was checked on the image's side is the code, not the judged numbers: in a `python:3.12-slim` container the test suite, ruff, mypy and bandit pass
+    with the CI's install and with the install pinned by `constraints.txt` (the two differ in two packages, `httpx2` and `httpcore2`, 2.16.2 against 2.16.0; the three provenance tests need `git`, which that container lacks).
 
 ## 8. Not done
 
