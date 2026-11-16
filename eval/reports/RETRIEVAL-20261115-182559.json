@@ -1,0 +1,1441 @@
+{
+  "dense": [
+    {
+      "id": "r01_pix_enable_app",
+      "split": "tune",
+      "question": "How do I enable receiving sales via Pix in the Getnet app?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r02_get_tap",
+      "question": "What is Get Tap and how does it work?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-tap"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/pagamentos-digitais",
+        "https://site.getnet.com.br/get-tap",
+        "https://site.getnet.com.br/duvidas",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6309297535714575
+      },
+      "degraded": []
+    },
+    {
+      "id": "r03_advance_in_app",
+      "split": "tune",
+      "question": "How can I anticipate my card sales through the Getnet app?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app",
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app",
+        "https://www.getnet.net/ar/landings/cobra-con-terminal",
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6509209298071326
+      },
+      "degraded": []
+    },
+    {
+      "id": "r04_terminal_errors",
+      "holdout": true,
+      "question": "What do the error messages on my Getnet card machine mean?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-erros-maquininha"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2021/02/tabela-WS_final.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2022/08/3DS-2.1-Manul-de-Integracao_v1.6.pdf",
+        "https://site.getnet.com.br/get-ajuda-erros-maquininha",
+        "https://www.getnet.net/en/legal/legal-notice"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg@5": 0.5
+      },
+      "degraded": []
+    },
+    {
+      "id": "r05_get_conta_access",
+      "question": "How do I log in to my Get Conta?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta",
+        "https://site.getnet.com.br/duvidas",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r06_get_smart_help",
+      "split": "tune",
+      "question": "How do I solve problems with my Get Smart terminal?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/get-ajuda-erros-maquininha",
+        "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg@5": 0.5
+      },
+      "degraded": []
+    },
+    {
+      "id": "r07_payment_link",
+      "question": "How does the Getnet payment link work?",
+      "expected_urls": [
+        "https://site.getnet.com.br/link-de-pagamento",
+        "https://site.getnet.com.br/link-de-pagamento-getnet",
+        "https://site.getnet.com.br/link-de-pagamento-vendas",
+        "https://site.getnet.com.br/link-de-pagamento-alternativa-segura"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2022/07/Manul-Getpay.pdf",
+        "https://site.getnet.com.br/link-de-pagamento-alternativa-segura",
+        "https://site.getnet.com.br/link-de-pagamento-vendas",
+        "https://www.getnet.net/en/our-solutions/online-payments"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 0.5,
+        "ndcg@5": 0.44149241373678083
+      },
+      "degraded": []
+    },
+    {
+      "id": "r08_whatsapp",
+      "split": "tune",
+      "question": "Can I take payments through WhatsApp with Getnet?",
+      "expected_urls": [
+        "https://site.getnet.com.br/pagamentos-pelo-whatsapp"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil",
+        "https://site.getnet.com.br/ofertas",
+        "https://site.getnet.com.br/wp-content/uploads/2022/07/Manul-Getpay.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r09_crediario",
+      "question": "What is the Getnet crediario and how many installments does it allow?",
+      "expected_urls": [
+        "https://site.getnet.com.br/crediario"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf",
+        "https://site.getnet.com.br/crediario"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6309297535714575
+      },
+      "degraded": []
+    },
+    {
+      "id": "r10_all_machines",
+      "split": "tune",
+      "question": "Which card machines does Getnet sell?",
+      "expected_urls": [
+        "https://site.getnet.com.br/todas-as-maquininhas"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br",
+        "https://site.getnet.com.br/ofertas",
+        "https://site.getnet.com.br/get-tap",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r11_digital_account",
+      "holdout": true,
+      "question": "What is the Getnet digital account and what can I do with it?",
+      "expected_urls": [
+        "https://site.getnet.com.br/conta-digital"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/conta-digital",
+        "https://site.getnet.com.br/duvidas",
+        "https://www.getnet.net/en/legal/privacy-policy",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r12_custom_rates",
+      "question": "Can I get personalized rates from Getnet?",
+      "expected_urls": [
+        "https://site.getnet.com.br/taxas-personalizadas-eye"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/produtos-pessoa-fisica",
+        "https://site.getnet.com.br/duvidas",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r13_online_payments",
+      "split": "tune",
+      "question": "What online payment solutions does Getnet offer for e-commerce?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/online-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://site.getnet.com.br/pix",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2022/08/3DS-2.1-Manul-de-Integracao_v1.6.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r14_agentic_commerce",
+      "question": "What is agentic commerce and how does Getnet support AI agents paying?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/agentic-commerce",
+        "https://www.getnet.net/en/resources/blog/agentic-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/resources/blog/agentic-payments",
+        "https://www.getnet.net/en/our-solutions/agentic-commerce",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r15_nayax_partner",
+      "holdout": true,
+      "question": "Does Getnet partner with Nayax for unattended payments?",
+      "expected_urls": [
+        "https://www.getnet.net/en/partners/nayax"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/partners/nayax",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r16_in_person",
+      "split": "tune",
+      "question": "What in-person payment solutions does Getnet provide to businesses?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/produtos-pessoa-fisica",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://www.getnet.net/ar/landings/cobra-con-terminal"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg@5": 0.5
+      },
+      "degraded": []
+    },
+    {
+      "id": "r17_omnichannel",
+      "question": "What does Getnet offer for omnichannel payments?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/omnichannel"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/corporate/about-us",
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r18_portugal_pay",
+      "holdout": true,
+      "question": "How do people prefer to pay in Portugal?",
+      "expected_urls": [
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r19_contact",
+      "split": "tune",
+      "question": "How can I contact Getnet?",
+      "expected_urls": [
+        "https://www.getnet.net/en/contact",
+        "https://www.getnet.net/uy/contacto"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/legal/privacy-policy",
+        "https://www.getnet.net/en/contact",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 0.5,
+        "ndcg@5": 0.38685280723454163
+      },
+      "degraded": []
+    },
+    {
+      "id": "r20_pix_overview",
+      "holdout": true,
+      "question": "What is Pix and how does Getnet handle Pix sales?",
+      "expected_urls": [
+        "https://site.getnet.com.br/pix"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/pagamentos-digitais",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil",
+        "https://site.getnet.com.br/ofertas"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r21_uy_installments",
+      "holdout": true,
+      "question": "Can I sell in installments with Getnet in Uruguay?",
+      "expected_urls": [
+        "https://www.getnet.net/uy/vende-en-cuotas"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/duvidas",
+        "https://www.getnet.net/ar/landings/cobra-con-terminal",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/crediario",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    }
+  ],
+  "hybrid": [
+    {
+      "id": "r01_pix_enable_app",
+      "split": "tune",
+      "question": "How do I enable receiving sales via Pix in the Getnet app?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/pix"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r02_get_tap",
+      "question": "What is Get Tap and how does it work?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-tap"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-tap",
+        "https://site.getnet.com.br/pagamentos-digitais",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r03_advance_in_app",
+      "split": "tune",
+      "question": "How can I anticipate my card sales through the Getnet app?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app",
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app",
+        "https://www.getnet.net/en/resources/whats-new",
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 1.0,
+        "ndcg@5": 0.6131471927654584
+      },
+      "degraded": []
+    },
+    {
+      "id": "r04_terminal_errors",
+      "holdout": true,
+      "question": "What do the error messages on my Getnet card machine mean?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-erros-maquininha"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2022/08/3DS-2.1-Manul-de-Integracao_v1.6.pdf",
+        "https://www.getnet.net/en/legal/legal-notice",
+        "https://www.getnet.net/en/partners/upi"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r05_get_conta_access",
+      "question": "How do I log in to my Get Conta?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta",
+        "https://site.getnet.com.br/conta-digital",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r06_get_smart_help",
+      "split": "tune",
+      "question": "How do I solve problems with my Get Smart terminal?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r07_payment_link",
+      "question": "How does the Getnet payment link work?",
+      "expected_urls": [
+        "https://site.getnet.com.br/link-de-pagamento",
+        "https://site.getnet.com.br/link-de-pagamento-getnet",
+        "https://site.getnet.com.br/link-de-pagamento-vendas",
+        "https://site.getnet.com.br/link-de-pagamento-alternativa-segura"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://site.getnet.com.br/wp-content/uploads/2022/07/Manul-Getpay.pdf",
+        "https://site.getnet.com.br/link-de-pagamento-alternativa-segura",
+        "https://site.getnet.com.br/link-de-pagamento-getnet"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 0.3333333333333333,
+        "ndcg@5": 0.36331756126716835
+      },
+      "degraded": []
+    },
+    {
+      "id": "r08_whatsapp",
+      "split": "tune",
+      "question": "Can I take payments through WhatsApp with Getnet?",
+      "expected_urls": [
+        "https://site.getnet.com.br/pagamentos-pelo-whatsapp"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://site.getnet.com.br/link-de-pagamento-getnet",
+        "https://site.getnet.com.br/ofertas",
+        "https://site.getnet.com.br/wp-content/uploads/2022/07/Manul-Getpay.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r09_crediario",
+      "question": "What is the Getnet crediario and how many installments does it allow?",
+      "expected_urls": [
+        "https://site.getnet.com.br/crediario"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf",
+        "https://site.getnet.com.br/crediario"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6309297535714575
+      },
+      "degraded": []
+    },
+    {
+      "id": "r10_all_machines",
+      "split": "tune",
+      "question": "Which card machines does Getnet sell?",
+      "expected_urls": [
+        "https://site.getnet.com.br/todas-as-maquininhas"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://www.getnet.net/en/partners/nayax",
+        "https://www.getnet.net/en/resources/whats-new"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r11_digital_account",
+      "holdout": true,
+      "question": "What is the Getnet digital account and what can I do with it?",
+      "expected_urls": [
+        "https://site.getnet.com.br/conta-digital"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/legal/privacy-policy",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r12_custom_rates",
+      "question": "Can I get personalized rates from Getnet?",
+      "expected_urls": [
+        "https://site.getnet.com.br/taxas-personalizadas-eye"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br",
+        "https://site.getnet.com.br/ofertas",
+        "https://site.getnet.com.br/produtos-pessoa-fisica",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r13_online_payments",
+      "split": "tune",
+      "question": "What online payment solutions does Getnet offer for e-commerce?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/online-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://www.getnet.net/en/partners",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r14_agentic_commerce",
+      "question": "What is agentic commerce and how does Getnet support AI agents paying?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/agentic-commerce",
+        "https://www.getnet.net/en/resources/blog/agentic-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/agentic-commerce",
+        "https://www.getnet.net/en/resources/blog/agentic-payments",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r15_nayax_partner",
+      "holdout": true,
+      "question": "Does Getnet partner with Nayax for unattended payments?",
+      "expected_urls": [
+        "https://www.getnet.net/en/partners/nayax"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/partners/nayax",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r16_in_person",
+      "split": "tune",
+      "question": "What in-person payment solutions does Getnet provide to businesses?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://www.getnet.net/en/our-solutions/online-payments"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r17_omnichannel",
+      "question": "What does Getnet offer for omnichannel payments?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/omnichannel"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/corporate/about-us",
+        "https://www.getnet.net/en/resources/blog/instant-payments-from-local-adoption-to-cross-border-growth",
+        "https://www.getnet.net/en/partners/aevi",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r18_portugal_pay",
+      "holdout": true,
+      "question": "How do people prefer to pay in Portugal?",
+      "expected_urls": [
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r19_contact",
+      "split": "tune",
+      "question": "How can I contact Getnet?",
+      "expected_urls": [
+        "https://www.getnet.net/en/contact",
+        "https://www.getnet.net/uy/contacto"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/legal/privacy-policy",
+        "https://www.getnet.net/en/contact",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 0.5,
+        "ndcg@5": 0.38685280723454163
+      },
+      "degraded": []
+    },
+    {
+      "id": "r20_pix_overview",
+      "holdout": true,
+      "question": "What is Pix and how does Getnet handle Pix sales?",
+      "expected_urls": [
+        "https://site.getnet.com.br/pix"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil",
+        "https://site.getnet.com.br/pagamentos-digitais",
+        "https://site.getnet.com.br/duvidas"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r21_uy_installments",
+      "holdout": true,
+      "question": "Can I sell in installments with Getnet in Uruguay?",
+      "expected_urls": [
+        "https://www.getnet.net/uy/vende-en-cuotas"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://www.getnet.net/en/your-business/large-enterprises",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    }
+  ],
+  "hybrid_rerank": [
+    {
+      "id": "r01_pix_enable_app",
+      "split": "tune",
+      "question": "How do I enable receiving sales via Pix in the Getnet app?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/pix"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r02_get_tap",
+      "question": "What is Get Tap and how does it work?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-tap"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/duvidas",
+        "https://site.getnet.com.br/pagamentos-digitais",
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r03_advance_in_app",
+      "split": "tune",
+      "question": "How can I anticipate my card sales through the Getnet app?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app",
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app",
+        "https://site.getnet.com.br/get-tap",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 1.0,
+        "ndcg@5": 0.6131471927654584
+      },
+      "degraded": []
+    },
+    {
+      "id": "r04_terminal_errors",
+      "holdout": true,
+      "question": "What do the error messages on my Getnet card machine mean?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-erros-maquininha"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2022/08/3DS-2.1-Manul-de-Integracao_v1.6.pdf",
+        "https://www.getnet.net/en/legal/legal-notice",
+        "https://www.getnet.net/en/partners/elecctro"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r05_get_conta_access",
+      "question": "How do I log in to my Get Conta?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r06_get_smart_help",
+      "split": "tune",
+      "question": "How do I solve problems with my Get Smart terminal?",
+      "expected_urls": [
+        "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart",
+        "https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6309297535714575
+      },
+      "degraded": []
+    },
+    {
+      "id": "r07_payment_link",
+      "question": "How does the Getnet payment link work?",
+      "expected_urls": [
+        "https://site.getnet.com.br/link-de-pagamento",
+        "https://site.getnet.com.br/link-de-pagamento-getnet",
+        "https://site.getnet.com.br/link-de-pagamento-vendas",
+        "https://site.getnet.com.br/link-de-pagamento-alternativa-segura"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/link-de-pagamento-getnet",
+        "https://site.getnet.com.br/wp-content/uploads/2022/07/Manul-Getpay.pdf",
+        "https://site.getnet.com.br/link-de-pagamento-alternativa-segura",
+        "https://site.getnet.com.br/link-de-pagamento"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.75,
+        "mrr": 1.0,
+        "ndcg@5": 0.75369761125927
+      },
+      "degraded": []
+    },
+    {
+      "id": "r08_whatsapp",
+      "split": "tune",
+      "question": "Can I take payments through WhatsApp with Getnet?",
+      "expected_urls": [
+        "https://site.getnet.com.br/pagamentos-pelo-whatsapp"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://site.getnet.com.br/link-de-pagamento-getnet",
+        "https://site.getnet.com.br/ofertas",
+        "https://site.getnet.com.br/wp-content/uploads/2022/07/Manul-Getpay.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r09_crediario",
+      "question": "What is the Getnet crediario and how many installments does it allow?",
+      "expected_urls": [
+        "https://site.getnet.com.br/crediario"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/crediario",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf",
+        "https://site.getnet.com.br/5-funcionalidades-da-maquininha-getnet-para-vender-mais"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r10_all_machines",
+      "split": "tune",
+      "question": "Which card machines does Getnet sell?",
+      "expected_urls": [
+        "https://site.getnet.com.br/todas-as-maquininhas"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://www.getnet.net/en/partners/nayax",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r11_digital_account",
+      "holdout": true,
+      "question": "What is the Getnet digital account and what can I do with it?",
+      "expected_urls": [
+        "https://site.getnet.com.br/conta-digital"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/conta-digital",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://www.getnet.net/en/legal/privacy-policy",
+        "https://site.getnet.com.br/duvidas",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r12_custom_rates",
+      "question": "Can I get personalized rates from Getnet?",
+      "expected_urls": [
+        "https://site.getnet.com.br/taxas-personalizadas-eye"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/ofertas",
+        "https://site.getnet.com.br",
+        "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r13_online_payments",
+      "split": "tune",
+      "question": "What online payment solutions does Getnet offer for e-commerce?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/online-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r14_agentic_commerce",
+      "question": "What is agentic commerce and how does Getnet support AI agents paying?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/agentic-commerce",
+        "https://www.getnet.net/en/resources/blog/agentic-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/resources/blog/agentic-payments",
+        "https://www.getnet.net/en/our-solutions/agentic-commerce",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r15_nayax_partner",
+      "holdout": true,
+      "question": "Does Getnet partner with Nayax for unattended payments?",
+      "expected_urls": [
+        "https://www.getnet.net/en/partners/nayax"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/partners/nayax",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r16_in_person",
+      "split": "tune",
+      "question": "What in-person payment solutions does Getnet provide to businesses?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/our-solutions/in-person-payments",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://www.platforms.getnet.net/en/press-room/pix-revolution"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r17_omnichannel",
+      "question": "What does Getnet offer for omnichannel payments?",
+      "expected_urls": [
+        "https://www.getnet.net/en/our-solutions/omnichannel"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/corporate/about-us",
+        "https://www.getnet.net/content/dam/getnetworld/documents/white-papers/GetnetxRestaurants_Savouring%20Sucess%20Integrated%20Payments%20Restaurants.pdf",
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://www.getnet.net/en/resources/blog/instant-payments-from-local-adoption-to-cross-border-growth",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r18_portugal_pay",
+      "holdout": true,
+      "question": "How do people prefer to pay in Portugal?",
+      "expected_urls": [
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/resources/blog/how-people-prefer-to-pay-in-portugal",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r19_contact",
+      "split": "tune",
+      "question": "How can I contact Getnet?",
+      "expected_urls": [
+        "https://www.getnet.net/en/contact",
+        "https://www.getnet.net/uy/contacto"
+      ],
+      "ranking": [
+        "https://www.getnet.net/en/contact",
+        "https://www.getnet.net/en/legal/privacy-policy",
+        "https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@5": 0.5,
+        "mrr": 1.0,
+        "ndcg@5": 0.6131471927654584
+      },
+      "degraded": []
+    },
+    {
+      "id": "r20_pix_overview",
+      "holdout": true,
+      "question": "What is Pix and how does Getnet handle Pix sales?",
+      "expected_urls": [
+        "https://site.getnet.com.br/pix"
+      ],
+      "ranking": [
+        "https://site.getnet.com.br/pagamentos-digitais",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/duvidas",
+        "https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    },
+    {
+      "id": "r21_uy_installments",
+      "holdout": true,
+      "question": "Can I sell in installments with Getnet in Uruguay?",
+      "expected_urls": [
+        "https://www.getnet.net/uy/vende-en-cuotas"
+      ],
+      "ranking": [
+        "https://www.getnet.net/uy/contacto",
+        "https://www.getnet.net/en/our-solutions/online-payments",
+        "https://www.getnet.net/en/your-business/large-enterprises",
+        "https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf",
+        "https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf"
+      ],
+      "scores": {
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0
+      },
+      "degraded": []
+    }
+  ]
+}
