@@ -199,10 +199,25 @@ def run_case(service, case: dict, thread_base: str, retries: int, sleep,
         state, latency, exc = None, 0, None
         collector = TurnCollector(_prices())
         try:
-            extra = {"context": history_messages(case)} if case.get("history") else {}  # single-turn cases call it as before
+            thread_id = f"{thread_base}-{attempt}"
+            history = history_messages(case)
+            persistent = bool(history) and hasattr(service, "seed")
+            if persistent:
+                # the earlier turns go INTO the thread, the checkpointer and the graph are reopened (a restart), and only then is
+                # the last message answered: the memory the API really uses is what the case runs on (eval/persistent.py)
+                service.seed(thread_id, case["user_id"], history)
+                service.restart()
+                restored = service.thread_messages(thread_id)
+            extra = {"context": history} if history and not persistent else {}  # single-turn cases call it as before
             if _accepts(service.run_raw, "callbacks"):
                 extra["callbacks"] = [collector]
-            state, latency = service.run_raw(case["message"], case["user_id"], thread_id=f"{thread_base}-{attempt}", **extra)
+            state, latency = service.run_raw(case["message"], case["user_id"], thread_id=thread_id, **extra)
+            if persistent:
+                after = service.thread_messages(thread_id)
+                state["eval_memory"] = {"restart": True, "seeded": len(history), "restored": len(restored),
+                                        "restored_intact": [str(m.content) for m in restored] == [str(m.content) for m in history],
+                                        "after": len(after),
+                                        "answered_in_thread": bool(after) and str(after[-1].content) == str(state.get("final_answer"))}
         except Exception as e:  # noqa: BLE001
             exc = f"{type(e).__name__}: {e}"
         # classify with the FULL text: a daily quota must not be mistaken for a per-minute limit
@@ -264,6 +279,11 @@ def evaluate(cases: list[dict], service, judge: Judge | None, pause: float,
         row["handoff_ok"] = handoff_ok(c, reason)
         if c.get("history"):
             row["history"] = c["history"]  # which conversation the message was answered in
+        mem = state.get("eval_memory")
+        if mem:  # deterministic: after the restart the thread holds exactly the earlier turns, and the answer was written to it
+            row["memory"] = mem
+            row["memory_ok"] = bool(mem["restored_intact"] and mem["restored"] == mem["seeded"] and mem["after"] >= mem["seeded"] + 2
+                                    and mem["answered_in_thread"])
         if c.get("holdout"):
             row["holdout"] = True
         if collectors and collectors[0].spans:
@@ -304,6 +324,9 @@ def summarize(rows: list[dict]) -> dict:
     if checked:
         s["handoff_accuracy"] = sum(checked) / len(checked)  # only cases with an expectation
     s["handoff_rate"] = sum(bool(r.get("handoff")) for r in rows) / n if n else 0
+    remembered = [r["memory_ok"] for r in rows if r.get("memory_ok") is not None]
+    if remembered:  # multi-turn cases run through the real checkpointer with a restart (eval/persistent.py)
+        s["memory_accuracy"] = sum(remembered) / len(remembered)
     judge_errors = sum(1 for r in rows if r.get("judge", {}).get("verdict") == "error")
     if judge_errors:
         s["judge_errors"] = judge_errors  # judge failed (not scored), the case still counts for routing/tools
@@ -486,17 +509,36 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=1, help="run the cases N times and write REPEATS-<stamp>.md")
     ap.add_argument("--keep-latest", action="store_true", help="never overwrite eval/reports/latest.md")
     ap.add_argument("--regular-only", action="store_true", help="leave the holdout cases out (they only measure, never tune)")
+    ap.add_argument("--inject-history", action="store_true",
+                    help="the old way: earlier turns of a multi-turn case go in as context (no checkpointer, no restart)")
     args = ap.parse_args()
 
+    import os
+
+    from app.config import get_settings
     from app.graph import build_default_graph
     from app.service import ChatService
 
+    if get_settings().fallback_provider:  # a measurement runs on ONE provider: no silent switch to another model mid-report
+        print(f"NOTE: FALLBACK_PROVIDER={get_settings().fallback_provider} is set; the eval turns provider failover off for this run.")
+        os.environ["FALLBACK_PROVIDER"] = ""
+        get_settings.cache_clear()
     cases = load_cases(args.only, regular_only=args.regular_only)
     models = current_models()
     print("Models:", ", ".join(f"{role}={name}" for role, name in models.items()))
-    done, repeats_path = run_repeats(cases, ChatService(build_default_graph(keep_verify_raw=True)), None if args.no_judge else Judge(),
-                                     max(1, args.repeats), args.pause, retries=args.retries, models=models,
-                                     update_latest=not args.only and not args.keep_latest)
+    if args.inject_history:
+        service = ChatService(build_default_graph(keep_verify_raw=True))
+    else:
+        from eval.persistent import PersistentEvalService
+
+        service = PersistentEvalService(keep_verify_raw=True)  # multi-turn cases: real SQLite checkpointer + a restart
+    try:
+        done, repeats_path = run_repeats(cases, service, None if args.no_judge else Judge(),
+                                         max(1, args.repeats), args.pause, retries=args.retries, models=models,
+                                         update_latest=not args.only and not args.keep_latest)
+    finally:
+        if hasattr(service, "close"):
+            service.close()
     rows, summary, path = done[-1]
     print("\n=== SUMMARY (last run) ===")
     print(json.dumps(summary, indent=2))

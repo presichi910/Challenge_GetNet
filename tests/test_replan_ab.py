@@ -76,3 +76,26 @@ def test_the_three_figures_count_what_is_left_and_never_average_in_a_judge_error
     assert s["observe"]["retried"] == 1 and s["observe"]["escalated"] == 1 and s["observe"]["text_changed"] == 3
     text = render([r1, r2, r3], s, "stamp")
     assert "escalated" in text and "judge error" in text and "REPLAN_MAX=2" in text
+
+
+def test_a_row_whose_two_arms_ended_the_same_needs_no_score_when_only_the_differences_are_compared():
+    from eval.replan_ab import differs
+
+    same, changed, extra, escalated = row("t", "t"), row("a", "b"), row("t", "t", extra=["new passage"]), row("a", ESCALATED, escalated=True)
+    assert [differs(r) for r in (same, changed, extra, escalated)] == [False, True, True, True]
+    assert judge_jobs(same, differing_only=True) == {} and len(judge_jobs(same)) == 1
+    assert len(judge_jobs(changed, differing_only=True)) == 2 and len(judge_jobs(escalated, differing_only=True)) == 1
+
+
+def test_the_saved_measurement_has_twelve_texts_to_score_not_thirty_six(capsys):
+    """The 30 saved drafts of 2026-11-15: 6 differ between the arms (12 texts); the other 24 are identical and cancel out."""
+    import json
+    from pathlib import Path
+
+    f = Path("eval/reports/REPLAN_AB-20261115-151730.json")
+    if not f.exists():
+        import pytest
+
+        pytest.skip("the saved measurement is not in this checkout")
+    rows = json.loads(f.read_text(encoding="utf-8"))["rows"]
+    assert sum(len(judge_jobs(r)) for r in rows) == 36 and sum(len(judge_jobs(r, True)) for r in rows) == 12

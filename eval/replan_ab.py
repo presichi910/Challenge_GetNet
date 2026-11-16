@@ -68,8 +68,18 @@ def run_arms(snap: dict, observe_node, verify_node) -> dict:
     return out
 
 
-def judge_jobs(row: dict) -> dict[str, tuple[str, list[str]]]:
-    """key -> (answer, evidence) for every distinct thing the judge must score in this row."""
+def differs(row: dict) -> bool:
+    """The two arms ended with different words or different evidence (or one escalated). When they did not, both arms are the SAME
+    text with the SAME evidence: the judge would score it the same for both, so it adds nothing to a comparison between them."""
+    a0, a2 = row["arms"]["0"], row["arms"]["2"]
+    return bool(a2.get("escalated")) or a0["final"] != a2["final"] or bool(a2.get("evidence_extra"))
+
+
+def judge_jobs(row: dict, differing_only: bool = False) -> dict[str, tuple[str, list[str]]]:
+    """key -> (answer, evidence) for every distinct thing the judge must score in this row. With `differing_only`, a row whose two
+    arms are identical needs no score (it cancels out of the comparison): that is 12 texts instead of 36 on the 30 saved drafts."""
+    if differing_only and not differs(row):
+        return {}
     base = [c for o in row["draft"]["agent_outputs"].values() for c in o.get("contexts", [])]
     jobs = {}
     for arm in ("0", "2"):
@@ -177,34 +187,37 @@ def cmd_run(args) -> None:
 
 def cmd_judge(args) -> None:
     from eval.judge import Judge
+    from eval.judge_budget import DAILY_LIMIT, MARGIN, BudgetedScorer, Ledger
+    from eval.run_eval import _prices
 
     data = load(args.file)
     cases = {c["id"]: c for c in load_cases(None, regular_only=True)}
-    judge = Judge()
-    done = spent = 0
-    for r in data["rows"]:
-        r.setdefault("judged", {})
-        for key, (answer, evidence) in judge_jobs(r).items():
-            if key in r["judged"] and r["judged"][key].get("verdict") != "error":
-                continue
-            if args.max_calls and spent >= args.max_calls:
-                print(f"stopped after {spent} calls (--max-calls)")
-                save(args.file, data)
-                return
-            time.sleep(JUDGE_GAP_SECONDS)
-            case = cases[r["id"]]
-            out = judge.score(judge_question(case), answer, evidence, case.get("criteria", ""))
-            spent += 1
-            if out.get("verdict") == "error" and "tokens per day" in out.get("reason", ""):
-                print("the judge's DAILY token limit is reached: stopping. Run `judge` again later; what is scored is saved.")
-                save(args.file, data)
-                return
-            r["judged"][key] = out
-            done += 1
-            save(args.file, data)  # after every call: a stop loses nothing
-            print(f"   judged {r['id']} #{r['repeat']}: {out.get('verdict')}", flush=True)
+    ledger = Ledger(args.ledger)
+    pending = [(r, key, job) for r in data["rows"] for key, job in judge_jobs(r, args.differing_only).items()
+               if not (key in r.setdefault("judged", {}) and r["judged"][key].get("verdict") != "error")]
+    print(f"{len(pending)} text(s) to score; ~{ledger.recent_average()} tokens each. Spent in the last 24 h: {ledger.spent()} of {DAILY_LIMIT} "
+          f"(stop line {DAILY_LIMIT - MARGIN}).")
+    if args.dry_run or not pending:
+        return
+    from app.observability import TurnCollector
+
+    scorer = BudgetedScorer(Judge(), ledger, collector_factory=lambda: TurnCollector(_prices()))
+    done = 0
+    for r, key, (answer, evidence) in pending:
+        if args.max_calls and scorer.calls >= args.max_calls:
+            print(f"stopped after {scorer.calls} calls (--max-calls)")
+            break
+        case = cases[r["id"]]
+        out, status = scorer.score(judge_question(case), answer, evidence, case.get("criteria", ""), label=f"replan:{r['id']}")
+        if status == "daily_cap":
+            print("STOP before the judge's daily cap. Run `judge` again later; what is scored is saved.")
+            break
+        r["judged"][key] = out
+        done += 1
+        save(args.file, data)  # after every call: a stop loses nothing
+        print(f"   judged {r['id']} #{r['repeat']}: {out.get('verdict')} (24 h total {ledger.spent()})", flush=True)
     save(args.file, data)
-    print(f"all texts scored ({done} calls this time)")
+    print(f"{done} text(s) scored this time, {scorer.tokens} judge tokens; 24 h total {ledger.spent()} of {DAILY_LIMIT}")
 
 
 def cmd_report(args) -> None:
@@ -227,6 +240,9 @@ def main() -> None:
     j = sub.add_parser("judge")
     j.add_argument("--file", required=True)
     j.add_argument("--max-calls", type=int, default=0)
+    j.add_argument("--differing-only", action="store_true", help="score only the rows whose two arms ended differently")
+    j.add_argument("--dry-run", action="store_true", help="count what would be scored, call nothing")
+    j.add_argument("--ledger", default=None, help="judge token ledger (default eval/reports/judge_ledger.json)")
     p = sub.add_parser("report")
     p.add_argument("--file", required=True)
     args = ap.parse_args()
