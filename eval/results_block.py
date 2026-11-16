@@ -19,6 +19,13 @@ from eval.repeats import aggregate
 from eval.run_eval import HOLDOUT_GROUPS, holdout_group, summarize_all
 
 START, END = "<!-- results:start -->", "<!-- results:end -->"
+# Holdout cases whose behavior the prompt rules 5 and 8 target and whose baseline had been read when those rules were written: they are NOT blind.
+# Fixed here by hand on purpose: never derived from results.
+SEEN_BASELINE = ("ho06", "ho08", "ho12")
+
+
+def is_seen_baseline(case_id: str) -> bool:
+    return case_id.split("_")[0] in SEEN_BASELINE
 
 
 def load(path: str | Path) -> dict:
@@ -36,13 +43,21 @@ def cell(group: dict | None, key: str, n_key: str = "cases", scale5: bool = Fals
     return f"{pct(v / 5 if scale5 else v)} (n={group[n_key]})"
 
 
+def counts(part: list[dict]) -> dict:
+    part = [r for r in part if not r.get("provider_error")]
+    return {"handoff_n": sum(r.get("handoff_ok") is not None for r in part), "memory_n": sum(r.get("memory_ok") is not None for r in part)}
+
+
+def seen_column(seen_rows: list[dict]) -> dict | None:
+    """The summary of the baseline-seen holdout cases, with the n of the rates over fewer cases (None when there are none)."""
+    if not seen_rows:
+        return None
+    return {**summarize_all(seen_rows)["holdout_groups"]["blind"], **counts(seen_rows)}  # ids ho06+ land in the "blind" group of that call
+
+
 def annotate(pooled: dict, rows: list[dict]) -> dict:
     """Add the n of the rates that are over fewer rows than `cases`: the handoff check (only cases that expect something) and the
     memory check (only multi-turn cases)."""
-    def counts(part: list[dict]) -> dict:
-        part = [r for r in part if not r.get("provider_error")]
-        return {"handoff_n": sum(r.get("handoff_ok") is not None for r in part), "memory_n": sum(r.get("memory_ok") is not None for r in part)}
-
     main = [r for r in rows if not r.get("holdout")]
     out = {**pooled, **counts(main)}
     out["holdout_groups"] = {g: {**v, **counts([r for r in rows if r.get("holdout") and holdout_group(r["id"]) == g])}
@@ -50,8 +65,15 @@ def annotate(pooled: dict, rows: list[dict]) -> dict:
     return out
 
 
-def rows_table(pooled: dict) -> list[str]:
-    cols = [("regular", pooled), *[(f"holdout, {g}", (pooled.get("holdout_groups") or {}).get(g)) for g in HOLDOUT_GROUPS]]
+def rows_table(pooled: dict, seen: dict | None = None, case_counts: dict[str, int] | None = None) -> list[str]:
+    groups = pooled.get("holdout_groups") or {}
+    n = case_counts or {}
+    label = {"original": "holdout, original", "blind": "holdout, new, not targeted"}
+    assert set(label) == set(HOLDOUT_GROUPS)
+    cols = [("regular", pooled)]
+    for g in HOLDOUT_GROUPS:
+        cols.append((label[g] + (f" ({n[g]} cases)" if n.get(g) else ""), groups.get(g)))
+    cols.append(("holdout, baseline seen" + (f" ({n['seen']} cases)" if n.get("seen") else ""), seen))
     out = ["| | " + " | ".join(name for name, _ in cols) + " |", "|---|" + "---|" * len(cols)]
     spec = [("Routing", "routing_accuracy", "cases", False), ("Tool use", "tool_use_accuracy", "cases", False),
             ("Handoff accuracy", "handoff_accuracy", "handoff_n", False), ("Memory after restart", "memory_accuracy", "memory_n", False),
@@ -74,7 +96,14 @@ def block(paths: list[str], now: datetime | None = None) -> str:
     runs = [load(p) for p in paths]
     rows_by_run = [r["rows"] for r in runs]
     all_rows = [row for rows in rows_by_run for row in rows]
-    pooled = annotate(summarize_all(all_rows), all_rows)
+    is_seen = lambda r: bool(r.get("holdout")) and is_seen_baseline(r["id"])  # noqa: E731
+    seen_rows = [r for r in all_rows if is_seen(r)]
+    rest = [r for r in all_rows if not is_seen(r)]  # the holdout cases that are not "baseline seen" keep their two groups
+    pooled = annotate(summarize_all(rest), rest)
+    seen = seen_column(seen_rows)
+    case_counts = {"seen": len({r["id"] for r in seen_rows})}
+    for g in HOLDOUT_GROUPS:
+        case_counts[g] = len({r["id"] for r in rest if r.get("holdout") and holdout_group(r["id"]) == g})
     agg = aggregate(rows_by_run, [summarize_all(r) for r in rows_by_run])
     first = runs[0].get("summary", {})
     commits = sorted({r.get("summary", {}).get("commit", "unknown") for r in runs})
@@ -96,7 +125,10 @@ def block(paths: list[str], now: datetime | None = None) -> str:
     manifest = Path(__file__).parent / "calibration" / "sample_v3.json"
     if manifest.exists():
         lines += [f"_Calibration sample (rows a human labels, fixed before any judge note existed): {json.loads(manifest.read_text(encoding='utf-8')).get('note', '')}_", ""]
-    lines += rows_table(pooled) + ["",
+    if seen_rows:
+        lines += [f"_Holdout, baseline seen ({', '.join(SEEN_BASELINE)}): they measure the behavior that prompt rules 5 and 8 target, and the baseline of the holdout had been read "
+                  "when those rules were written. They are not blind and are not pooled with the other new holdout cases._", ""]
+    lines += rows_table(pooled, seen, case_counts) + ["",
               f"Pooled over {len(paths)} run(s). Unstable cases (pass in some runs, not all): {', '.join(agg['unstable']) or 'none'}. "
               f"Fail in every scored run: {', '.join(agg['always_fail']) or 'none'}.", "", END]
     return "\n".join(lines)

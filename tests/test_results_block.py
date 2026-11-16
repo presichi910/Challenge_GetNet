@@ -49,8 +49,9 @@ def test_holdout_is_shown_apart_by_group_and_a_rate_over_fewer_cases_has_its_own
     rs = rows(["q01", "ho02_x", "ho07_y"], scored_ids={"q01", "ho07_y"}, holdout={"ho02_x", "ho07_y"})
     rs[0]["handoff_ok"] = True
     text = block([write_run(tmp_path, "a.judged.json", rs)])
-    assert "holdout, original" in text and "holdout, blind" in text
-    assert "Handoff accuracy | 100% (n=1) | - | - |" in text.replace("  ", " ")  # only one case had a handoff expectation
+    assert "holdout, original" in text and "holdout, new, not targeted" in text and "holdout, baseline seen" in text
+    assert "holdout, blind" not in text  # no column claims blindness, and there is no pooled ho06-ho13 total
+    assert "Handoff accuracy | 100% (n=1) | - | - | - |" in text.replace("  ", " ")  # only one case had a handoff expectation
     assert "(n=1)" in text.split("Judge pass rate")[1]
 
 
@@ -92,3 +93,38 @@ def test_the_block_cites_the_commit_the_runs_came_from_and_whether_the_tree_was_
     assert "commit=22423e2f1024, tree_clean=True" in text and "replan_max=0" in text
     mixed = block([write_run(tmp_path, "c.json", rows(["q01"]), summary), write_run(tmp_path, "d.json", rows(["q01"]), {**summary, "commit": "b" * 40})])
     assert "commit=22423e2f1024/bbbbbbbbbbbb" in mixed  # runs from two commits are said to be from two commits
+
+
+def test_the_baseline_seen_holdout_cases_have_their_own_column_and_are_not_in_the_new_holdout(tmp_path):
+    ids = ["q01", "ho02_x", "ho06_a", "ho07_b", "ho08_c", "ho09_d", "ho12_f"]
+    rs = rows(ids, scored_ids=set(ids), holdout=set(ids) - {"q01"})
+    text = block([write_run(tmp_path, "a.judged.json", rs)])
+    lines = {line.split("|")[1].strip(): [c.strip() for c in line.split("|")[2:-1]] for line in text.splitlines() if line.startswith("| ") and "|---" not in line}
+    header = next(line for line in text.splitlines() if line.startswith("| ") and "regular" in line)
+    assert "holdout, original (1 cases)" in header and "holdout, new, not targeted (2 cases)" in header and "holdout, baseline seen (3 cases)" in header
+    assert lines["Cases x runs"] == ["1", "1", "2", "3"]  # regular | original | new, not targeted (ho07, ho09) | seen (ho06, ho08, ho12)
+    assert lines["**Judge pass rate**"] == ["100% (n=1)", "100% (n=1)", "100% (n=2)", "67% (n=3)"]  # ho12_f is a fail: 2 of the 3 seen
+    assert "they are not blind" in text.replace("They are not blind", "they are not blind") and "ho06, ho08, ho12" in text
+    assert "holdout, blind" not in text
+
+
+def test_without_baseline_seen_rows_that_column_is_empty_and_there_is_no_note(tmp_path):
+    ids = ["q01", "ho02_x", "ho07_y"]
+    text = block([write_run(tmp_path, "a.judged.json", rows(ids, scored_ids=set(ids), holdout={"ho02_x", "ho07_y"}))])
+    assert "holdout, baseline seen" in text and "Holdout, baseline seen (" not in text
+
+
+def test_the_baseline_seen_set_is_written_by_hand_and_names_cases_that_are_holdout_in_the_dataset():
+    import ast
+    from pathlib import Path
+
+    from eval import results_block
+
+    assert results_block.SEEN_BASELINE == ("ho06", "ho08", "ho12")
+    assert results_block.is_seen_baseline("ho06_kb_gap_pix_automatico") and results_block.is_seen_baseline("ho12")
+    assert not results_block.is_seen_baseline("ho07_partner") and not results_block.is_seen_baseline("ho060_x") and not results_block.is_seen_baseline("q06")
+    tree = ast.parse(Path(results_block.__file__).read_text(encoding="utf-8"))
+    node = next(n for n in tree.body if isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Name) and n.targets[0].id == "SEEN_BASELINE")
+    assert isinstance(node.value, ast.Tuple) and all(isinstance(e, ast.Constant) for e in node.value.elts)  # a literal: it cannot be computed from results
+    dataset = {c["id"].split("_")[0]: c for c in map(json.loads, (Path(results_block.__file__).parent / "dataset.jsonl").read_text(encoding="utf-8").splitlines())}
+    assert all(dataset[i].get("holdout") for i in results_block.SEEN_BASELINE)

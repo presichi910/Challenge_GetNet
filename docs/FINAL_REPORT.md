@@ -11,7 +11,7 @@
 | | |
 |---|---|
 | Code | commit `22423e2f10249eb38bcaa8e8583bdaac49b5b35a`, working tree clean (`run_eval --require-clean`; every report and JSON carries `commit` and `tree_clean`) |
-| Cases | 40 per repetition: 27 regular (including the injection cases `inj01`, `inj02`) and 13 holdout (`ho01`-`ho05` seen during development, `ho06`-`ho13` written blind) |
+| Cases | 40 per repetition: 27 regular (including the injection cases `inj01`, `inj02`) and 13 holdout (`ho01`-`ho05` seen during development; `ho06`-`ho13` the new holdout, of which `ho06`, `ho08` and `ho12` are "baseline seen", see section 7) |
 | Repetitions | 5, each a full run of the 40 cases (200 case-runs), no judge during the run, 1,705 s |
 | Provider errors | 0 in the 200 case-runs |
 | Agents | Fireworks `accounts/fireworks/models/gpt-oss-120b` for every role (router, knowledge, support, synthesizer, verifier) |
@@ -31,13 +31,13 @@ _Not generated yet._
 <!-- results:end -->
 
 How to read it: the routing, tool, handoff and memory rates are over the case-runs that have that check, and the judge-based rates (groundedness, completeness, pass rate) are over
-the rows the judge scored, each with its n; the original holdout (`ho01`-`ho05`) and the blind one (`ho06`-`ho13`) are separate columns. A repetition scored in part is shown as such, not as a whole. A row the judge has not scored is **pending**, never a pass. The pass rate of the current judge is **not comparable** to the 86% of the
+the rows the judge scored, each with its n; the original holdout (`ho01`-`ho05`), the new holdout not targeted by a prompt rule (`ho07`, `ho09`-`ho11`, `ho13`) and the baseline-seen cases (`ho06`, `ho08`, `ho12`) are separate columns, with no pooled `ho06`-`ho13` total. A repetition scored in part is shown as such, not as a whole. A row the judge has not scored is **pending**, never a pass. The pass rate of the current judge is **not comparable** to the 86% of the
 2026-11-12 report: the judge changed after that run (see section 7).
 
 ## 3. Does the judge agree with a human? (V3)
 
 The judge is an LLM, so its verdicts were checked against a human on **new** answers: 15 rows of repetition 1, chosen before any judge note existed, from the dataset
-alone, stratified, with a fixed seed (`eval/calibration/sample.py`, seed 20261117, `sample_v3.json`): 4 blind-holdout rows, 6 regular rows with tools, 3 multi-turn, 2 others.
+alone, stratified, with a fixed seed (`eval/calibration/sample.py`, seed 20261117, `sample_v3.json`): 4 new-holdout rows (`ho06` and `ho12`, which are "baseline seen", plus `ho09` and `ho11`), 6 regular rows with tools, 3 multi-turn, 2 others.
 **`ho06` and `ho12` were included on purpose as edge cases (2 of the 15), not drawn:** the sample is not a random sample of the 40 cases.
 
 <!-- calibration:start -->
@@ -113,11 +113,9 @@ Every later commit up to this report leaves `app/` byte-identical to `0835e91` (
 
 **About what the evaluation covers**
 6. **The eval does not exercise** ticket approval, provider failover, the webhook, the SLA or the telemetry (the eval runs with approval and failover off). They are covered by tests, and approval by one real-model run.
-7. **The holdout was not used to tune, but it was not written before every prompt change.** `ho06`-`ho13` entered the repository in commit `9326b88` (2026-11-15 12:12), **after** two earlier prompt changes: the rewrite of the judge prompt (`0ab2bc3`, 2026-11-14) and, in `f156a9e` (2026-11-15 11:59),
-   a router rule and a synthesizer rule for questions about the conversation itself, a narrowing of the support rule on other customers' data, and the verifier's prompts, all made for regular cases. They were committed before the baseline (`8ced5df`) and before every prompt change after it.
-   The later changes were tuned on regular cases only (see item 8), but whoever made them had read the baseline of the blind holdout, so the holdout is blind to the cases' content, not to the baseline result. `ho01`-`ho05` were seen during development. `ho02` (routing) is unstable
-   and `ho13` (tool use) fails in every repetition; both are reported as they are. `ho06` and `ho12` are also two of the 15 calibration rows (measurement only). The generated block reports `ho01`-`ho05` and `ho06`-`ho13` as separate columns, never pooled.
-8. **Tuning discipline.** Prompts changed in three steps, each tuned on REGULAR cases only. (a) After the blind holdout was committed and its baseline measured (pass 16/24 over three repetitions, with the judge of that day), the support rules for declining and for offering a ticket and the router and synthesizer rules for recall were changed using `q05`, `q08` and `x04`, then the holdout was measured once more (21/24) and nothing was adjusted after seeing it. (b) A rule against revealing the instructions, with a guard in code, tuned on `inj01` and `inj02`. (c) A regression found by repeating `h03` (it passed 2 of 5 runs, down from 15 of 16 earlier): the support rules 3 and 7 were narrowed using only `h03` and `x04`, 5 repetitions each, with `h01` and `h02` as controls; `h03` went from 2/5 to 5/5. `PROMPT_SHA256` pins every prompt. The judge was not changed after the final run.
+7. After the commit of the holdout (`9326b88`), three commits changed `app/prompts.py`: `20d5b4e` (support rule 5: offer a ticket, create it only if the customer accepts; tuned with `q05`, `q08`, `x04`), `d71966d` (rule 8: do not reveal instructions; tuned with `inj01`, controls `inj02` and `x04`) and `9eb7a24` (support rules 3 and 7; tuned with `h03`, controls `x04`, `h01`, `h02`).
+   `ho06` and `ho12` measure the same behavior as rule 5, and `ho08` the one of rule 8; the baseline of the holdout had already been seen when the changes were made (`ho06` and `ho12` failed 0/3; `ho08` passed 3/3). For that reason `ho06`, `ho08` and `ho12` are not presented as blind. The cause of the `h03` regression (probably rule 8) was not verified. `ho02` (routing) is unstable and `ho13` (tool use) fails in every repetition; both are reported as they are. The "blind" labels in the per-run reports generated by `run_eval` (for example "new blind (ho06 and later), written before any prompt fix") predate the correction in this item: read them as "new holdout", with `ho06`, `ho08` and `ho12` as baseline seen.
+8. **Tuning discipline.** Prompts changed in three steps, each tuned on REGULAR cases only. (a) After the new holdout was committed and its baseline measured (pass 16/24 over three repetitions, with the judge of that day), the support rules for declining and for offering a ticket and the router and synthesizer rules for recall were changed using `q05`, `q08` and `x04`, then the holdout was measured once more (21/24); no prompt rule was changed in response to holdout results after the second measurement; the later edits (rule 8, h03) were tuned on regular cases. (b) A rule against revealing the instructions, with a guard in code, tuned on `inj01` and `inj02`. (c) A regression found by repeating `h03` (it passed 2 of 5 runs, down from 15 of 16 earlier): the support rules 3 and 7 were narrowed using only `h03` and `x04`, 5 repetitions each, with `h01` and `h02` as controls; `h03` went from 2/5 to 5/5. `PROMPT_SHA256` pins every prompt. The judge was not changed after the final run.
 9. **Run-to-run variation is real.** The model is not deterministic: `ho02` passes in some repetitions and not in others, and the judge scores the same text differently between passes. Read directions, not decimals.
 
 **About known defects**
