@@ -84,3 +84,11 @@ def test_the_real_readme_has_the_markers():
 def test_the_generated_block_carries_the_calibration_sample_note_about_ho06_and_ho12(tmp_path):
     text = block([write_run(tmp_path, "a.judged.json", rows(["q01"], scored_ids={"q01"}))])
     assert "Calibration sample" in text and "ON PURPOSE as edge cases (2 of the 15)" in text
+
+
+def test_the_block_cites_the_commit_the_runs_came_from_and_whether_the_tree_was_clean(tmp_path):
+    summary = {"commit": "22423e2f10249eb38bcaa8e8583bdaac49b5b35a", "tree_clean": True, "replan_max": 0}
+    text = block([write_run(tmp_path, "a.judged.json", rows(["q01"]), summary), write_run(tmp_path, "b.judged.json", rows(["q01"]), summary)])
+    assert "commit=22423e2f1024, tree_clean=True" in text and "replan_max=0" in text
+    mixed = block([write_run(tmp_path, "c.json", rows(["q01"]), summary), write_run(tmp_path, "d.json", rows(["q01"]), {**summary, "commit": "b" * 40})])
+    assert "commit=22423e2f1024/bbbbbbbbbbbb" in mixed  # runs from two commits are said to be from two commits

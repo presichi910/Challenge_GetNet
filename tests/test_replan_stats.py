@@ -46,3 +46,10 @@ def test_the_report_compares_the_runs_says_the_off_branch_must_not_act_and_does_
 def test_it_renders_when_there_is_no_cost_recorded():
     s = stats([{"id": "q01", "latency_ms": 1000, "replans": []}])
     assert s["cost_mean"] is None and "n/a" in render(s, s, ["a"], ["b"])
+
+
+def test_handoffs_are_compared_as_a_rate_because_the_branches_ran_different_numbers_of_case_runs():
+    off = stats([row(f"c{i}", 1000, 0.001, handoff="agent_unresolved" if i < 6 else None) for i in range(200)])   # 5 repetitions: 30 of 200
+    on = stats([row(f"c{i}", 1000, 0.001, handoff="agent_unresolved" if i < 6 else None) for i in range(80)])     # 2 repetitions: 12 of 80... here 6 of 80
+    text = render(off, on, ["a"], ["b"])
+    assert "handoff rate | 6/200 = 3.0% | 6/80 = 7.5% | +4.5 points" in text and "| handoffs |" not in text

@@ -61,7 +61,9 @@ def render(off: dict, on: dict, off_files: list[str], on_files: list[str]) -> st
          f"| latency mean | {off['latency_mean'] / 1000:.2f} s | {on['latency_mean'] / 1000:.2f} s | {delta(off['latency_mean'], on['latency_mean'], lambda d: f'{d / 1000:+.2f} s')} |",
          f"| agent cost per case-run | {usd(off['cost_mean'])} | {usd(on['cost_mean'])} | {delta(off['cost_mean'], on['cost_mean'], lambda d: f'{d:+.4f}')} |",
          f"| agent tokens per case-run | {off['tokens_mean'] and round(off['tokens_mean'])} | {on['tokens_mean'] and round(on['tokens_mean'])} | |",
-         f"| handoffs | {off['handoffs']} | {on['handoffs']} | {on['handoffs'] - off['handoffs']:+d} |", "",
+         # a RATE: the two branches ran a different number of case-runs, so raw counts would compare 200 with 80
+         f"| handoff rate | {off['handoffs']}/{off['rows']} = {off['handoffs'] / off['rows'] * 100:.1f}% | {on['handoffs']}/{on['rows']} = {on['handoffs'] / on['rows'] * 100:.1f}% "
+         f"| {(on['handoffs'] / on['rows'] - off['handoffs'] / off['rows']) * 100:+.1f} points |", "",
          "## What the step did (runs with REPLAN_MAX=2)", "",
          f"- Acted in **{on['acted']} of {on['rows']}** case-runs ({on['acted'] / on['rows'] * 100:.0f}%)" + (": " + ", ".join(on["acted_ids"]) if on["acted_ids"] else "") if on["rows"] else "- no rows",
          f"- Retried the knowledge base: {on['kinds']['retry_kb:']} (failed: {on['kinds']['retry_kb_failed']}); each one is one extra Voyage call: {on['voyage_extra_calls']} in all",
