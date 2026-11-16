@@ -114,6 +114,16 @@ def render(r: dict) -> str:
     return "\n".join(L)
 
 
+def report_text(rescored: Path | str | None = None) -> str:
+    """The report as text (what `report` prints), so the final report can fill it in. `rescored`: the `.judged.json` that eval.rejudge wrote; if it does not
+    exist yet the report says nothing has been re-scored."""
+    old_rows = {r["id"]: r for r in source_rows()}
+    human = {r["id"]: r["human_pass"].strip().lower() == "yes" for r in csv.DictReader(SHEET.open(encoding="utf-8"))}
+    path = Path(rescored) if rescored else INPUT.with_name(INPUT.stem + ".judged.json")
+    new_rows = {r["id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["rows"]} if path.exists() else {}
+    return render(build(old_rows, new_rows, human, choose(list(old_rows)), list(old_rows)))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -133,10 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         est = estimate_tokens(rows, {c["id"]: c for c in load_cases(None)})
         print(f"seed {SEED}: {len(chosen)} rows -> {out}\n  " + ", ".join(chosen) + f"\nestimated judge cost: ~{est} tokens (+-25%: {int(est * .75)}-{int(est * 1.25)})")
         return 0
-    human = {r["id"]: r["human_pass"].strip().lower() == "yes" for r in csv.DictReader(SHEET.open(encoding="utf-8"))}
-    path = Path(args.rescored)
-    new_rows = {r["id"]: r for r in json.loads(path.read_text(encoding="utf-8"))["rows"]} if path.exists() else {}
-    text = render(build(old_rows, new_rows, human, chosen, list(old_rows)))
+    text = report_text(args.rescored)
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
     print(text)

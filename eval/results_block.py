@@ -102,23 +102,45 @@ def block(paths: list[str], now: datetime | None = None) -> str:
     return "\n".join(lines)
 
 
-def replace_in(readme: str, text: str) -> str:
-    a, b = readme.find(START), readme.find(END)
+def replace_in(readme: str, text: str, start: str = START, end: str = END) -> str:
+    a, b = readme.find(start), readme.find(end)
     if a < 0 or b < a:
-        raise ValueError(f"the README has no {START} ... {END} block to replace")
-    return readme[:a] + text + readme[b + len(END):]
+        raise ValueError(f"the document has no {start} ... {end} block to replace")
+    return readme[:a] + text + readme[b + len(end):]
+
+
+def fill(doc: str, name: str, body: str) -> str:
+    """Replace what is between `<!-- NAME:start -->` and `<!-- NAME:end -->` with `body` (a generated block: nothing in it is typed by hand)."""
+    start, end = f"<!-- {name}:start -->", f"<!-- {name}:end -->"
+    return replace_in(doc, f"{start}\n{body.strip()}\n{end}", start, end)
+
+
+def calibration_body(path: str | Path) -> str:
+    """The calibration report as a block of the final report: its own numbers, copied by the program, without its top-level heading."""
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    return "\n".join(line for line in lines if not line.startswith("# "))
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("runs", nargs="+")
-    ap.add_argument("--readme", help="replace the block between the markers in this file")
+    ap.add_argument("--readme", "--report", dest="readme", help="replace the block between the markers in this file (the README or docs/FINAL_REPORT.md)")
+    ap.add_argument("--v2", action="store_true", help="also fill the <!-- v2:start --> block with the V2 re-score report (eval/calibration/v2_rescore.py)")
+    ap.add_argument("--calibration", metavar="FILE", help="also fill the <!-- calibration:start --> block with this calibration report")
     args = ap.parse_args(argv)
     text = block(args.runs)
     if args.readme:
         path = Path(args.readme)
-        path.write_text(replace_in(path.read_text(encoding="utf-8"), text), encoding="utf-8")
-        print(f"{path}: results block replaced ({len(args.runs)} run file(s))")
+        doc = replace_in(path.read_text(encoding="utf-8"), text)
+        done = ["results"]
+        if args.v2:
+            from eval.calibration.v2_rescore import report_text
+
+            doc, done = fill(doc, "v2", report_text()), done + ["v2"]
+        if args.calibration:
+            doc, done = fill(doc, "calibration", calibration_body(args.calibration)), done + ["calibration"]
+        path.write_text(doc, encoding="utf-8")
+        print(f"{path}: filled {', '.join(done)} ({len(args.runs)} run file(s))")
     else:
         print(text)
     return 0
