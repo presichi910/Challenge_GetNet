@@ -14,13 +14,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Every step below BLOCKS the build (no step is allowed to fail quietly): a failing gate is a failed run.
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # No secret and no key is needed: the tests generate their own RSA keys and serve their own JWKS.
-    # There is no GROQ_API_KEY, TAVILY_API_KEY or VOYAGE_API_KEY and no .env file here: none of the tests calls an
-    # LLM or the network (the `eval` marker is deselected, and tests/test_keycloak_live.py skips itself).
     steps:
       - uses: actions/checkout@v4
 
@@ -35,20 +33,96 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
 
-      - name: Tests
-        run: python -m pytest -q -m "not eval"
+      - name: Lint (ruff)
+        run: ruff check .
 
-  docker:
+      - name: Types (mypy, app/)
+        run: mypy
+
+      - name: Static security analysis (bandit, medium and high severity)
+        run: bandit -r app scripts -ll -q
+
+      # The pinned versions of the image (constraints.txt) against the public advisory databases. Accepted, with the reason in README ("Production notes"):
+      # the five advisories of ChromaDB's SERVER mode (REST endpoints, multi-tenant authorization). This project uses Chroma as an embedded library
+      # (`persist_directory`), never as a server, and no fixed release exists. A NEW advisory, or one in any other package, fails this step.
+      - name: Known vulnerabilities in the dependencies (pip-audit)
+        run: >
+          pip-audit -r constraints.txt --no-deps --disable-pip --progress-spinner off
+          --ignore-vuln PYSEC-2026-311
+          --ignore-vuln PYSEC-2026-3813
+          --ignore-vuln PYSEC-2026-3814
+          --ignore-vuln PYSEC-2026-3815
+
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # No secret and no key is needed: the tests generate their own RSA keys and serve their own JWKS.
+    # There is no GROQ_API_KEY, TAVILY_API_KEY or VOYAGE_API_KEY and no .env file here: none of the tests calls an
+    # LLM or the network (the `eval` marker is deselected, and tests/test_keycloak_live.py skips itself).
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build the image (no push)
-        run: docker build -t getnet-agents:ci .
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      # includes tests/test_constraints.py: the lock file must agree with requirements.txt
+      - name: Tests
+        run: python -m pytest -q -m "not eval"
+
+  alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Alert rules are valid and every alert has a unit test that fires it and one that keeps it quiet
+        run: |
+          docker run --rm --entrypoint promtool -v "$PWD/infra/observability:/w" prom/prometheus:v3.0.1 check rules /w/alerts.yml
+          docker run --rm --entrypoint promtool -v "$PWD/infra/observability:/w" prom/prometheus:v3.0.1 test rules /w/alerts_test.yml
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image (no push), tagged with the commit and labeled with it
+        run: docker build --build-arg REVISION="${GITHUB_SHA}" --build-arg VERSION="ci-${GITHUB_SHA::12}" -t "getnet-agents:${GITHUB_SHA}" -t getnet-agents:ci .
 
       - name: The container must not run as root
         run: |
           uid=$(docker run --rm --entrypoint id getnet-agents:ci -u)
           echo "container uid: $uid"
           test "$uid" = "10001"
+
+      - name: The image says which commit it holds
+        run: |
+          rev=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' getnet-agents:ci)
+          echo "revision label: $rev"
+          test "$rev" = "${GITHUB_SHA}"
+
+      - name: The compose file is valid, with and without the observability profile
+        env:
+          KEYCLOAK_ADMIN_PASSWORD: ci
+          DEMO_USER_PASSWORD: ci
+        run: |
+          docker compose config -q
+          docker compose --profile observability config -q
+
+      - name: Vulnerabilities in the image (trivy, HIGH and CRITICAL that have a fix)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: getnet-agents:ci
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library

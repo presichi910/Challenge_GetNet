@@ -159,7 +159,7 @@ def chunk_pages(pages: dict[str, str]) -> list[Document]:
 
 
 def doc_id(d: Document) -> str:
-    return hashlib.sha1(f"{d.metadata['url']}#{d.metadata['chunk']}".encode()).hexdigest()
+    return hashlib.sha1(f"{d.metadata['url']}#{d.metadata['chunk']}".encode(), usedforsecurity=False).hexdigest()  # an id, not a secret
 
 
 # indexing

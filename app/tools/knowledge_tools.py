@@ -45,8 +45,8 @@ def search(query: str, k: int, mode: str | None = None, rerank_attempts: int = 1
     vec = embed_cached(query, get_cache(), lambda q: _embed_with_backoff(get_embeddings(), q))
     if mode == "dense":
         store = get_vector_store()
-        pages = store.similarity_search_by_vector_with_relevance_scores(vec, k=k - PDF_SLOTS, filter={"is_pdf": False})
-        pdfs = store.similarity_search_by_vector_with_relevance_scores(vec, k=PDF_SLOTS, filter={"is_pdf": True})
+        pages = store.similarity_search_by_vector_with_relevance_scores(vec, k=k - PDF_SLOTS, filter={"is_pdf": False})  # type: ignore[dict-item]
+        pdfs = store.similarity_search_by_vector_with_relevance_scores(vec, k=PDF_SLOTS, filter={"is_pdf": True})  # type: ignore[dict-item]
         # careful: despite the name, this returns cosine distance (lower is better), relevance = 1 - distance
         return SearchResult(sorted(pages + pdfs, key=lambda x: x[1]), "dense")
     if mode not in ("hybrid", "hybrid_rerank"):
@@ -68,7 +68,7 @@ def search_getnet_kb(query: str) -> tuple[str, list[dict]]:
     receivables advance, payment links, terminals, troubleshooting). Returns the most relevant
     passages with their source URLs. Write the query as a self-contained question or keywords;
     English or Portuguese both work."""
-    from app.rag.store import collection_size, get_vector_store  # lazy import
+    from app.rag.store import collection_size  # lazy import
 
     s = get_settings()
     if collection_size() == 0:

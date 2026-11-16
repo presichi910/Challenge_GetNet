@@ -77,7 +77,7 @@ def check(sample: dict, run_path: str) -> dict:
 
 
 def load_cases(path: Path = ROOT / "dataset.jsonl") -> list[dict]:
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def main(argv: list[str] | None = None) -> int:

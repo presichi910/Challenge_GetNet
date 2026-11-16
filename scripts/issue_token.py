@@ -26,7 +26,7 @@ def request_token(issuer: str, client_id: str, user: str, password: str, timeout
     body = urllib.parse.urlencode({"grant_type": "password", "client_id": client_id, "username": user,
                                    "password": password}).encode()
     req = urllib.request.Request(f"{issuer.rstrip('/')}/protocol/openid-connect/token", data=body)
-    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 - the URL comes from our own settings
+    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 - the URL comes from our own settings  # nosec B310
         return json.load(r)["access_token"]
 
 
@@ -57,7 +57,7 @@ def main(argv: list[str] | None = None) -> None:
     try:
         token = request_token(issuer, CLIENTS[args.role], subject, password)
     except (urllib.error.URLError, KeyError, ValueError) as e:
-        raise SystemExit(f"could not get a token from {issuer}: {type(e).__name__}. Is Keycloak up (docker compose up -d keycloak)?")
+        raise SystemExit(f"could not get a token from {issuer}: {type(e).__name__}. Is Keycloak up (docker compose up -d keycloak)?") from e
     print(token)
     print(f"\n# {args.role}={subject}, issued by {issuer}. Try it:\n")
     if args.role == "operator":

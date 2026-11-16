@@ -12,7 +12,7 @@ from app.config import get_settings
 @lru_cache
 def get_embeddings() -> VoyageAIEmbeddings:
     s = get_settings()
-    return VoyageAIEmbeddings(model=s.embedding_model, voyage_api_key=s.voyage_api_key or None,
+    return VoyageAIEmbeddings(model=s.embedding_model, voyage_api_key=s.voyage_api_key or None,  # type: ignore[call-arg]  # an alias the stubs do not list
                               batch_size=s.ingest_batch_size)
 
 

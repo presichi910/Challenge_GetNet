@@ -132,8 +132,16 @@ def render(rows: list[dict], summary: dict, stamp: str, repeats: int) -> str:
          "| case | segments | draft | statements | segments | statements pass | segments pass |", "|---|---|---|---|---|---|---|"]
     for r in rows:
         j = r.get("judge") or {}
-        cell = lambda n: (lambda c: f"{c[0]} ({c[1]} actionable)")(claims(j[n])) if j.get(n) and j[n].get("verdict") != "error" else "judge error"
-        ok = lambda n: j[n]["verdict"] if j.get(n) else "-"
+
+        def cell(n, j=j):  # `j` is bound as a default: this row's judgements, not the loop variable of a later row
+            if j.get(n) and j[n].get("verdict") != "error":
+                total, actionable = claims(j[n])
+                return f"{total} ({actionable} actionable)"
+            return "judge error"
+
+        def ok(n, j=j):
+            return j[n]["verdict"] if j.get(n) else "-"
+
         L.append(f"| {r['id'][:28]} | {r['segments']} | {cell('draft')} | {cell('statements')} | {cell('segments')} | {ok('statements')} | {ok('segments')} |")
     L += ["", "## Totals", "", "| text | judged | unsupported claims | actionable | answers with none | judge pass | groundedness | completeness |",
           "|---|---|---|---|---|---|---|---|"]

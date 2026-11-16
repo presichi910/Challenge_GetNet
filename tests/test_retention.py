@@ -12,7 +12,7 @@ from app.main import app
 from app.memory import DAY, Memory, ThreadLimitExceeded, ThreadOwnershipError
 from app.service import ChatService
 from tests.conftest import bearer, make_jwt
-from tests.test_memory import cfg, human_messages, make_graph
+from tests.test_memory import cfg, human_messages, make_graph  # noqa: F401  (a pytest fixture: it is used by being imported)
 
 A, B = "cliente1988", "cliente2024"
 T0 = 1_700_000_000.0  # a fixed "now" for the TTL tests

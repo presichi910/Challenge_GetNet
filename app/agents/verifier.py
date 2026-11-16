@@ -165,9 +165,11 @@ def audit_segments(segments: list[str], audit: SegmentedVerification, evidence: 
     for a in audit.segments:
         answered.setdefault(a.id, a)  # the first answer for a number wins
     source = f"{evidence}\n{said}"
-    rows, unsupported, omitted = [], [], []
+    rows: list[dict] = []
+    unsupported: list[str] = []
+    omitted: list[int] = []
     for i, text in enumerate(segments, 1):
-        a = answered.get(i)
+        a = answered.get(i)  # type: ignore[assignment]  # the loop variable above is a SegmentAudit; here it may be None until checked
         if a is None:
             omitted.append(i)
             unsupported.append(text)
@@ -234,18 +236,18 @@ def make_verify_node(llm=None, keep_raw: bool = False, mode: str | None = None):
 
         messages = state.get("messages") or []
         target = user_language(messages)
-        language = LANGUAGE_NAMES.get(target) or state.get("language") or "English"
+        language = LANGUAGE_NAMES.get(target or "") or state.get("language") or "English"
         answer, notes, model = original, [], llm
 
         if leaked_run(original, get_settings().prompt_leak_min_words):  # the system's own instructions in the answer
             log.warning("verify: the answer repeated the system prompt; replaced by a refusal")
             answer = refusal(target or language)
-            update: dict = {"verify_note": "guard:prompt_leak", "final_answer": answer}
+            leaked: dict = {"verify_note": "guard:prompt_leak", "final_answer": answer}
             if keep_raw:
-                update["verify_raw"] = ""
+                leaked["verify_raw"] = ""
             if messages and getattr(messages[-1], "type", "") == "ai":
-                update["messages"] = [AIMessage(content=answer, id=messages[-1].id)]
-            return update
+                leaked["messages"] = [AIMessage(content=answer, id=messages[-1].id)]
+            return leaked
 
         evidence = evidence_of(state)
         if "claims" in (state.get("observe") or {}):  # the observe step already audited, retried and rewrote this answer

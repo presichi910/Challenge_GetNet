@@ -3,7 +3,7 @@ TTL), /operator/metrics, alerts, and a broken store never failing a turn. No net
 import hashlib
 import logging
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 from fastapi.testclient import TestClient

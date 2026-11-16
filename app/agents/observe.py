@@ -88,7 +88,7 @@ def make_observe_node(llm=None, keep_raw: bool = False, retrieve_fn=None, replan
 
         messages = state.get("messages") or []
         target = user_language(messages)
-        language = LANGUAGE_NAMES.get(target) or state.get("language") or "English"
+        language = LANGUAGE_NAMES.get(target or "") or state.get("language") or "English"
         code = target or {"english": "en", "portuguese": "pt", "spanish": "es"}.get(str(language).lower(), "en")
         observed: dict = {"replans": [], "evidence": [], "sources": [], "tool_calls": []}
         try:

@@ -42,7 +42,7 @@ ROOT = Path(__file__).parent
 
 
 def load_cases(only: list[str] | None, regular_only: bool = False) -> list[dict]:
-    cases = [json.loads(l) for l in (ROOT / "dataset.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    cases = [json.loads(line) for line in (ROOT / "dataset.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
     return [c for c in cases if (not only or any(c["id"].startswith(p) for p in only)) and not (regular_only and c.get("holdout"))]
 
 

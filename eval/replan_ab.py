@@ -25,7 +25,7 @@ from pathlib import Path
 from langgraph.graph.message import add_messages
 
 from eval.run_eval import ROOT, judge_question, load_cases
-from eval.verifier_ab import JUDGE_GAP_SECONDS, capture, claims, has_evidence, rebuild
+from eval.verifier_ab import capture, claims, has_evidence, rebuild
 
 ESCALATED = "<escalated to a human>"
 

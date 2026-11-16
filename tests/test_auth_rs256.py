@@ -8,7 +8,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from app import auth, jwks
+from app import auth
 from app.auth import decode_token
 from app.config import get_settings
 from app.jwks import JwksCache, JwksUnavailable, UnknownKid

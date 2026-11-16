@@ -8,7 +8,8 @@ The agents (router, knowledge, support, synthesizer, summarizer) use AGENT_PROVI
 The eval judge always runs on Groq (`get_judge_llm`), whatever AGENT_PROVIDER says, so it stays a
 different provider and model family from the agents.
 """
-from langchain_core.language_models.chat_models import BaseChatModel
+from typing import Any
+
 from langchain_groq import ChatGroq
 
 from app.config import get_settings
@@ -24,8 +25,8 @@ def is_gpt_oss(name: str) -> bool:
 
 def _groq(name: str, temperature: float, max_tokens: int | None, timeout: float, max_retries: int) -> ChatGroq:
     s = get_settings()
-    extra = {"reasoning_effort": s.reasoning_effort} if is_gpt_oss(name) else {}
-    return ChatGroq(model=name, temperature=temperature, api_key=s.groq_api_key or None, max_retries=max_retries,
+    extra: dict[str, Any] = {"reasoning_effort": s.reasoning_effort} if is_gpt_oss(name) else {}
+    return ChatGroq(model=name, temperature=temperature, api_key=s.groq_api_key or None, max_retries=max_retries,  # type: ignore[arg-type]
                     timeout=timeout, max_tokens=max_tokens, **extra)
 
 
@@ -36,7 +37,7 @@ def _fireworks(name: str, temperature: float, max_tokens: int | None, timeout: f
     # Fireworks takes `reasoning_effort` (low|medium|high) as a top-level body field for gpt-oss;
     # extra_body sends it as is, without the OpenAI client reinterpreting it
     extra_body = {"reasoning_effort": s.reasoning_effort} if is_gpt_oss(name) else None
-    return ChatOpenAI(model=name, temperature=temperature, api_key=s.fireworks_api_key or "missing-fireworks-key",
+    return ChatOpenAI(model=name, temperature=temperature, api_key=s.fireworks_api_key or "missing-fireworks-key",  # type: ignore[arg-type,call-arg]
                       base_url=FIREWORKS_BASE_URL, max_retries=max_retries, timeout=timeout, max_tokens=max_tokens,
                       extra_body=extra_body, stream_usage=True)
 
@@ -65,7 +66,7 @@ def fallback_model_name(name: str, provider: str) -> str:
 
 
 def get_llm(temperature: float = 0.0, model: str | None = None, max_tokens: int | None = None,
-            timeout: float = 60, max_retries: int = 2) -> BaseChatModel:
+            timeout: float = 60, max_retries: int = 2) -> Any:  # a chat model, or that model wrapped with its fallback (RunnableWithFallbacks)
     """The model of an agent, on AGENT_PROVIDER. With FALLBACK_PROVIDER set (and different), a provider outage
     (see `outage_errors`) is answered by the same model on the other provider instead of failing the turn: the customer
     does not end in the human queue because Fireworks is down. `bind_tools` and `with_structured_output` reach both."""

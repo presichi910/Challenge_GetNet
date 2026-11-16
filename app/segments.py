@@ -45,7 +45,7 @@ IMPERATIVES = {
     "retry", "run", "reload", "replace", "hold", "push", "dial", "boost", "improve", "reach",
     # Portuguese
     "pressione", "abra", "selecione", "acesse", "reinicie", "ligue", "desligue", "verifique", "clique", "toque", "entre", "conecte",
-    "mova", "tente", "certifique-se", "aguarde", "atualize", "use", "remova", "insira", "escolha", "mude", "altere", "adicione",
+    "mova", "tente", "certifique-se", "aguarde", "atualize", "remova", "insira", "escolha", "mude", "altere", "adicione",
     "repita", "recarregue", "substitua", "segure", "disque", "ative", "confirme", "envie", "contate", "fale",
     # Spanish
     "presiona", "abre", "selecciona", "ve", "reinicia", "enciende", "apaga", "verifica", "haz", "conecta", "mueve", "intenta",
@@ -63,7 +63,10 @@ def _clean(line: str) -> str:
 def _sentences(text: str) -> list[str]:
     protected = text
     for i, abbr in enumerate(_ABBREVIATIONS):
-        protected = re.sub(re.escape(abbr), lambda m, i=i: m.group(0).replace(".", f"\u0001{i}\u0001"), protected, flags=re.IGNORECASE)
+        def hide_dots(m: re.Match, i: int = i) -> str:  # `i` is bound as a default: this abbreviation's marker, not the loop's last value
+            return m.group(0).replace(".", f"\u0001{i}\u0001")
+
+        protected = re.sub(re.escape(abbr), hide_dots, protected, flags=re.IGNORECASE)
     parts = _SENTENCE_END.split(protected)
     return [re.sub(r"\u0001\d+\u0001", ".", p).strip() for p in parts if p.strip()]
 

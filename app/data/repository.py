@@ -98,7 +98,7 @@ class CustomerRepository:
     def _find_open_duplicate(self, user_id: str, category: str, key: str, now: float) -> dict | None:
         """The same issue again: an open ticket of this customer with the same key, or (window > 0) of the same category
         opened in the last `dedup_window_s` seconds (the model words the same problem differently on a retry)."""
-        for rec in reversed(self._created):
+        for rec in reversed(self._created or []):
             if rec.get("user_id") != user_id or rec.get("status") != "open":
                 continue
             same_key = ticket_key(user_id, rec.get("category", ""), rec.get("summary", "")) == key

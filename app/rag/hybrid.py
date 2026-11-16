@@ -21,6 +21,7 @@ import threading
 import time
 import unicodedata
 from dataclasses import dataclass, field
+from typing import Any
 from functools import lru_cache
 
 import numpy as np
@@ -50,8 +51,8 @@ class Corpus:
     texts: list[str]
     metadatas: list[dict]
     vectors: np.ndarray  # unit length, so a dot product is the cosine similarity
-    bm25: object | None = None
-    is_pdf: np.ndarray = field(default=None)  # type: ignore[assignment]
+    bm25: Any = None  # a rank_bm25.BM25Okapi (no type stubs)
+    is_pdf: np.ndarray | None = field(default=None)
 
     def document(self, i: int) -> Document:
         return Document(page_content=self.texts[i], metadata=self.metadatas[i])

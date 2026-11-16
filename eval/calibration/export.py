@@ -57,7 +57,7 @@ def load_criteria(path: Path = ROOT / "dataset.jsonl") -> dict[str, str]:
     The human must read it too, or the two are not scoring the same thing."""
     if not path.exists():
         return {}
-    cases = (json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip())
+    cases = (json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
     return {c["id"]: c["criteria"] for c in cases if c.get("criteria")}
 
 

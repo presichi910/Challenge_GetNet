@@ -45,7 +45,7 @@ def make_router_node(llm=None):
         router_error = ""
         try:
             decision: RoutingDecision = structured.invoke([SystemMessage(content=ROUTER_PROMPT), *history])
-            plan = normalize_plan(decision.agents)
+            plan = normalize_plan(list[str](decision.agents))
             reasoning, language = decision.reasoning, decision.language
             wants_human = decision.wants_human
             if wants_human:

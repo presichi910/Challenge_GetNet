@@ -1,0 +1,23 @@
+# Blocking in CI (.github/workflows/ci.yml). Errors, pyflakes, warnings and bugbear: the rules that find bugs, not the ones that argue about style.
+target-version = "py312"
+line-length = 160
+extend-exclude = ["data", ".venv", "infra"]
+
+[lint]
+select = ["E", "F", "W", "B"]
+ignore = [
+    "E501",  # line length: the code keeps long lines on purpose (prompts, tables, one-line asserts)
+    "B905",  # zip() without strict=: the lengths are equal by construction wherever it is used
+]
+
+[lint.flake8-bugbear]
+# FastAPI's way of declaring a dependency or a parameter IS a call in a default argument
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Body"]
+
+[lint.per-file-ignores]
+# the text of the prompts has trailing spaces INSIDE the strings: removing them would change the prompts (their hashes are pinned by a test)
+"app/prompts.py" = ["W291"]
+# pytest: a fixture imported from another test module (`from tests.x import client, store`) is "redefined" by the test that uses it
+"tests/*" = ["F811", "E741", "E731", "B017", "B023"]
+# not edited while the judge's resumption process is asleep (it runs from this file); the f-string is harmless. Remove this line after the scoring ends.
+"eval/rejudge.py" = ["F541"]

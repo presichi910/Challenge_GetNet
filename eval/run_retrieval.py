@@ -33,7 +33,7 @@ DATASET = ROOT / "retrieval.jsonl"
 
 
 def load(path: Path = DATASET) -> list[dict]:
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def ranked_urls(results) -> list[str]:

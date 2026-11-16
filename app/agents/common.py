@@ -18,7 +18,7 @@ MAX_CONTEXT_CHARS = 8000  # enough for a full retrieval, so the judge sees every
 def recent_dialogue(messages: list[AnyMessage], window: int, summary: str = "") -> list[AnyMessage]:
     """Last few human/AI messages, without tool chatter. With a `summary` (the rolling summary of
     older messages) it goes first as a system message. Without one the result is unchanged."""
-    dialogue = [m for m in messages if isinstance(m, (HumanMessage, AIMessage)) and m.content]
+    dialogue: list[AnyMessage] = [m for m in messages if isinstance(m, (HumanMessage, AIMessage)) and m.content]
     dialogue = dialogue[-window:]
     if summary:
         return [SystemMessage(content=SUMMARY_HEADER + summary), *dialogue]
@@ -52,7 +52,7 @@ def run_tool_agent(name: str, llm, tools, system_prompt: str, messages: list[Any
     while attempt < attempts:
         attempt += 1
         try:
-            result = agent.invoke({"messages": messages}, config={"recursion_limit": 12})
+            result = agent.invoke({"messages": messages}, config={"recursion_limit": 12})  # type: ignore[call-overload]
         except Exception as e:  # noqa: BLE001 - never crash the graph
             last_err = e
             log.warning("%s agent attempt %d/%d failed: %s", name, attempt, attempts, str(e)[:200])
@@ -71,7 +71,10 @@ def run_tool_agent(name: str, llm, tools, system_prompt: str, messages: list[Any
                            error=f"{type(last_err).__name__}: {last_err}", unresolved=False)
 
     out_msgs = result["messages"]
-    tool_calls, contexts, sources, seen = [], [], [], set()
+    tool_calls: list[dict] = []
+    contexts: list[str] = []
+    sources: list[dict] = []
+    seen: set[str] = set()
     for m in out_msgs:
         if isinstance(m, AIMessage):
             tool_calls.extend({"name": tc["name"], "args": tc["args"]} for tc in m.tool_calls)

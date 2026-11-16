@@ -15,8 +15,6 @@ import argparse
 import json
 from pathlib import Path
 
-from eval.run_eval import summarize_all
-
 CHECKS = {"routing": "routing_ok", "tools": "tools_ok", "handoff": "handoff_ok", "memory": "memory_ok"}
 TOLERANCE = 1e-9
 
