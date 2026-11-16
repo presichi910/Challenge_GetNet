@@ -87,6 +87,34 @@ def score_file(path: str, scorer: BudgetedScorer, cases: dict[str, dict], *, onl
     return "done"  # a row that ended as a judge error is reported (judge_errors) and tried again by the next pass
 
 
+def score_all(paths: list[str], scorer: BudgetedScorer, cases: dict[str, dict], *, only: list[str] | None = None,
+              wait_until: float | None = None, wake_rows: int = 8, sleep=time.sleep, print_fn=print) -> dict:
+    """Score the files in order. With `wait_until` (epoch seconds), a stop at the daily limit is not the end: it waits until the ledger shows room
+    for `wake_rows` more rows, resumes where it stopped, and gives up only at the deadline. Returns {"complete": bool, "waited_s": float}."""
+    from eval.judge_budget import next_room_time
+
+    waited = 0.0
+    while True:
+        stopped = False
+        for p in paths:
+            if score_file(p, scorer, cases, only=only, print_fn=print_fn) == "stopped":
+                stopped = True
+                break
+        if not stopped:
+            return {"complete": True, "waited_s": waited}
+        if wait_until is None:
+            return {"complete": False, "waited_s": waited}
+        when = next_room_time(scorer.ledger, wake_rows * scorer.ledger.recent_average(), scorer.ceiling)
+        now = scorer.ledger.clock()
+        if when is None or when >= wait_until:
+            print_fn(f"   the window does not free enough before the deadline: stopped clean, resume with the same command.")
+            return {"complete": False, "waited_s": waited}
+        pause = max(1.0, when - now) + 5
+        print_fn(f"   daily limit: waiting {pause / 60:.0f} min for the window to free room for {wake_rows} rows, then resuming...")
+        sleep(pause)
+        waited += pause
+
+
 def plan(paths: list[str], estimate: int) -> list[tuple[str, int]]:
     return [(p, sum(needs_judging(r) for r in load_rows(p)[1])) for p in paths]
 
@@ -95,15 +123,31 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("runs", nargs="+", help="run JSON files, in the order they must be scored (repetition 1 first)")
     ap.add_argument("--only", nargs="*", help="case id prefixes")
+    ap.add_argument("--sample", metavar="MANIFEST", help="score only the rows of a calibration sample (eval/calibration/sample_v3.json); a row of it "
+                    "that the FIRST run lacks is replaced by the replacement decided in advance")
+    ap.add_argument("--wait-until", metavar="'YYYY-MM-DD HH:MM'", help="at the daily limit, wait for the window to free and resume, until this local time")
+    ap.add_argument("--wake-rows", type=int, default=8, help="with --wait-until: resume when there is room for this many rows")
     ap.add_argument("--dry-run", action="store_true", help="count the calls and the tokens, call nothing")
     ap.add_argument("--daily-limit", type=int, default=DAILY_LIMIT)
     ap.add_argument("--margin", type=int, default=MARGIN, help="stop this many tokens below the daily limit")
     ap.add_argument("--ledger", default=None, help="the ledger file (default eval/reports/judge_ledger.json)")
     args = ap.parse_args(argv)
 
+    only = args.only
+    if args.sample:
+        from eval.calibration.sample import check, choose
+        from eval.calibration.sample import load_cases as sample_cases
+
+        manifest = choose(sample_cases())
+        saved = json.loads(Path(args.sample).read_text(encoding="utf-8"))
+        if saved["ids"] != manifest["ids"]:  # the dataset or the sampler changed after the sample was fixed
+            raise SystemExit(f"{args.sample} does not match what the sampler gives now: the sample must not change after it is fixed")
+        res = check(manifest, args.runs[0])  # the first file given is repetition 1
+        only = res["replacement"]
+        print(f"sample of {len(only)} rows" + (f"; missing from {Path(args.runs[0]).name}: {res['missing']} (replaced in advance)" if res["missing"] else ""))
     ledger = Ledger(args.ledger)
     est = ledger.recent_average()
-    todo = plan(args.runs, est)
+    todo = plan(args.runs, est) if not only else [(p, sum(needs_judging(r) and any(r["id"].startswith(o) for o in only) for r in load_rows(p)[1])) for p in args.runs]
     total = sum(n for _, n in todo)
     print(f"{total} row(s) to score in {len(todo)} file(s); ~{est} tokens each = ~{total * est} tokens. "
           f"Spent in the last 24 h: {ledger.spent()} of {args.daily_limit} (stop line {args.daily_limit - args.margin}).")
@@ -115,12 +159,12 @@ def main(argv: list[str] | None = None) -> int:
     from eval.judge import Judge  # imported late: a dry run needs no key
 
     cases = {c["id"]: c for c in load_cases(None)}
-    scorer = BudgetedScorer(Judge(), ledger, daily_limit=args.daily_limit, margin=args.margin,
+    scorer = BudgetedScorer(Judge(), ledger, daily_limit=args.daily_limit, margin=args.margin, sleep=time.sleep,
                             collector_factory=lambda: __import__("app.observability", fromlist=["TurnCollector"]).TurnCollector(_prices()))
     started = time.time()
-    for p in args.runs:
-        if score_file(p, scorer, cases, only=args.only) == "stopped":
-            break
+    deadline = datetime.strptime(args.wait_until, "%Y-%m-%d %H:%M").timestamp() if args.wait_until else None
+    outcome = score_all(args.runs, scorer, cases, only=only, wait_until=deadline, wake_rows=args.wake_rows, sleep=time.sleep)
+    print(f"\n{'ALL SCORED' if outcome['complete'] else 'STOPPED CLEAN: some rows are not scored yet (the window frees; run the same command again)'}")
     print(f"\njudge calls this run: {scorer.calls}, tokens: {scorer.tokens}, 24 h total: {ledger.spent()} of {args.daily_limit}, "
           f"{time.time() - started:.0f}s")
     return 0

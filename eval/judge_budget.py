@@ -150,6 +150,19 @@ class BudgetedScorer:
             parse_left -= 1
 
 
+def next_room_time(ledger: "Ledger", need: int, ceiling: int = DAILY_LIMIT - MARGIN) -> float | None:
+    """The earliest moment (epoch seconds) at which the trailing 24 h holds at most `ceiling - need` tokens, counting only what the ledger already
+    holds (waiting spends nothing). `ledger.clock()` itself if there is room now; None if there never will be (`need` bigger than the ceiling)."""
+    now = ledger.clock()
+    if need > ceiling:
+        return None
+    moments = [now] + sorted(e["at"] + DAY for e in ledger.entries if e["at"] + DAY > now)
+    for t in moments:
+        if sum(e["tokens"] for e in ledger.entries if t - DAY < e["at"] <= t) <= ceiling - need:
+            return t
+    return moments[-1]
+
+
 # ---- when the window frees and how much the judge can still score before a deadline --------------------------------------------
 
 def plan_capacity(entries: list[dict], start: float, deadline: float, ceiling: int = DAILY_LIMIT - MARGIN, window: float = DAY) -> dict:

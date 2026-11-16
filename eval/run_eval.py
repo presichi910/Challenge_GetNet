@@ -488,7 +488,11 @@ def run_config(label: str | None = None) -> dict:
     from app.config import get_settings
 
     s = get_settings()
-    cfg = {"replan_max": s.replan_max, "rag_mode": s.rag_mode, "verifier_mode": s.verifier_mode, "approvals": "off (eval)", "fallback_provider": "off (eval)"}
+    from eval.provenance import repo_state
+
+    git = repo_state()
+    cfg = {"commit": git["commit"], "tree_clean": git["tree_clean"],
+           "replan_max": s.replan_max, "rag_mode": s.rag_mode, "verifier_mode": s.verifier_mode, "approvals": "off (eval)", "fallback_provider": "off (eval)"}
     if label:
         cfg["label"] = label
     return cfg
@@ -529,6 +533,8 @@ def main() -> None:
     ap.add_argument("--replan-max", type=int, default=None,
                     help="set REPLAN_MAX for this run (0 = the observe step off, the default; 2 = the 'replan on' branch)")
     ap.add_argument("--label", default=None, help="mark the run in its reports and JSON, e.g. --label 'replan on'")
+    ap.add_argument("--require-clean", action="store_true",
+                    help="refuse to run unless the code is committed and the tree is clean: the reports cite the commit they came from")
     ap.add_argument("--inject-history", action="store_true",
                     help="the old way: earlier turns of a multi-turn case go in as context (no checkpointer, no restart)")
     args = ap.parse_args()
@@ -543,6 +549,13 @@ def main() -> None:
         print(f"NOTE: FALLBACK_PROVIDER={get_settings().fallback_provider} is set; the eval turns provider failover off for this run.")
         os.environ["FALLBACK_PROVIDER"] = ""
         get_settings.cache_clear()
+    if args.require_clean:
+        from eval.provenance import require_clean
+
+        ok, message = require_clean()
+        print(("Provenance: " if ok else "REFUSING TO RUN: ") + message)
+        if not ok:
+            raise SystemExit(2)
     if args.replan_max is not None:  # the setting is read when the graph is built, so it is set before that
         os.environ["REPLAN_MAX"] = str(args.replan_max)
         get_settings.cache_clear()

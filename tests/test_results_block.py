@@ -79,3 +79,8 @@ def test_the_real_readme_has_the_markers():
 
     text = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
     assert text.count(START) == 1 and text.count(END) == 1 and text.index(START) < text.index(END)
+
+
+def test_the_generated_block_carries_the_calibration_sample_note_about_ho06_and_ho12(tmp_path):
+    text = block([write_run(tmp_path, "a.judged.json", rows(["q01"], scored_ids={"q01"}))])
+    assert "Calibration sample" in text and "ON PURPOSE as edge cases (2 of the 15)" in text

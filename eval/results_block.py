@@ -90,6 +90,9 @@ def block(paths: list[str], now: datetime | None = None) -> str:
                   + f"; {agg.get('pending', 0)} still pending). Every judge-based rate is over the rows scored, its n is in the cell.", ""]
     else:
         lines += ["**The judge has not scored these runs yet: only the routing, tool, handoff and memory checks are shown.**", ""]
+    manifest = Path(__file__).parent / "calibration" / "sample_v3.json"
+    if manifest.exists():
+        lines += [f"_Calibration sample (rows a human labels, fixed before any judge note existed): {json.loads(manifest.read_text(encoding='utf-8')).get('note', '')}_", ""]
     lines += rows_table(pooled) + ["",
               f"Pooled over {len(paths)} run(s). Unstable cases (pass in some runs, not all): {', '.join(agg['unstable']) or 'none'}. "
               f"Fail in every scored run: {', '.join(agg['always_fail']) or 'none'}.", "", END]

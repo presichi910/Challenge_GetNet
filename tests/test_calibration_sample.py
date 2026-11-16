@@ -42,3 +42,10 @@ def test_the_replacement_for_a_missing_row_is_decided_in_advance_from_the_same_s
     assert nxt in res["replacement"] and gone not in res["replacement"] and len(res["replacement"]) == 15
     rest = [i for i in s["ids"] if i != gone]
     assert all(i in res["replacement"] for i in rest)  # nothing else moves
+
+
+def test_the_note_says_ho06_and_ho12_were_included_on_purpose_as_edge_cases_and_it_travels_with_the_manifest():
+    s = choose(load_cases())
+    assert "ON PURPOSE" in s["note"] and "ho06" in s["note"] and "ho12" in s["note"] and "2 of the 15" in s["note"]
+    saved = json.loads((sample_mod.ROOT / "calibration" / "sample_v3.json").read_text(encoding="utf-8"))
+    assert saved["ids"] == s["ids"] and saved["note"] == s["note"]  # the committed manifest is exactly what the sampler gives

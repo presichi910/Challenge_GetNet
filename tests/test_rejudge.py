@@ -240,3 +240,93 @@ def test_nothing_is_planned_when_the_window_is_full_until_something_leaves_it():
     t0 = 1_800_000_000.0
     plan = plan_capacity(entries_at((t0 - 600, 190_000)), t0, t0 + 3 * 3600, ceiling=190_000)
     assert plan["total"] == 0 and plan["steps"] == []
+
+
+# ---------------- stop clean, resume when the window frees ----------------
+
+def test_next_room_time_is_now_when_there_is_room_and_when_the_oldest_entries_leave_when_there_is_not(tmp_path):
+    from eval.judge_budget import next_room_time
+
+    clock = Clock()
+    ledger = Ledger(tmp_path / "l.json", clock=clock)
+    assert next_room_time(ledger, 10_000) == clock.now  # empty: room now
+    clock.now += 100
+    ledger.record(100_000, "a")
+    clock.now += 3_600
+    ledger.record(88_000, "b")  # 188,000 of the 190,000 line
+    t_a, t_b = clock.now - 3_600 + 86_400, clock.now + 86_400
+    assert next_room_time(ledger, 1_000) == clock.now  # room for 2,000 left
+    assert next_room_time(ledger, 50_000) == t_a  # the 100,000 leaves first: 88,000 remain, 102,000 of room
+    assert next_room_time(ledger, 150_000) == t_b  # needs both gone
+    assert next_room_time(ledger, 190_001) is None
+
+
+def test_with_wait_until_a_stop_at_the_limit_sleeps_until_the_window_frees_and_then_finishes(tmp_path):
+    from eval.rejudge import score_all
+
+    path = run_file(tmp_path, "r1.json")
+    judge = FakeJudge([])
+    sc, ledger, clock = scorer(tmp_path, judge, daily_limit=12_000, margin=0)
+    for _ in range(3):
+        ledger.record(2_400, "earlier")  # room for exactly two more rows now
+    out = score_all([path], sc, CASES, wait_until=clock.now + 3 * 86_400, wake_rows=2, sleep=sc.sleep, print_fn=lambda *a: None)
+    assert out["complete"] is True and len(judge.calls) == 4  # two before the stop, two after the window freed
+    assert out["waited_s"] >= 86_400 - 60 and all(v == "pass" for k, v in verdicts(judged_path(path)).items() if k in IDS)
+
+
+def test_without_wait_until_a_stop_is_clean_and_reports_that_it_is_not_complete(tmp_path):
+    from eval.rejudge import score_all
+
+    path = run_file(tmp_path, "r1.json")
+    sc, ledger, clock = scorer(tmp_path, FakeJudge([]), daily_limit=12_000, margin=0)
+    for _ in range(3):
+        ledger.record(2_400, "earlier")
+    out = score_all([path], sc, CASES, print_fn=lambda *a: None)
+    assert out["complete"] is False and sum(v == "pass" for v in verdicts(judged_path(path)).values()) == 2
+
+
+def test_a_deadline_that_comes_before_the_window_frees_stops_clean_instead_of_waiting_for_nothing(tmp_path):
+    from eval.rejudge import score_all
+
+    path = run_file(tmp_path, "r1.json")
+    sc, ledger, clock = scorer(tmp_path, FakeJudge([]), daily_limit=12_000, margin=0)
+    for _ in range(3):
+        ledger.record(2_400, "earlier")
+    out = score_all([path], sc, CASES, wait_until=clock.now + 3_600, wake_rows=2, sleep=sc.sleep, print_fn=lambda *a: None)
+    assert out["complete"] is False and out["waited_s"] == 0
+
+
+# ---------------- --sample: the 15 rows, with the replacement decided in advance ----------------
+
+def test_sample_scores_only_the_fifteen_rows_and_replaces_one_the_run_lacks(tmp_path, monkeypatch):
+    import json as _json
+
+    from eval.calibration.sample import choose, load_cases
+
+    manifest = choose(load_cases())
+    gone = manifest["strata"]["regular_with_tools"]["chosen"][0]
+    rows = [{**{"routing_ok": True, "tools_ok": True, "handoff_ok": None, "latency_ms": 5, "message": "m", "evidence": ["e"], "plan": [],
+                "tools_called": []}, "id": c["id"], "answer": "a"} for c in load_cases() if c["id"] != gone]
+    rows.append({"id": gone, "provider_error": "429", "message": "m", "latency_ms": 0})
+    run = tmp_path / "rep1.json"
+    run.write_text(_json.dumps({"summary": {}, "rows": rows}), encoding="utf-8")
+    sample_file = tmp_path / "sample.json"
+    sample_file.write_text(_json.dumps(manifest), encoding="utf-8")
+    judge = FakeJudge([])
+    monkeypatch.setattr("eval.judge.Judge", lambda: judge)
+    monkeypatch.setattr("time.sleep", lambda s: None)  # the per-minute pacing is real in production; here nobody waits
+    assert main([str(run), "--sample", str(sample_file), "--ledger", str(tmp_path / "l.json")]) == 0
+    got = {i for i, v in verdicts(judged_path(run)).items() if v}
+    replacement = manifest["strata"]["regular_with_tools"]["reserve_in_order"][0]
+    assert len(got) == 15 == len(judge.calls) and gone not in got and replacement in got
+    assert got - {replacement} == set(manifest["ids"]) - {gone}  # nothing else moved
+
+
+def test_sample_refuses_a_manifest_that_no_longer_matches_what_the_sampler_gives(tmp_path):
+    import json as _json
+
+    run = run_file(tmp_path, "rep1.json")
+    bad = tmp_path / "sample.json"
+    bad.write_text(_json.dumps({"ids": ["q01_compare_plans"]}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="must not change after it is fixed"):
+        main([run, "--sample", str(bad), "--ledger", str(tmp_path / "l.json")])

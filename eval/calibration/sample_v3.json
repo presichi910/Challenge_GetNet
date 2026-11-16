@@ -1,5 +1,6 @@
 {
   "seed": 20261117,
+  "note": "ho06 and ho12 were included ON PURPOSE as edge cases (2 of the 15), not drawn: ho06 is a gap in the knowledge base (the honest answer is nearly empty) and ho12 is an upset customer who does not ask for a person (an answer that can leave unsupported steps next to \"no documented steps\"). The other 13 rows are a seeded draw. Any figure over this sample (agreement, kappa) carries that: it is not a random sample of the 40 cases.",
   "total": 15,
   "strata": {
     "blind_holdout": {

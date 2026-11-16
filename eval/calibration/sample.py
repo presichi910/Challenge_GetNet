@@ -30,6 +30,11 @@ MANDATORY = ("ho06_", "ho12_")
 QUOTAS = [("blind_holdout", 4), ("regular_with_tools", 6), ("regular_multi_turn", 3), ("regular_other", 2)]
 
 
+NOTE = ("ho06 and ho12 were included ON PURPOSE as edge cases (2 of the 15), not drawn: ho06 is a gap in the knowledge base (the honest answer is nearly empty) "
+        "and ho12 is an upset customer who does not ask for a person (an answer that can leave unsupported steps next to \"no documented steps\"). "
+        "The other 13 rows are a seeded draw. Any figure over this sample (agreement, kappa) carries that: it is not a random sample of the 40 cases.")
+
+
 def is_blind(case_id: str) -> bool:
     m = re.match(r"ho(\d+)", case_id)
     return bool(m) and int(m.group(1)) > 5
@@ -54,7 +59,7 @@ def order(stratum: str, ids: list[str], seed: int = SEED) -> list[str]:
 
 
 def choose(cases: list[dict], available: set[str] | None = None, seed: int = SEED) -> dict:
-    out = {"seed": seed, "total": 0, "strata": {}}
+    out = {"seed": seed, "note": NOTE, "total": 0, "strata": {}}
     for name, k in QUOTAS:
         ordered = order(name, strata(cases)[name], seed)
         pool = [i for i in ordered if available is None or i in available]
