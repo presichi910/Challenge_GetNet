@@ -112,6 +112,32 @@ class Usage(BaseModel):
     by_node: list[NodeUsage] = []
 
 
+ApprovalStatusName = Literal["pending", "approved", "rejected", "expired"]
+APPROVAL_ID_PATTERN = r"APR-[A-Z0-9]{6}"
+
+
+def is_valid_approval_id(value: str) -> bool:
+    return re.fullmatch(APPROVAL_ID_PATTERN, value) is not None
+
+
+class ApprovalInfo(BaseModel):
+    """A ticket request this turn sent to a person for approval. The ticket does NOT exist yet."""
+
+    id: str
+    category: str
+    status: ApprovalStatusName = "pending"
+    expires_at: float  # epoch seconds: after this, nobody can approve it
+
+
+class ApprovalUpdate(BaseModel):
+    """How an earlier request ended. Delivered once, with the next turn of the conversation."""
+
+    id: str
+    status: Literal["approved", "rejected", "expired"]
+    message: str
+    ticket_id: str | None = None
+
+
 class ChatResponse(BaseModel):
     response: str
     user_id: str
@@ -124,6 +150,8 @@ class ChatResponse(BaseModel):
     handoff: HandoffInfo | None = None  # set when a human takes over (this turn), with its status
     open_handoffs: list[OpenHandoff] = []  # earlier cases of this conversation still pending or claimed
     operator_messages: list[OperatorMessage] = []  # human replies not delivered before, delivered once here
+    approvals: list[ApprovalInfo] = []  # ticket requests sent for approval this turn (not open yet)
+    approval_updates: list[ApprovalUpdate] = []  # how earlier requests ended (approved, rejected, expired), delivered once here
     latency_ms: int
     trace_id: str
     usage: Usage | None = None  # tokens and estimated cost of this turn (LLM calls of every node)
@@ -185,6 +213,30 @@ class RevokeRequest(BaseModel):
     """An operator withdrawing one token before it expires."""
 
     jti: str = Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9_.:\-]+$", description="The token id (`jti` claim).")
+
+
+class ApprovalSummary(BaseModel):
+    id: str
+    conversation_id: str
+    merchant_id: str
+    category: str
+    summary: str
+    status: ApprovalStatusName
+    created_at: str
+    expires_at: str
+    decided_by: str | None = None  # an operator id, or "system" when it expired
+    decided_at: str | None = None
+    reason: str | None = None  # the operator's note: for the audit trail, never shown to the customer
+    ticket_id: str | None = None
+
+
+class ApprovalList(BaseModel):
+    approvals: list[ApprovalSummary]
+    count: int
+
+
+class ApprovalDecisionRequest(BaseModel):
+    reason: str = Field(default="", max_length=REJECT_REASON_MAX)
 
 
 class RejectRequest(BaseModel):

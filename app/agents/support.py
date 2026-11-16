@@ -10,7 +10,7 @@ from app.tools.customer_tools import make_support_tools
 from app.tools.handoff_tools import escalate_to_human
 
 
-def make_support_node(llm=None, repo: CustomerRepository | None = None):
+def make_support_node(llm=None, repo: CustomerRepository | None = None, approval_categories: frozenset[str] = frozenset()):
     repository = repo or CustomerRepository(tickets_file=get_settings().tickets_file)
 
     def support_node(state: dict) -> dict:
@@ -20,7 +20,7 @@ def make_support_node(llm=None, repo: CustomerRepository | None = None):
         # prompt shows it so the model can tell "my data" from "someone else's".
         prompt = SUPPORT_PROMPT.format(user_id=user_id, language=state.get("language", "English"),
                                        prior_context=format_prior_context(outputs))
-        tools = [*make_support_tools(user_id, repository), escalate_to_human]  # only for this user
+        tools = [*make_support_tools(user_id, repository, approval_categories), escalate_to_human]  # only for this user
         history = recent_dialogue(state["messages"], get_settings().history_window, state.get("summary", ""))
         result = run_tool_agent("support", llm or get_llm(model=get_settings().effective_support_model), tools, prompt, history)
         return {"agent_outputs": {**outputs, "support": result}, "step": state.get("step", 0) + 1}

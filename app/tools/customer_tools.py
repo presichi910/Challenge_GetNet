@@ -40,7 +40,9 @@ def _dump(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-def make_support_tools(user_id: str, repo: CustomerRepository) -> list[BaseTool]:
+def make_support_tools(user_id: str, repo: CustomerRepository, approval_categories: frozenset[str] = frozenset()) -> list[BaseTool]:
+    """`approval_categories`: the ticket categories that need a person's approval before they are opened (app/approvals.py).
+    Empty (the default) = `create_support_ticket` opens the ticket at once, as it always did."""
     @tool
     def get_customer_profile() -> str:
         """Get the customer's profile: name, business, plan, account status, linked bank account,
@@ -85,6 +87,16 @@ def make_support_tools(user_id: str, repo: CustomerRepository) -> list[BaseTool]
         clean = clean_summary(summary)
         if clean is None:
             return INVALID_SUMMARY
+        if category in approval_categories:  # a write that waits for a person: this tool only PROPOSES it
+            if not repo.exists(user_id):
+                return NOT_FOUND
+            existing = repo.find_open_ticket(user_id, category, clean)  # nothing to approve: that ticket is already open
+            if existing:
+                return _dump(existing)
+            return _dump({"status": "pending_approval", "category": category, "summary": clean,
+                          "message": "A person on our team must approve this ticket before it is opened. It is NOT open yet and has "
+                                     "no ticket number. Tell the customer the request was sent for approval and that they will be "
+                                     "told here once it is decided. Do not say a ticket was created and do not invent a number."})
         ticket = repo.create_ticket(user_id, category, clean)
         return _dump(ticket) if ticket else NOT_FOUND
 

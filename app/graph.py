@@ -30,7 +30,8 @@ def next_node(state: GraphState) -> str:
 
 def build_graph(router: Callable, knowledge: Callable, support: Callable, synthesizer: Callable,
                 handoff: Callable, checkpointer=None, summarizer: Callable | None = None,
-                verify: Callable | None = None, observe: Callable | None = None):
+                verify: Callable | None = None, observe: Callable | None = None,
+                request_approval: Callable | None = None):
     """Nodes are passed in so tests can use stubs. With a `summarizer`, it runs before the router
     every turn (it only acts above the message threshold). Routing itself is unchanged."""
     g = StateGraph(GraphState)
@@ -58,9 +59,16 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
                                     {"handoff": "handoff", "verify": "verify"})
         else:
             g.add_edge("synthesizer", "verify")
-        g.add_edge("verify", END)
+    last = "verify" if verify is not None else "synthesizer"  # the node that ends a normal turn
+    if request_approval is not None:  # a turn that asked for a ticket ends by recording the request for a person to approve
+        from app.approvals import proposals_in
+
+        g.add_node("request_approval", request_approval)
+        g.add_conditional_edges(last, lambda state: "request_approval" if proposals_in(state) else END,
+                                {"request_approval": "request_approval", END: END})
+        g.add_edge("request_approval", END)
     else:
-        g.add_edge("synthesizer", END)
+        g.add_edge(last, END)
     g.add_edge("handoff", END)
 
     # thread_id = "<user_id>:<conversation_id>" (see service.thread_id_for), so each customer
@@ -68,12 +76,17 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
     return g.compile(checkpointer=checkpointer or MemorySaver())
 
 
-def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_raw=False, verify_node=None, observe_node=None):
+def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_raw=False, verify_node=None, observe_node=None,
+                        repo=None, approvals=None):
     """`checkpointer=None` keeps the memory in process (the eval does that, so it never writes
     conversations to disk). The API passes the persistent one, see `app.main.lifespan`.
     `handoff_notifier=None` only appends a redacted audit line to the JSONL file; the API passes one that also queues the
-    handoff in the SQLite store the operators work from."""
+    handoff in the SQLite store the operators work from.
+    `repo`: the customer data and tickets (shared with the approval graph, which opens the ticket once it is approved).
+    `approvals`: an `ApprovalStore`. With it, `create_support_ticket` only PROPOSES the categories in
+    APPROVAL_REQUIRED_CATEGORIES and the turn ends by recording the request; without it (the eval) tickets open at once."""
     from app.agents.knowledge import make_knowledge_node
+    from app.approvals import make_request_approval_node
     from app.agents.observe import make_observe_node
     from app.agents.router import make_router_node
     from app.agents.summarizer import make_summarizer_node
@@ -84,8 +97,11 @@ def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_ra
     from app.data.repository import CustomerRepository
     from app.handoff import make_handoff_node
 
-    repo = CustomerRepository(tickets_file=get_settings().tickets_file, dedup_window_s=get_settings().ticket_dedup_window_s)  # shared, so handoff tickets show up for Support
-    return build_graph(make_router_node(), make_knowledge_node(), make_support_node(repo=repo),
+    repo = repo or CustomerRepository(tickets_file=get_settings().tickets_file, dedup_window_s=get_settings().ticket_dedup_window_s)  # shared, so handoff tickets show up for Support
+    categories = get_settings().approval_categories if approvals is not None else frozenset()
+    return build_graph(make_router_node(), make_knowledge_node(), make_support_node(repo=repo, approval_categories=categories),
                        make_synthesizer_node(), make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
                        summarizer=make_summarizer_node(), verify=verify_node or make_verify_node(keep_raw=keep_verify_raw),
-                       observe=observe_node or make_observe_node(keep_raw=keep_verify_raw))
+                       observe=observe_node or make_observe_node(keep_raw=keep_verify_raw),
+                       request_approval=(make_request_approval_node(approvals, get_settings().approval_ttl_minutes * 60)
+                                         if approvals is not None else None))

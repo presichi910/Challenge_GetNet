@@ -100,6 +100,7 @@ Everything comes from `.env` (see [.env.example](.env.example), every variable i
 | `SUPPORT_MODEL` | Support agent | empty = same as `LIGHT_MODEL` (`.env.example` sets `openai/gpt-oss-120b`) |
 | `JUDGE_MODEL` | Eval judge (a different model family) | `qwen/qwen3.8-27b` |
 | `FALLBACK_PROVIDER` | The other provider that answers when `AGENT_PROVIDER` has an outage (5xx, 429, no connection, timeout): the same model under its id there. Empty = no failover | empty (compose: `groq` for the API, empty for the eval) |
+| `APPROVAL_REQUIRED_CATEGORIES` | Ticket categories a person must approve before the ticket is opened (empty = none). `APPROVAL_TTL_MINUTES` (60) is how long a request may wait | all five categories |
 | `RAG_MODE` | How the knowledge base is searched: `dense`, `hybrid` (+ BM25, RRF) or `hybrid_rerank` (+ Voyage reranker). See Results | `dense` |
 
 The `.env.example` setting for Support is deliberate: on a declined payment the 20b often skips `get_recent_transactions` and blames the terminal, while the 120b calls it every time. Groq's free tier limits tokens per model (gpt-oss: 8K per minute, 200K per day), so roles that share a model share one quota; that is why the light roles run on a different model than Knowledge.
@@ -116,6 +117,7 @@ With `AGENT_PROVIDER=fireworks` the model variables take Fireworks ids. The acco
 | `GET /conversations/{id}/operator-messages` | merchant | Operator replies for a conversation |
 | `GET /operator/handoffs`, `GET /operator/handoffs/{id}` | operator | The handoff queue and one case |
 | `POST /operator/handoffs/{id}/claim`, `/reply`, `/reject` | operator | Work a case |
+| `GET /operator/approvals`, `POST /operator/approvals/{id}/approve`, `/reject` | operator | Ticket requests waiting for a person, and the decision |
 | `GET /operator/metrics` | operator | Latency, tokens, cost, handoff and error rates |
 
 Interactive docs at `/docs` when the API is running.
@@ -212,6 +214,26 @@ Every arrow is one SQL statement, `UPDATE ... WHERE status = <expected>` (plus `
 - **The JSONL audit file keeps no excerpt.** `data/handoffs.jsonl` carries only `handoff_id`, `created_at`, `user_id`, `conversation_id`, `reason`, `priority`, `ticket_id`, `language`, the tool names and `"redacted": true`: no message, dialogue, findings or summary. The case itself lives only in `handoffs.sqlite`. What the customer said can still be in `tickets.jsonl` (the ticket description holds the first 200 characters) and in backups; those are not covered.
 
 **Storage.** The queue is its own SQLite file, `HANDOFFS_DB_PATH` (default `data/handoffs.sqlite`), apart from the conversation checkpoints. Importing an old JSONL queue is off by default (`HANDOFF_IMPORT_JSONL=false`): files written by older versions hold whole conversation excerpts, and the eval writes its cases to the same file. To import once: back the file up, keep only real cases, set `HANDOFF_IMPORT_JSONL=true`, restart, and set it back to `false`. Every record not in the queue yet comes in as `pending` with its old date; the rest are skipped, so a restart changes nothing. A record older than `THREAD_TTL_DAYS` is imported and then erased by the purge that runs at the same startup.
+
+### Ticket approval (LangGraph `interrupt()`)
+
+A write action does not run on the model's say-so. With `APPROVAL_REQUIRED_CATEGORIES` (default: **every** category, `terminal,payout,billing,account,other`) `create_support_ticket` only **proposes**: it returns `pending_approval` and writes nothing. The turn still answers at once; its last step (`request_approval`) records the request and appends a fixed notice in the customer's language ("sent for approval, reference APR-..., not open yet"). Then:
+
+| What happens | Result |
+|---|---|
+| An operator calls `POST /operator/approvals/{id}/approve` | the paused graph resumes (`Command(resume=...)`), the ticket is opened **once** (T1: same issue, same ticket) and the customer is told on their next turn |
+| `.../reject` (the `reason` is for the audit trail, never shown to the customer) | no ticket; the customer is told |
+| Nobody decides within `APPROVAL_TTL_MINUTES` (default 60) | the request **expires**: no ticket (silence is never an approval), the customer is told, and the case goes to the human queue as `approval_expired` (priority high). Checked every 30 s, on every operator call and at startup |
+| A second decision, or one after the deadline | `409`; two operators deciding at once have exactly one winner (one SQL statement) |
+| The same issue asked again while pending, or already open as a ticket | no new request; no approval needed for a ticket that exists |
+
+Design decisions worth knowing (each has a test):
+- **The `interrupt()` is in a graph of its own, one thread per approval** (`approval:<id>`), not in the conversation's graph. `interrupt()` re-runs its node on resume, and a customer who writes again while waiting starts a new run of the same thread, which orphans a pending interrupt (checked against LangGraph: the second turn finishes without it). The node only reads before `interrupt()`, so the re-run is harmless.
+- **Own SQLite file** (`APPROVALS_DB_PATH`: the requests and the paused graph). The conversation memory's retention purge deletes every checkpoint whose thread it does not know, and would delete a pending approval. The checkpoints hold only the approval id, never what the customer wrote (a test searches the raw bytes).
+- **Crash safety.** The decision is recorded first, then the graph resumes, then the outcome is recorded. A crash between any two is finished at startup and every 30 s (`reconcile`); a graph that already ran is read back, never run twice (the ticket is not opened twice either way). A pending request survives a restart.
+- **Delivery is pull, like operator replies:** the outcome arrives in `approval_updates` of the customer's next `/chat` response and goes into the conversation the agents read. There is no push to the customer, and no notification to the operators (they list the queue).
+- `DELETE /conversations/{id}` erases that conversation's requests and paused graphs; `THREAD_TTL_DAYS` purges old decided ones.
+- **Not covered:** the evaluation runs with approvals off (`build_default_graph` without a store), so its tickets open at once and the eval does not exercise this path; the tests do, and a real-model run (a customer asks for a ticket, an operator approves, the next turn reports it) behaved as designed. The model's own text for the turn says "pending approval" (the tool's message tells it to), and the fixed notice is appended regardless.
 
 ## Conversation memory
 

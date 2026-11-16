@@ -18,9 +18,11 @@ from app.auth import (Principal, open_persistent_denylist, require_merchant, req
 from app.config import get_settings
 from app.handoff_store import HandoffConflict, HandoffNotFound, HandoffStore, iso
 from app.memory import Memory, ThreadLimitExceeded
-from app.schemas import (ChatRequest, ChatResponse, ConversationDetail, ConversationList, HandoffDetail,
-                         HandoffList, HandoffStatusName, HandoffSummary, MetricsResponse, OperatorMessageList,
-                         RejectRequest, ReplyRequest, ReplyResult, RevokeRequest, is_valid_conversation_id, is_valid_handoff_id)
+from app.approvals import ApprovalConflict, ApprovalNotFound, ApprovalService
+from app.schemas import (ApprovalDecisionRequest, ApprovalList, ApprovalStatusName, ApprovalSummary, ChatRequest, ChatResponse,
+                         ConversationDetail, ConversationList, HandoffDetail, HandoffList, HandoffStatusName, HandoffSummary,
+                         MetricsResponse, OperatorMessageList, RejectRequest, ReplyRequest, ReplyResult, RevokeRequest,
+                         is_valid_approval_id, is_valid_conversation_id, is_valid_handoff_id)
 from app.service import ChatService
 
 log = logging.getLogger("api")
@@ -38,8 +40,8 @@ def _warn_if_unimported(path: str) -> None:
                     "Back it up and clean it, then set HANDOFF_IMPORT_JSONL=true to import it once.", path, n)
 
 
-def _purge_once(memory: Memory, handoffs: HandoffStore | None, traces=None) -> None:
-    """One retention pass: idle threads, then idle handoffs, then old traces (same THREAD_TTL_DAYS).
+def _purge_once(memory: Memory, handoffs: HandoffStore | None, traces=None, approvals=None) -> None:
+    """One retention pass: idle threads, then idle handoffs, then old traces, then old approval requests (same THREAD_TTL_DAYS).
     One failing does not skip the others."""
     try:
         memory.purge_expired()
@@ -48,19 +50,34 @@ def _purge_once(memory: Memory, handoffs: HandoffStore | None, traces=None) -> N
             if handoffs is not None:
                 handoffs.purge_expired(memory.ttl_days)
         finally:
-            if traces is not None:
-                traces.purge_expired(memory.ttl_days)
+            try:
+                if traces is not None:
+                    traces.purge_expired(memory.ttl_days)
+            finally:
+                if approvals is not None:
+                    approvals.store.purge_expired(memory.ttl_days)
 
 
 async def _purge_loop(memory: Memory, every_seconds: float, handoffs: HandoffStore | None = None,
-                      traces=None) -> None:
+                      traces=None, approvals=None) -> None:
     """Retention: delete idle threads, handoffs and old traces now and then. A failed pass is logged and tried again."""
     while True:
         await asyncio.sleep(every_seconds)
         try:
-            await asyncio.to_thread(_purge_once, memory, handoffs, traces)
+            await asyncio.to_thread(_purge_once, memory, handoffs, traces, approvals)
         except Exception:  # noqa: BLE001 - never kill the loop
             log.exception("Thread purge failed")
+
+
+async def _approvals_loop(approvals: ApprovalService, every_seconds: float = 30.0) -> None:
+    """Time limits: a request nobody decided expires (no ticket, the customer is told, the case goes to the human queue), and a
+    decided one whose graph could not be continued is finished. Every 30 s, and on every operator call."""
+    while True:
+        await asyncio.sleep(every_seconds)
+        try:
+            await asyncio.to_thread(approvals.sweep)
+        except Exception:  # noqa: BLE001 - never kill the loop
+            log.exception("Approval sweep failed")
 
 
 def validate_single_worker() -> None:
@@ -81,7 +98,9 @@ async def lifespan(app: FastAPI):
     memory = None
     handoffs = None
     traces = None
+    approvals = None
     purge_task = None
+    approvals_task = None
     if getattr(app.state, "service", None) is None:  # tests set their own service
         from app.graph import build_default_graph
         from app.handoff import AuditNotifier, FanOutNotifier
@@ -109,16 +128,30 @@ async def lifespan(app: FastAPI):
             traces = TraceStore(s.traces_db_path)
         except Exception:  # noqa: BLE001
             log.exception("Trace store %s could not be opened; traces will not be stored", s.traces_db_path)
-        app.state.service = ChatService(build_default_graph(checkpointer=memory.saver, handoff_notifier=notifier),
-                                        memory=memory, handoffs=handoffs, traces=traces)
+        from app.approvals import ApprovalStore, build_approval_graph
+        from app.data.repository import CustomerRepository
+
+        repo = CustomerRepository(tickets_file=s.tickets_file, dedup_window_s=s.ticket_dedup_window_s)  # one: the agents and the approval graph
+        approval_store = ApprovalStore(s.approvals_db_path)
+        approvals = ApprovalService(approval_store, build_approval_graph(approval_store, repo, notifier=notifier))
+        app.state.service = ChatService(build_default_graph(checkpointer=memory.saver, handoff_notifier=notifier, repo=repo,
+                                                            approvals=approval_store if s.approval_categories else None),
+                                        memory=memory, handoffs=handoffs, traces=traces, approvals=approvals)
+        try:  # requests that were waiting when the process stopped: their paused graphs are still in the file; finish what is decided
+            approvals.reconcile()
+            log.info("Ticket approvals: %d pending (required for: %s; limit %.0f min)", len(approval_store.list("pending", 500)),
+                     ", ".join(sorted(s.approval_categories)) or "none", s.approval_ttl_minutes)
+        except Exception:  # noqa: BLE001 - never stop the API for it
+            log.exception("Approval reconcile at startup failed")
+        approvals_task = asyncio.create_task(_approvals_loop(approvals))
         log.info("Conversation memory: %s (ttl %s days, max %s threads per user)", memory.path,
                  s.thread_ttl_days or "off", s.max_threads_per_user or "unlimited")
         if s.thread_ttl_days:
             try:
-                _purge_once(memory, handoffs, traces)  # at startup
+                _purge_once(memory, handoffs, traces, approvals)  # at startup
             except Exception:  # noqa: BLE001 - a purge problem must not stop the API
                 log.exception("Startup thread purge failed")
-            purge_task = asyncio.create_task(_purge_loop(memory, s.purge_interval_minutes * 60, handoffs, traces))
+            purge_task = asyncio.create_task(_purge_loop(memory, s.purge_interval_minutes * 60, handoffs, traces, approvals))
         n = collection_size()
         if n == 0:
             log.warning("Knowledge base is EMPTY. Run `python -m app.rag.ingest` "
@@ -128,10 +161,11 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        if purge_task is not None:
-            purge_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await purge_task
+        for task in (purge_task, approvals_task):
+            if task is not None:
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
         if memory is not None:
             reset_auth_state()  # closes the revocations file (the API opened it; tests never do)
             memory.close()  # flush the WAL, release the file
@@ -139,6 +173,8 @@ async def lifespan(app: FastAPI):
             handoffs.close()
         if traces is not None:
             traces.close()
+        if approvals is not None:
+            approvals.store.close()
 
 
 app = FastAPI(title="Getnet Multi-Agent Support", version="1.1.0", lifespan=lifespan)
@@ -300,6 +336,58 @@ def operator_reject(handoff_id: str, req: RejectRequest, operator: Principal = D
         raise _handoff_not_found() from e
     except HandoffConflict as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+# ---- ticket approvals: a ticket the agent asked for is opened only when an operator approves it ----
+
+def _approval_service() -> ApprovalService:
+    service = getattr(app.state, "service", None)
+    svc = getattr(service, "approvals", None)
+    if svc is None:
+        raise HTTPException(status_code=503, detail="Ticket approvals are not available.")
+    return svc
+
+
+def _approval_summary(row: dict) -> ApprovalSummary:
+    return ApprovalSummary(
+        id=row["id"], conversation_id=row["conversation_id"], merchant_id=row["user_id"], category=row["category"],
+        summary=row["summary"], status=row["status"], created_at=iso(row["created_at"]), expires_at=iso(row["expires_at"]),
+        decided_by=row["decided_by"], decided_at=iso(row["decided_at"]), reason=row["reason"], ticket_id=row["ticket_id"])
+
+
+@app.get("/operator/approvals", response_model=ApprovalList)
+def operator_approvals(status: ApprovalStatusName | None = None, limit: int = Query(100, ge=1, le=500),
+                       operator: Principal = Depends(require_operator)) -> ApprovalList:
+    """Ticket requests, oldest first. `?status=pending` is what waits for a decision. Listing also expires what ran out of time."""
+    svc = _approval_service()
+    svc.sweep()
+    rows = svc.store.list(status, limit)
+    return ApprovalList(approvals=[_approval_summary(r) for r in rows], count=len(rows))
+
+
+def _decide(approval_id: str, decision: str, req: ApprovalDecisionRequest, operator: Principal) -> ApprovalSummary:
+    if not is_valid_approval_id(approval_id):
+        raise HTTPException(status_code=404, detail="Approval request not found.")
+    try:
+        return _approval_summary(_approval_service().decide(approval_id, operator.user_id, decision, req.reason))
+    except ApprovalNotFound as e:
+        raise HTTPException(status_code=404, detail="Approval request not found.") from e
+    except ApprovalConflict as e:  # decided already (by anyone, including a replay of this call), or out of time
+        raise HTTPException(status_code=409, detail=str(e)) from e
+
+
+@app.post("/operator/approvals/{approval_id}/approve", response_model=ApprovalSummary)
+def operator_approve(approval_id: str, req: ApprovalDecisionRequest = ApprovalDecisionRequest(),
+                     operator: Principal = Depends(require_operator)) -> ApprovalSummary:
+    """pending -> approved: the ticket is opened (once, whatever happens next) and the customer is told on their next turn."""
+    return _decide(approval_id, "approved", req, operator)
+
+
+@app.post("/operator/approvals/{approval_id}/reject", response_model=ApprovalSummary)
+def operator_reject_approval(approval_id: str, req: ApprovalDecisionRequest = ApprovalDecisionRequest(),
+                             operator: Principal = Depends(require_operator)) -> ApprovalSummary:
+    """pending -> rejected: no ticket is opened. `reason` is for the audit trail and is never shown to the customer."""
+    return _decide(approval_id, "rejected", req, operator)
 
 
 @app.post("/operator/revocations", status_code=204)

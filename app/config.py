@@ -72,6 +72,12 @@ class Settings(BaseSettings):
 
     # support / handoff files
     tickets_file: str = "./data/tickets.jsonl"
+    # a ticket in one of these categories is NOT opened by the agent: it is requested, and a person approves or rejects it in
+    # /operator/approvals (app/approvals.py). Default = every category. Empty = no approval, the ticket opens at once. A request
+    # nobody decides within the time limit expires: no ticket, the customer is told, the case goes to the human queue
+    approval_required_categories: str = "terminal,payout,billing,account,other"
+    approval_ttl_minutes: float = 60.0
+    approvals_db_path: str = "./data/approvals.sqlite"  # the requests AND the paused graphs: its own file, same volume
     # a second ticket of the same category from the same customer within this many seconds is the same issue worded
     # differently (a retried agent): the ticket already open is returned instead (0 = only the exact same summary counts)
     ticket_dedup_window_s: float = 600.0
@@ -127,6 +133,10 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
+
+    @property
+    def approval_categories(self) -> frozenset[str]:
+        return frozenset(c.strip().lower() for c in self.approval_required_categories.split(",") if c.strip())
 
     @property
     def effective_support_model(self) -> str:

@@ -48,7 +48,8 @@ ENV CHROMA_DIR=/app/data/chroma \
     HANDOFFS_DB_PATH=/app/data/handoffs.sqlite \
     CHECKPOINT_DB_PATH=/app/data/checkpoints.sqlite \
     REVOCATIONS_DB_PATH=/app/data/revocations.sqlite \
-    RAG_CACHE_PATH=/app/data/rag_cache.sqlite
+    RAG_CACHE_PATH=/app/data/rag_cache.sqlite \
+    APPROVALS_DB_PATH=/app/data/approvals.sqlite
 
 USER app
 

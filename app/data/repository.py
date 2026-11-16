@@ -109,6 +109,20 @@ class CustomerRepository:
                 return rec
         return None
 
+    def find_open_ticket(self, user_id: str, category: str, summary: str) -> dict | None:
+        """The ticket already open for this issue (same rule as `create_ticket`'s duplicate check), or None. Writes nothing:
+        the approval step asks it before it bothers a person with a request for something that already exists."""
+        if user_id not in self._data:
+            return None
+        with self._lock:
+            if self._created is None:
+                self._created = self._load_created()
+            found = self._find_open_duplicate(user_id, category, ticket_key(user_id, category, summary), self._clock())
+        if not found:
+            return None
+        return {"ticket_id": found["ticket_id"], "category": found["category"], "summary": found["summary"],
+                "status": found["status"], "days_ago": 0, "opened_on": self._iso(0), "already_existed": True}
+
     def create_ticket(self, user_id: str, category: str, summary: str) -> dict | None:
         """Opens a ticket AT MOST ONCE per issue: asking again for the same issue returns the ticket that is already open
         (`already_existed: true`) instead of a second one. The key is deterministic (customer, category, normalized

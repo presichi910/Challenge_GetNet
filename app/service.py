@@ -11,8 +11,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from app.handoff import defuse_label, operator_context_message
 from app.observability import TurnCollector, price_table, turn_alerts
-from app.schemas import (DEFAULT_CONVERSATION, ChatResponse, HandoffInfo, OpenHandoff, OperatorMessage, Routing,
-                         Source, ToolCall, Usage)
+from app.schemas import (DEFAULT_CONVERSATION, ApprovalInfo, ApprovalUpdate, ChatResponse, HandoffInfo, OpenHandoff,
+                         OperatorMessage, Routing, Source, ToolCall, Usage)
 
 log = logging.getLogger("chat")
 
@@ -24,8 +24,10 @@ def thread_id_for(user_id: str, conversation_id: str | None = None) -> str:
 
 
 class ChatService:
-    def __init__(self, graph, memory=None, handoffs=None, traces=None):
+    def __init__(self, graph, memory=None, handoffs=None, traces=None, approvals=None):
         self.graph = graph
+        # app.approvals.ApprovalService: ticket requests waiting for a person. None = tickets open at once (the eval)
+        self.approvals = approvals
         # app.observability.TraceStore: per-turn traces and spans (no text). None = not stored, the
         # response still carries `usage`
         self.traces = traces
@@ -92,6 +94,7 @@ class ChatService:
         # not caught: if the erase fails the client gets a 500 and retries, and the retry finds the
         # leftover handoffs (the conversation itself is already gone) and finishes the job
         erased = self.handoffs.delete_conversation(user_id, conversation_id) if self.handoffs else 0
+        erased += self.approvals.delete_conversation(user_id, conversation_id) if self.approvals else 0  # their text is customer data too
         # the traces hold no text, but they are still this conversation's records: they go with it
         traced = self.traces.delete_conversation(user_id, conversation_id) if self.traces else 0
         return deleted or erased > 0 or traced > 0
@@ -133,6 +136,26 @@ class ChatService:
         except Exception:  # noqa: BLE001 - still readable at /conversations/{id}/operator-messages
             log.warning("could not give back operator messages for user=%s conv=%s", user_id, conversation_id, exc_info=True)
 
+    def _take_approval_updates(self, user_id: str, conversation_id: str) -> list[dict]:
+        """How earlier ticket requests of this conversation ended and the customer was not told yet (marked told in the same step).
+        A problem here never fails the turn: they come with the next one."""
+        if not self.approvals:
+            return []
+        try:
+            return self.approvals.store.pop_undelivered(user_id, conversation_id)
+        except Exception:  # noqa: BLE001
+            log.warning("could not read approval outcomes for user=%s conv=%s", user_id, conversation_id, exc_info=True)
+            return []
+
+    def _start_approvals(self, state: dict) -> None:
+        """Pause each request of this turn in its own graph thread, waiting for a person. If this fails the request stays recorded
+        and `ApprovalService.reconcile` starts it later: the customer's reply is never lost for it."""
+        for a in state.get("approvals") or []:
+            try:
+                self.approvals.start(a["id"])
+            except Exception:  # noqa: BLE001
+                log.exception("could not start approval %s", a["id"])
+
     def _human_side(self, user_id: str, conversation_id: str, handoff: HandoffInfo | None):
         """What the customer may learn about the humans: the status of this turn's handoff and the cases
         of this conversation still open. Every query is filtered by the token's user_id. A problem
@@ -158,12 +181,17 @@ class ChatService:
         # raises ThreadLimitExceeded for a new thread above the per-user limit, before anything runs
         created = self.memory.begin_turn(user_id, thread_id) if self.memory else False
         taken = self._take_operator_messages(user_id, conversation_id)
+        outcomes = self._take_approval_updates(user_id, conversation_id)
         collector = self._collector()
         try:
             state, latency_ms = self.run_raw(defuse_label(message), user_id, thread_id, conversation_id,
-                                             context=[operator_context_message(m) for m in taken],
+                                             context=[operator_context_message(m) for m in taken]
+                                             + [AIMessage(content=o["outcome"], additional_kwargs={"source": "approval", "approval_id": o["id"]})
+                                                for o in outcomes if o.get("outcome")],
                                              callbacks=[collector] if collector else None)
         except Exception:
+            if outcomes:
+                self.approvals.store.restore_undelivered([o["id"] for o in outcomes])
             if taken:
                 self._give_back(user_id, conversation_id, taken)
             if created:  # the first turn of a thread failed: do not keep its slot or its leftovers
@@ -176,6 +204,8 @@ class ChatService:
             except Exception:  # noqa: BLE001 - the reply is ready, a prune problem must not lose it
                 log.warning("checkpoint prune failed for %s", thread_id, exc_info=True)
         outputs = state.get("agent_outputs", {})
+        if self.approvals and state.get("approvals"):
+            self._start_approvals(state)
 
         sources, seen = [], set()
         tool_calls = []
@@ -210,6 +240,9 @@ class ChatService:
             handoff=handoff,
             open_handoffs=open_handoffs,
             operator_messages=operator_messages,
+            approvals=[ApprovalInfo(**a) for a in state.get("approvals") or []],
+            approval_updates=[ApprovalUpdate(id=o["id"], status=o["status"], message=o.get("outcome") or "", ticket_id=o.get("ticket_id"))
+                              for o in outcomes],
             latency_ms=latency_ms,
             trace_id=trace_id,
         )
