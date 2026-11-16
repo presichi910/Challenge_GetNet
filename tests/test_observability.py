@@ -342,14 +342,14 @@ def test_chat_through_the_api_carries_usage(auth_env, tmp_path, priced):
     assert {g["node"] for g in body["usage"]["by_node"]} == {"router", "support", "knowledge", "synthesizer"}
 
 
-# ---- nothing in the agents changed ----
+# ---- the prompts: any change to one must update its hash here (and be measured, see CLAUDE.md) ----
 
 PROMPT_SHA256 = {
     "JUDGE_PROMPT": "0aeacc9b867fb96992537ed75a51b3cccfb55353f8f871bda8740f16e8b11e51",
     "KNOWLEDGE_PROMPT": "7324cc0153a891d760225411b5ca76d81f11ca1ea2c7a21ec07f660b2ade4f1f",
     "ROUTER_PROMPT": "9fb35f25e3cf8de31a2408f8930ba958d46d081845d7b8878cee2c8bad5bf080",
     "SUMMARIZER_PROMPT": "b7bc7fccb60b8954a85589562e3ecff2a66a1f83a5549fd61608524c791168f9",
-    "SUPPORT_PROMPT": "873ccb635aeb1c19ba6fdb340cba74cdaeb0b95b76388c1e1aa864ad9763f082",
+    "SUPPORT_PROMPT": "4b58a6794c585e0b082f2a92992498e17757d967997a3999a72a7d24cd669953",
     "SYNTHESIZER_DIRECT_PROMPT": "7f4748c75b3d41700df45a4717db20776e240058f793799e7d2f0d28aae2ab5d",
     "SYNTHESIZER_MERGE_PROMPT": "465ba7903d2fefa8a58a79fd404ac76d14a4cb91f17e93843663dbdc7df88ecc",
 }
