@@ -1,4 +1,5 @@
 """Authentication and identity tests. TestClient only: no network, no real keys."""
+import re
 import pytest
 from fastapi.testclient import TestClient
 from langchain_core.messages import AIMessage
@@ -49,7 +50,8 @@ def post(client, token=None, **body):
 def test_valid_token_reaches_the_service_with_the_token_identity(client, svc):
     r = post(client, make_jwt("cliente1988"))
     assert r.status_code == 200 and r.json()["user_id"] == "cliente1988"
-    assert svc.calls == [{"message": "hi", "user_id": "cliente1988", "conversation_id": None}]
+    assert [(c["message"], c["user_id"]) for c in svc.calls] == [("hi", "cliente1988")]
+    assert re.fullmatch(r"c-[0-9a-f]{16}", svc.calls[0]["conversation_id"])  # no id sent: the SERVER made one
 
 
 def test_expired_token_is_401(client, svc):
@@ -191,8 +193,8 @@ def test_api_derives_the_memory_thread_from_the_token(auth_env):
             post(c, make_jwt("cliente2024"))
     finally:
         app.state.service = None
-    assert graph.configs == [("cliente1988", "cliente1988:c1"), ("cliente2024", "cliente2024:c1"),
-                             ("cliente2024", "cliente2024:default")]
+    assert graph.configs[:2] == [("cliente1988", "cliente1988:c1"), ("cliente2024", "cliente2024:c1")]
+    assert re.fullmatch(r"cliente2024:c-[0-9a-f]{16}", graph.configs[2][1]) and graph.configs[2][0] == "cliente2024"
 
 
 def test_end_to_end_tools_only_return_the_token_users_data(auth_env, repo):

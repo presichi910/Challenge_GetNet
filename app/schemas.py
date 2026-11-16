@@ -32,7 +32,8 @@ class ChatRequest(BaseModel):
                                 description="Optional. Must equal the authenticated user.")
     conversation_id: str | None = Field(default=None, min_length=1, max_length=CONVERSATION_ID_MAX,
                                         pattern=f"^{CONVERSATION_ID_CHARS}$",
-                                        description="Optional. Separate conversations of the same user.")
+                                        description="Optional. Omit it to start a NEW conversation: the server creates the id and returns it. "
+                                                    "To continue one, send back the id the server gave you; an id that is not yours is a 404.")
 
 
 class Source(BaseModel):

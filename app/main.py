@@ -23,7 +23,7 @@ from app.schemas import (ApprovalDecisionRequest, ApprovalList, ApprovalStatusNa
                          ConversationDetail, ConversationList, HandoffDetail, HandoffList, HandoffStatusName, HandoffSummary,
                          MetricsResponse, OperatorMessageList, RejectRequest, ReplyRequest, ReplyResult, RevokeRequest,
                          is_valid_approval_id, is_valid_conversation_id, is_valid_handoff_id)
-from app.service import ChatService
+from app.service import ChatService, new_conversation_id
 
 log = logging.getLogger("api")
 
@@ -192,8 +192,14 @@ def chat(req: ChatRequest, principal: Principal = Depends(require_merchant)) -> 
     # the customer is the token's `sub`, a body user_id is never trusted
     if req.user_id is not None and req.user_id != principal.user_id:
         raise HTTPException(status_code=403, detail="user_id does not match the authenticated user.")
+    service = app.state.service
+    conversation_id = req.conversation_id
+    if conversation_id is None:
+        conversation_id = new_conversation_id()  # a new conversation: the server picks the id and returns it
+    elif not service.conversation_known(principal.user_id, conversation_id):
+        raise _not_found()  # not an id this customer was given: the same 404 as somebody else's or a missing one
     try:
-        return app.state.service.handle(req.message, principal.user_id, conversation_id=req.conversation_id)
+        return service.handle(req.message, principal.user_id, conversation_id=conversation_id)
     except ThreadLimitExceeded as e:  # a new conversation above the per-user limit; nothing was deleted
         raise HTTPException(status_code=429, detail=str(e)) from e
     except Exception as e:

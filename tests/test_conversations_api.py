@@ -70,11 +70,11 @@ def test_list_has_only_the_callers_conversations_without_content(client):
     assert rb["count"] == 1 and rb["conversations"][0]["conversation_id"] == "c1" and rb["conversations"][0]["turns"] == 1
 
 
-def test_list_is_empty_for_a_customer_with_no_conversations_and_the_default_one_is_listed(client):
+def test_list_is_empty_for_a_customer_with_no_conversations_and_one_the_server_started_is_listed(client):
     assert client.get("/conversations", headers=h(A)).json()["count"] == 0
-    chat(client, A, "no conversation_id")
+    body = chat(client, A, "no conversation_id").json()
     listed = client.get("/conversations", headers=h(A)).json()["conversations"]
-    assert [c["conversation_id"] for c in listed] == ["default"]
+    assert [c["conversation_id"] for c in listed] == [body["conversation_id"]] and body["conversation_id"].startswith("c-")
 
 
 # ---------------- reading one ----------------

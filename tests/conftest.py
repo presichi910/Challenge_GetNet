@@ -121,6 +121,18 @@ def operator_jwt(operator: str = "ops1", scope: str | None = "operator", **kw) -
 
 
 @pytest.fixture(autouse=True)
+def _conversation_ids_lenient(request, monkeypatch):
+    """In production `/chat` rejects a conversation_id the server did not give the caller (404). The many tests that open a
+    conversation with a name of their own are about other things, so they run with that one check off; tests/test_conversation_ids.py
+    marks itself `strict_ids` and exercises the real rule."""
+    if request.node.get_closest_marker("strict_ids"):
+        return
+    from app.service import ChatService
+
+    monkeypatch.setattr(ChatService, "conversation_known", lambda self, user_id, conversation_id: True)
+
+
+@pytest.fixture(autouse=True)
 def _isolated_traces(tmp_path, monkeypatch):
     """No test ever writes the real ./data/traces.sqlite (the API lifespan opens TRACES_DB_PATH) nor the real
     ./data/rag_cache.sqlite: a test that embeds with a fake model would leave a FAKE vector there, and the next real search

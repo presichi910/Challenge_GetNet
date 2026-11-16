@@ -17,6 +17,12 @@ from app.schemas import (DEFAULT_CONVERSATION, ApprovalInfo, ApprovalUpdate, Cha
 log = logging.getLogger("chat")
 
 
+def new_conversation_id() -> str:
+    """A conversation id made by the SERVER: 64 random bits, unguessable and never reused. The client never invents one (an id
+    it sends must already be a conversation of its own), so nobody can pick, probe or collide with another customer's id."""
+    return "c-" + uuid.uuid4().hex[:16]
+
+
 def thread_id_for(user_id: str, conversation_id: str | None = None) -> str:
     """Memory key. It always starts with the authenticated user, so one user can never
     address another user's conversation, whatever conversation_id they send."""
@@ -64,6 +70,13 @@ class ChatService:
     def _info(self, meta: dict) -> dict:
         return {"conversation_id": meta["conversation_id"], "created_at": self._iso(meta["created_at"]),
                 "last_active": self._iso(meta["last_active"]), "turns": meta["turns"]}
+
+    def conversation_known(self, user_id: str, conversation_id: str) -> bool:
+        """Is this one of the CALLER's conversations? Somebody else's and a missing one are the same answer. Without a registry
+        (the eval, some tests) there is nothing to check against."""
+        if not self.memory:
+            return True
+        return self.memory.get_thread(user_id, thread_id_for(user_id, conversation_id)) is not None
 
     def conversation_limit(self) -> int | None:
         return (self.memory.max_threads or None) if self.memory else None
