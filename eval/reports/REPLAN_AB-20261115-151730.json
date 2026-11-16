@@ -294,6 +294,28 @@
      ],
      "seconds": 6.6
     }
+   },
+   "judged": {
+    "23bd7028b4610416": {
+     "unsupported_claims": [],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 5,
+     "completeness": 3,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The assistant honestly stated that it could not find a specific source to answer the question, which is supported by the lack of explicit confirmation in the provided evidence, and the response is relevant, grounded, and polite."
+    },
+    "a08c13fe43eeea5d": {
+     "unsupported_claims": [],
+     "language_match": true,
+     "relevance": 4,
+     "groundedness": 5,
+     "completeness": 3,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The assistant honestly stated that it could not find a specific source in the provided evidence to answer the question, which is accurate as the retrieved documents do not explicitly state whether a bank account is required, and it correctly recommended contacting support."
+    }
    }
   },
   {
@@ -664,6 +686,54 @@
      ],
      "seconds": 11.7
     }
+   },
+   "judged": {
+    "0ed080940027735c": {
+     "unsupported_claims": [
+      {
+       "claim": "The terminal is currently offline (weak Wi‑Fi, last seen 95 minutes ago) and logged a NET_TIMEOUT error, meaning it cannot communicate with the acquiring bank.",
+       "actionable": false
+      },
+      {
+       "claim": "That communication loss frequently results in the generic 05 decline.",
+       "actionable": false
+      },
+      {
+       "claim": "There are no documented steps for this.",
+       "actionable": false
+      }
+     ],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 4,
+     "completeness": 3,
+     "tone": 4,
+     "verdict": "pass",
+     "reason": "The answer is relevant, polite, and grounded in the provided evidence, though it lacks specific actionable next steps for resolving the offline terminal issue."
+    },
+    "938be8fd4cc9948e": {
+     "unsupported_claims": [
+      {
+       "claim": "The terminal is currently offline (weak Wi‑Fi, last seen 95 minutes ago) and logged a NET_TIMEOUT error, meaning it cannot communicate with the acquiring bank.",
+       "actionable": false
+      },
+      {
+       "claim": "That communication loss frequently results in the generic 05 decline.",
+       "actionable": false
+      },
+      {
+       "claim": "There are no documented steps for this situation.",
+       "actionable": false
+      }
+     ],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 4,
+     "completeness": 3,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The answer is relevant, polite, and largely grounded in the provided data, though it includes a minor unsupported claim about the frequency of the specific error code and fails to provide actionable troubleshooting steps for the offline terminal."
+    }
    }
   },
   {
@@ -940,6 +1010,33 @@
       "[5] (relevance=0.61) Como acesso a minha Get Conta? <https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta>\nComo acesso a minha Get Conta?\n\n# Como acesso a minha Get Conta?\n\nPara ter acesso a sua conta você precisa baixar o App Getnet na sua loja de aplicativos e realizar o login através do CPF/CPNJ ou e-mail e a senha cadastrada na Getnet, podendo ser no Aplicativo Getnet Brasil ou Portal Minha Conta.\n\n## Minha agência e conta não apareceu, o que eu faço?\n\nConfira se os dados estão corretos, se caso sim, será necessário desinstalar o Aplicativo Getnet Brasil e instalar novamente, se persistir o erro, entre em contato com a gente através da nossa Central de Relacionamento pelo telefone: 4002-4000 | 4003-4000 (Capitais e regiões metropolitanas) e 0800-648-8000 (demais localidades).\n\n## Quando e como vou receber os valores das minhas vendas realizadas?\n\nVocê receberá suas vendas de acordo com o plano escolhido na contratação, e o dinheiro será depositado na sua Get Conta pela manhã da data escolhida."
      ],
      "seconds": 8.6
+    }
+   },
+   "judged": {
+    "2546d1ed3818c2c7": {
+     "unsupported_claims": [],
+     "language_match": true,
+     "relevance": 1,
+     "groundedness": 5,
+     "completeness": 1,
+     "tone": 3,
+     "verdict": "fail",
+     "reason": "The assistant failed to inform the user that the case was escalated to a human agent, as required by the case-specific expected behavior and the tool output."
+    },
+    "20d6918ca6797327": {
+     "unsupported_claims": [
+      {
+       "claim": "There are no documented steps for this",
+       "actionable": false
+      }
+     ],
+     "language_match": true,
+     "relevance": 4,
+     "groundedness": 4,
+     "completeness": 2,
+     "tone": 4,
+     "verdict": "fail",
+     "reason": "The answer is in English while the user asked in Portuguese, and it fails to provide the required human handoff reference ID."
     }
    }
   },
@@ -1479,6 +1576,28 @@
      ],
      "seconds": 3.0
     }
+   },
+   "judged": {
+    "23bd7028b4610416": {
+     "unsupported_claims": [],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 5,
+     "completeness": 3,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The assistant honestly stated that it could not find a specific source to answer the question, which is supported by the lack of explicit confirmation in the provided evidence, and the response is relevant, grounded, and polite."
+    },
+    "a08c13fe43eeea5d": {
+     "unsupported_claims": [],
+     "language_match": true,
+     "relevance": 4,
+     "groundedness": 5,
+     "completeness": 3,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The assistant honestly stated that it could not find a specific source in the provided evidence to answer the question, which is accurate as the retrieved documents do not explicitly state whether a bank account is required, and it correctly recommended contacting support."
+    }
    }
   },
   {
@@ -1571,6 +1690,58 @@
       "[5] (relevance=0.60) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## Get Tap\n\nÉ uma funcionalidade dentro do APP Getnet que transforma o seu celular em maquinha para receber vendas por aproximação com cartão, carteiras digitais e dispositivos que tenham NFC.\n\nPara receber vendas via Get Tap, o seu dispositivo precisa ter o sistema operacional a partir do Android 12 e a tecnologia NFC.\n\nConfirme se o seu aparelho é compatível no próprio aplicativo da Getnet:\n\nAlém disso, por questões de segurança, faremos uma análise do seu dispositivo e, assim que aprovado, estará disponível para uso.\n\nNFC é uma tecnologia que permite que dispositivos próximos troquem informações. É a partir do NFC que os dados do cartão (ou outro meio de pagamento) são criptografados e enviados para que possamos processar a transação, por isso é necessário que o seu dispositivo tenha essa tecnologia."
      ],
      "seconds": 8.4
+    }
+   },
+   "judged": {
+    "e96257caec21b067": {
+     "unsupported_claims": [
+      {
+       "claim": "The issue is likely on the network side (router/firewall) or a hardware problem with the terminal’s Wi‑Fi module.",
+       "actionable": false
+      }
+     ],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 4,
+     "completeness": 3,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The answer accurately reports the terminal status from the evidence, honestly states that no specific troubleshooting steps are documented, and offers a valid next step (support ticket), meeting all criteria for a pass."
+    },
+    "1ef41edf6b83e166": {
+     "unsupported_claims": [
+      {
+       "claim": "The terminal model is GS-88231-RS.",
+       "actionable": false
+      },
+      {
+       "claim": "The last error logged is NET_TIMEOUT: could not reach the acquirer gateway.",
+       "actionable": false
+      },
+      {
+       "claim": "The device is connected via Wi-Fi with a weak signal.",
+       "actionable": false
+      },
+      {
+       "claim": "The device was last seen about 95 minutes ago.",
+       "actionable": false
+      },
+      {
+       "claim": "Ensure outbound traffic on port 443 isn't blocked.",
+       "actionable": true
+      },
+      {
+       "claim": "If MAC-address filtering is enabled, add the terminal's MAC address (found in the terminal's settings menu).",
+       "actionable": true
+      }
+     ],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 3,
+     "completeness": 4,
+     "tone": 5,
+     "verdict": "fail",
+     "reason": "The answer contains actionable technical instructions (port 443, MAC filtering) that are not supported by the provided evidence."
     }
    }
   },
@@ -1832,6 +2003,42 @@
       "[5] (relevance=0.75) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## Get Tap\n\nÉ uma funcionalidade dentro do APP Getnet que transforma o seu celular em maquinha para receber vendas por aproximação com cartão, carteiras digitais e dispositivos que tenham NFC.\n\nPara receber vendas via Get Tap, o seu dispositivo precisa ter o sistema operacional a partir do Android 12 e a tecnologia NFC.\n\nConfirme se o seu aparelho é compatível no próprio aplicativo da Getnet:\n\nAlém disso, por questões de segurança, faremos uma análise do seu dispositivo e, assim que aprovado, estará disponível para uso.\n\nNFC é uma tecnologia que permite que dispositivos próximos troquem informações. É a partir do NFC que os dados do cartão (ou outro meio de pagamento) são criptografados e enviados para que possamos processar a transação, por isso é necessário que o seu dispositivo tenha essa tecnologia."
      ],
      "seconds": 11.8
+    }
+   },
+   "judged": {
+    "bd87f0324989157a": {
+     "unsupported_claims": [
+      {
+       "claim": "The terminal is currently offline due to weak Wi-Fi signal and a NET_TIMEOUT error, and this connectivity issue can prevent authorizations from reaching the card-issuing banks.",
+       "actionable": true
+      },
+      {
+       "claim": "There are no documented steps for this situation.",
+       "actionable": false
+      }
+     ],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 3,
+     "completeness": 3,
+     "tone": 4,
+     "verdict": "fail",
+     "reason": "The answer includes an actionable, unsupported claim that the terminal's offline status is preventing authorizations, which is not confirmed by the evidence and may mislead the customer."
+    },
+    "d5af125adef83301": {
+     "unsupported_claims": [
+      {
+       "claim": "The connectivity issue (offline status/NET_TIMEOUT) can prevent authorizations from reaching the card-issuing banks.",
+       "actionable": false
+      }
+     ],
+     "language_match": true,
+     "relevance": 5,
+     "groundedness": 4,
+     "completeness": 4,
+     "tone": 5,
+     "verdict": "pass",
+     "reason": "The answer is relevant, polite, and grounded in the provided evidence, with only a minor unsupported causal claim that does not constitute an actionable instruction."
     }
    }
   },
