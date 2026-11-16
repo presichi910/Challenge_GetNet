@@ -30,8 +30,10 @@ def thread_id_for(user_id: str, conversation_id: str | None = None) -> str:
 
 
 class ChatService:
-    def __init__(self, graph, memory=None, handoffs=None, traces=None, approvals=None):
+    def __init__(self, graph, memory=None, handoffs=None, traces=None, approvals=None, telemetry=None):
         self.graph = graph
+        # app.telemetry.Telemetry: Prometheus metrics and OTLP traces of every turn (no text, no customer id). None = off
+        self.telemetry = telemetry
         # app.approvals.ApprovalService: ticket requests waiting for a person. None = tickets open at once (the eval)
         self.approvals = approvals
         # app.observability.TraceStore: per-turn traces and spans (no text). None = not stored, the
@@ -189,6 +191,7 @@ class ChatService:
     def handle(self, message: str, user_id: str, conversation_id: str | None = None) -> ChatResponse:
         """`user_id` must be the authenticated user. The memory thread is derived from it here."""
         trace_id = uuid.uuid4().hex[:12]
+        started_at = time.time()
         conversation_id = conversation_id or DEFAULT_CONVERSATION
         thread_id = thread_id_for(user_id, conversation_id)
         # raises ThreadLimitExceeded for a new thread above the per-user limit, before anything runs
@@ -259,7 +262,7 @@ class ChatService:
             latency_ms=latency_ms,
             trace_id=trace_id,
         )
-        usage = self._observe(resp, collector)
+        usage = self._observe(resp, collector, started_at)
         # one log line per request (tokens and cost are appended; the fields before them are unchanged)
         log.info("trace=%s user=%s conv=%s plan=%s used=%s tools=%s degraded=%s handoff=%s latency_ms=%d tokens=%s cost_usd=%s",
                  trace_id, user_id, conversation_id, resp.routing.plan, resp.agents_used,
@@ -280,7 +283,7 @@ class ChatService:
             log.warning("observability disabled for this turn", exc_info=True)
             return None
 
-    def _observe(self, resp: ChatResponse, collector: TurnCollector | None) -> dict | None:
+    def _observe(self, resp: ChatResponse, collector: TurnCollector | None, started_at: float | None = None) -> dict | None:
         """Fill `resp.usage`, log the alerts and store the trace. Returns the usage dict."""
         if collector is None:
             return None
@@ -295,6 +298,11 @@ class ChatService:
         except Exception:  # noqa: BLE001
             log.warning("could not compute the usage of trace=%s", resp.trace_id, exc_info=True)
             return None
+        if self.telemetry is not None:  # metrics and traces: a failure here is logged, it never reaches the customer's turn
+            try:
+                self.telemetry.observe_turn(resp, collector.spans, usage, started_at)
+            except Exception:  # noqa: BLE001
+                log.warning("telemetry failed for trace=%s", resp.trace_id, exc_info=True)
         if self.traces is not None:
             try:
                 self.traces.record({"trace_id": resp.trace_id, "user_id": resp.user_id,

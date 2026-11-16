@@ -20,6 +20,7 @@ customer is told, and the case goes to the human queue as `approval_expired`.
 """
 from __future__ import annotations
 
+import builtins
 import hashlib
 import json
 import logging
@@ -27,7 +28,7 @@ import sqlite3
 import threading
 import time
 import uuid
-from typing import Callable, TypedDict
+from typing import Any, Callable, Mapping, TypedDict
 
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -229,13 +230,13 @@ class ApprovalStore:
         return dict(row) if row else None
 
     def list(self, status: str | None = None, limit: int = 100) -> list[dict]:
-        sql, args = "SELECT * FROM approvals", ()
+        sql, args = "SELECT * FROM approvals", ()  # type: tuple[str, tuple]
         if status:
             sql, args = sql + " WHERE status = ?", (status,)
         with self._lock:
             return [dict(r) for r in self.conn.execute(sql + " ORDER BY created_at LIMIT ?", (*args, limit))]
 
-    def unresumed(self) -> list[dict]:
+    def unresumed(self) -> builtins.list[dict]:  # `list` is a method of this class, so the builtin is named explicitly
         """Decided (by an operator or by the clock) but the graph was not continued yet: a crash between the two."""
         with self._lock:
             return [dict(r) for r in self.conn.execute(
@@ -252,7 +253,7 @@ class ApprovalStore:
 
 # ---- the conversation side ------------------------------------------------------------------------------------
 
-def proposals_in(state: dict) -> list[dict]:
+def proposals_in(state: Mapping[str, Any]) -> builtins.list[dict]:
     """The ticket requests the support agent made THIS turn that are waiting for approval, read from the tool's own output."""
     seen, out = set(), []
     for c in ((state.get("agent_outputs") or {}).get("support") or {}).get("contexts", []):
@@ -270,7 +271,7 @@ def proposals_in(state: dict) -> list[dict]:
     return out
 
 
-def make_request_approval_node(store: ApprovalStore, ttl_s: float):
+def make_request_approval_node(store: ApprovalStore, ttl_s: float, on_created=None):
     """Last node of a turn that asked for a ticket: records each request and tells the customer it is waiting for a person. The
     answer is final here (the synthesizer and the verifier already ran), so the notice is appended, not written by a model."""
 
@@ -279,8 +280,15 @@ def make_request_approval_node(store: ApprovalStore, ttl_s: float):
         if not proposals:
             return {}
         language = state.get("language", "English")
-        rows = [store.create(state["user_id"], state.get("conversation_id") or "default", p["category"], p["summary"],
-                             language, ttl_s)[0] for p in proposals]
+        made = [store.create(state["user_id"], state.get("conversation_id") or "default", p["category"], p["summary"], language, ttl_s)
+                for p in proposals]
+        rows = [r for r, _ in made]
+        for row, created in made:
+            if created and on_created is not None:  # a NEW request: tell the operators (a retried turn does not announce it twice)
+                try:
+                    on_created(row)
+                except Exception:  # noqa: BLE001 - the customer's turn never fails because of a notification
+                    log.warning("approval notification failed for %s", row["id"], exc_info=True)
         notice = REQUESTED[lang_key(language, REQUESTED)].format(refs=", ".join(r["id"] for r in rows))
         answer = f"{(state.get('final_answer') or '').rstrip()}\n\n{notice}".strip()
         update: dict = {"final_answer": answer,

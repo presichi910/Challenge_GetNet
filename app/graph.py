@@ -8,7 +8,7 @@ Each agent saves its result in `agent_outputs`, so later agents can read earlier
 """
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Hashable
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -47,7 +47,7 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
         g.add_edge("summarize", "router")
     else:
         g.add_edge(START, "router")
-    targets = {**{n: n for n in AGENT_NODES}, "synthesizer": "synthesizer", "handoff": "handoff"}
+    targets: dict[Hashable, str] = {**{n: n for n in AGENT_NODES}, "synthesizer": "synthesizer", "handoff": "handoff"}
     for src in ("router", *AGENT_NODES):
         g.add_conditional_edges(src, next_node, targets)
     if verify is not None:  # synthesizer -> [observe ->] verify -> END; without it the graph is exactly as before
@@ -77,7 +77,7 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
 
 
 def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_raw=False, verify_node=None, observe_node=None,
-                        repo=None, approvals=None):
+                        repo=None, approvals=None, on_approval_created=None):
     """`checkpointer=None` keeps the memory in process (the eval does that, so it never writes
     conversations to disk). The API passes the persistent one, see `app.main.lifespan`.
     `handoff_notifier=None` only appends a redacted audit line to the JSONL file; the API passes one that also queues the
@@ -103,5 +103,5 @@ def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_ra
                        make_synthesizer_node(), make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
                        summarizer=make_summarizer_node(), verify=verify_node or make_verify_node(keep_raw=keep_verify_raw),
                        observe=observe_node or make_observe_node(keep_raw=keep_verify_raw),
-                       request_approval=(make_request_approval_node(approvals, get_settings().approval_ttl_minutes * 60)
+                       request_approval=(make_request_approval_node(approvals, get_settings().approval_ttl_minutes * 60, on_approval_created)
                                          if approvals is not None else None))

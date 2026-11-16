@@ -15,3 +15,6 @@ pydantic-settings==2.16.2
 PyJWT==2.15.1
 cryptography==50.0.2  # RS256 verification against the identity provider JWKS
 rank_bm25==0.2.2  # BM25 half of the hybrid knowledge-base search
+prometheus-client==0.26.0  # /metrics (app/telemetry.py)
+opentelemetry-sdk==1.45.2  # OTLP traces (app/telemetry.py); already installed through chromadb, now a direct dependency
+opentelemetry-exporter-otlp-proto-grpc==1.45.2

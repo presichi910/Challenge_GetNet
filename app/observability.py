@@ -25,6 +25,8 @@ from uuid import UUID
 from langchain_core.callbacks import BaseCallbackHandler
 
 log = logging.getLogger("observability")
+# bandit B608 (marked on each such line) is a false positive here: the only things interpolated into SQL text are `?` placeholders and constant WHERE/column
+# fragments written in this file; every VALUE (a user id, an id, a time) is a bound parameter.
 
 # USD per 1M tokens (input, output). Serverless list prices as of PRICES_AS_OF, from
 # https://docs.fireworks.ai/serverless/pricing and https://console.groq.com/docs/models.
@@ -160,7 +162,7 @@ class TurnCollector(BaseCallbackHandler):
 
     # ---- internals ----
     def _start(self, run_id: UUID, span: dict) -> None:
-        span.update(t0=self.clock(), input_tokens=0, output_tokens=0, cost_usd=None, ok=True, error_type=None,
+        span.update(t0=self.clock(), started_at=time.time(), input_tokens=0, output_tokens=0, cost_usd=None, ok=True, error_type=None,
                     latency_ms=0)
         with self._lock:
             self._open[run_id] = span
@@ -273,11 +275,11 @@ class TraceStore:
 
     def _delete(self, where: str, args: tuple) -> int:
         with self.lock:
-            ids = [r[0] for r in self.conn.execute(f"SELECT trace_id FROM traces WHERE {where}", args)]
+            ids = [r[0] for r in self.conn.execute(f"SELECT trace_id FROM traces WHERE {where}", args)]  # nosec B608
             if ids:
                 marks = ",".join("?" * len(ids))
-                self.conn.execute(f"DELETE FROM spans WHERE trace_id IN ({marks})", ids)
-                self.conn.execute(f"DELETE FROM traces WHERE trace_id IN ({marks})", ids)
+                self.conn.execute(f"DELETE FROM spans WHERE trace_id IN ({marks})", ids)  # nosec B608
+                self.conn.execute(f"DELETE FROM traces WHERE trace_id IN ({marks})", ids)  # nosec B608
                 self.conn.commit()
                 self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             return len(ids)
@@ -310,12 +312,12 @@ class TraceStore:
             args.append(until)
         with self.lock:
             rows = self.conn.execute(
-                f"SELECT latency_ms, degraded, handoff_reason, provider_errors FROM traces t WHERE {where}", args).fetchall()
+                f"SELECT latency_ms, degraded, handoff_reason, provider_errors FROM traces t WHERE {where}", args).fetchall()  # nosec B608
             spans = self.conn.execute(
-                f"SELECT s.node, s.name, s.input_tokens, s.output_tokens, s.cost_usd, s.ok FROM spans s "
+                f"SELECT s.node, s.name, s.input_tokens, s.output_tokens, s.cost_usd, s.ok FROM spans s "  # nosec B608
                 f"JOIN traces t ON t.trace_id = s.trace_id WHERE s.kind = 'llm' AND {where}", args).fetchall()
             tools = self.conn.execute(
-                f"SELECT s.name, COUNT(*), SUM(1 - s.ok) FROM spans s JOIN traces t ON t.trace_id = s.trace_id "
+                f"SELECT s.name, COUNT(*), SUM(1 - s.ok) FROM spans s JOIN traces t ON t.trace_id = s.trace_id "  # nosec B608
                 f"WHERE s.kind = 'tool' AND {where} GROUP BY s.name ORDER BY s.name", args).fetchall()
         n = len(rows)
 

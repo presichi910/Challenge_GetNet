@@ -11,7 +11,7 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
 
 from app.auth import (Principal, open_persistent_denylist, require_merchant, require_operator, reset_auth_state,
                       revoke_token, validate_auth_config)
@@ -69,15 +69,46 @@ async def _purge_loop(memory: Memory, every_seconds: float, handoffs: HandoffSto
             log.exception("Thread purge failed")
 
 
-async def _approvals_loop(approvals: ApprovalService, every_seconds: float = 30.0) -> None:
-    """Time limits: a request nobody decided expires (no ticket, the customer is told, the case goes to the human queue), and a
-    decided one whose graph could not be continued is finished. Every 30 s, and on every operator call."""
+def sweep_once(approvals: ApprovalService | None, handoffs: HandoffStore | None, sla_seconds: float, webhook=None, telemetry=None) -> list[dict]:
+    """The time limits, once: a ticket request nobody decided expires (no ticket, the customer is told, the case goes to the human queue), a decided one
+    whose graph could not be continued is finished, and a handoff nobody claimed within the SLA is escalated and announced. Each part is independent: one
+    failing does not skip the others. -> the handoffs escalated now."""
+    escalated: list[dict] = []
+    try:
+        if approvals is not None:
+            approvals.sweep()
+    except Exception:  # noqa: BLE001
+        log.exception("Approval sweep failed")
+    try:
+        if handoffs is not None and sla_seconds:
+            escalated = handoffs.escalate_overdue(sla_seconds)
+            for row in escalated:
+                if webhook is not None:
+                    webhook.send({"event": "handoff.sla_breached", "handoff_id": row["id"], "reason": row["reason"], "priority": row["priority"],
+                                  "conversation_id": row["conversation_id"], "user_id": row["merchant_id"], "waited_seconds": row["waited_s"]})
+    except Exception:  # noqa: BLE001
+        log.exception("Handoff SLA sweep failed")
+    try:
+        if telemetry is not None and telemetry.metrics is not None:
+            if escalated:
+                telemetry.metrics.sla_breaches.inc(len(escalated))
+            telemetry.metrics.set_queues(
+                pending_handoffs=len(handoffs.list_queue("pending", 500)) if handoffs is not None else None,
+                pending_approvals=len(approvals.store.list("pending", 500)) if approvals is not None else None, webhook=webhook)
+    except Exception:  # noqa: BLE001
+        log.exception("Queue gauges failed")
+    return escalated
+
+
+async def _approvals_loop(approvals: ApprovalService, every_seconds: float = 30.0, handoffs: HandoffStore | None = None,
+                          sla_seconds: float = 0.0, webhook=None, telemetry=None) -> None:
+    """Every 30 s (and on every operator call for the approvals): the time limits, see `sweep_once`."""
     while True:
         await asyncio.sleep(every_seconds)
         try:
-            await asyncio.to_thread(approvals.sweep)
+            await asyncio.to_thread(sweep_once, approvals, handoffs, sla_seconds, webhook, telemetry)
         except Exception:  # noqa: BLE001 - never kill the loop
-            log.exception("Approval sweep failed")
+            log.exception("Sweep failed")
 
 
 def validate_single_worker() -> None:
@@ -99,6 +130,8 @@ async def lifespan(app: FastAPI):
     handoffs = None
     traces = None
     approvals = None
+    webhook = None
+    telemetry = None
     purge_task = None
     approvals_task = None
     if getattr(app.state, "service", None) is None:  # tests set their own service
@@ -121,7 +154,15 @@ async def lifespan(app: FastAPI):
                 log.exception("Handoff import from %s failed", s.handoffs_file)
         else:
             _warn_if_unimported(s.handoffs_file)
-        notifier = FanOutNotifier(handoffs, AuditNotifier(s.handoffs_file))
+        if s.webhook_url:  # push to the operators: signed, queued, never in the customer's way (app/webhook.py)
+            from app.webhook import WebhookNotifier
+
+            try:
+                webhook = WebhookNotifier(s.webhook_url, s.webhook_signing_key, timeout=s.webhook_timeout_seconds, retries=s.webhook_retries)
+                log.info("Operator webhook on: %s", webhook.host)
+            except ValueError as e:
+                raise RuntimeError(f"webhook not started: {e}") from e  # a half-configured push is a startup error, not a silent no-op
+        notifier = FanOutNotifier(handoffs, AuditNotifier(s.handoffs_file), *([webhook] if webhook else []))
         try:  # traces are optional: without the file the API still answers, just without stored traces
             from app.observability import TraceStore
 
@@ -134,16 +175,30 @@ async def lifespan(app: FastAPI):
         repo = CustomerRepository(tickets_file=s.tickets_file, dedup_window_s=s.ticket_dedup_window_s)  # one: the agents and the approval graph
         approval_store = ApprovalStore(s.approvals_db_path)
         approvals = ApprovalService(approval_store, build_approval_graph(approval_store, repo, notifier=notifier))
+        from app.telemetry import Metrics, Telemetry, Tracing
+        from app.webhook import approval_event
+
+        tracing = None
+        if s.otlp_endpoint:  # traces are optional: a collector that is down must not stop the API
+            try:
+                tracing = Tracing.from_endpoint(s.otlp_endpoint, s.otel_service_name)
+                log.info("Traces go to %s", s.otlp_endpoint)
+            except Exception:  # noqa: BLE001
+                log.exception("OTLP tracing could not start; continuing without traces")
+        telemetry = Telemetry(Metrics(), tracing)
+        app.state.telemetry = telemetry
         app.state.service = ChatService(build_default_graph(checkpointer=memory.saver, handoff_notifier=notifier, repo=repo,
-                                                            approvals=approval_store if s.approval_categories else None),
-                                        memory=memory, handoffs=handoffs, traces=traces, approvals=approvals)
+                                                            approvals=approval_store if s.approval_categories else None,
+                                                            on_approval_created=(lambda row: webhook.send(approval_event(row))) if webhook else None),
+                                        memory=memory, handoffs=handoffs, traces=traces, approvals=approvals, telemetry=telemetry)
         try:  # requests that were waiting when the process stopped: their paused graphs are still in the file; finish what is decided
             approvals.reconcile()
             log.info("Ticket approvals: %d pending (required for: %s; limit %.0f min)", len(approval_store.list("pending", 500)),
                      ", ".join(sorted(s.approval_categories)) or "none", s.approval_ttl_minutes)
         except Exception:  # noqa: BLE001 - never stop the API for it
             log.exception("Approval reconcile at startup failed")
-        approvals_task = asyncio.create_task(_approvals_loop(approvals))
+        approvals_task = asyncio.create_task(_approvals_loop(approvals, handoffs=handoffs, sla_seconds=s.handoff_sla_minutes * 60, webhook=webhook,
+                                                                telemetry=telemetry))
         log.info("Conversation memory: %s (ttl %s days, max %s threads per user)", memory.path,
                  s.thread_ttl_days or "off", s.max_threads_per_user or "unlimited")
         if s.thread_ttl_days:
@@ -175,6 +230,10 @@ async def lifespan(app: FastAPI):
             traces.close()
         if approvals is not None:
             approvals.store.close()
+        if webhook is not None:
+            webhook.close()
+        if telemetry is not None:
+            telemetry.close()
 
 
 app = FastAPI(title="Getnet Multi-Agent Support", version="1.1.0", lifespan=lifespan)
@@ -277,7 +336,7 @@ def _summary_fields(row: dict) -> dict:
                                    "status", "claimed_by", "resolution")},
             "claimed_at": iso(row["claimed_at"]), "lease_expires_at": iso(row["lease_expires_at"]),
             "resolved_at": iso(row["resolved_at"]),
-            "created_at": iso(row["created_at"])}
+            "created_at": iso(row["created_at"]), "escalated_at": iso(row["escalated_at"])}
 
 
 def _detail(row: dict) -> dict:
@@ -357,7 +416,7 @@ def _approval_service() -> ApprovalService:
 def _approval_summary(row: dict) -> ApprovalSummary:
     return ApprovalSummary(
         id=row["id"], conversation_id=row["conversation_id"], merchant_id=row["user_id"], category=row["category"],
-        summary=row["summary"], status=row["status"], created_at=iso(row["created_at"]), expires_at=iso(row["expires_at"]),
+        summary=row["summary"], status=row["status"], created_at=iso(row["created_at"]) or "", expires_at=iso(row["expires_at"]) or "",
         decided_by=row["decided_by"], decided_at=iso(row["decided_at"]), reason=row["reason"], ticket_id=row["ticket_id"])
 
 
@@ -383,17 +442,17 @@ def _decide(approval_id: str, decision: str, req: ApprovalDecisionRequest, opera
 
 
 @app.post("/operator/approvals/{approval_id}/approve", response_model=ApprovalSummary)
-def operator_approve(approval_id: str, req: ApprovalDecisionRequest = ApprovalDecisionRequest(),
+def operator_approve(approval_id: str, req: ApprovalDecisionRequest | None = None,
                      operator: Principal = Depends(require_operator)) -> ApprovalSummary:
     """pending -> approved: the ticket is opened (once, whatever happens next) and the customer is told on their next turn."""
-    return _decide(approval_id, "approved", req, operator)
+    return _decide(approval_id, "approved", req or ApprovalDecisionRequest(), operator)
 
 
 @app.post("/operator/approvals/{approval_id}/reject", response_model=ApprovalSummary)
-def operator_reject_approval(approval_id: str, req: ApprovalDecisionRequest = ApprovalDecisionRequest(),
+def operator_reject_approval(approval_id: str, req: ApprovalDecisionRequest | None = None,
                              operator: Principal = Depends(require_operator)) -> ApprovalSummary:
     """pending -> rejected: no ticket is opened. `reason` is for the audit trail and is never shown to the customer."""
-    return _decide(approval_id, "rejected", req, operator)
+    return _decide(approval_id, "rejected", req or ApprovalDecisionRequest(), operator)
 
 
 @app.post("/operator/revocations", status_code=204)
@@ -402,6 +461,26 @@ def operator_revoke(req: RevokeRequest, operator: Principal = Depends(require_op
     revoke_token(req.jti)
     log.warning("token revoked operator=%s jti=%s", operator.user_id, req.jti[:12])
     return Response(status_code=204)
+
+
+# ---- metrics for Prometheus: GET /metrics, only with METRICS_TOKEN set and sent as a bearer. It exposes no text and no customer id ----
+
+@app.get("/metrics", include_in_schema=False)
+def prometheus_metrics(authorization: str | None = Header(default=None)) -> Response:
+    import hmac
+
+    token = get_settings().metrics_token
+    if not token:
+        raise HTTPException(status_code=404)  # no token configured: the endpoint does not exist
+    given = authorization[7:] if authorization and authorization.lower().startswith("bearer ") else ""
+    if not hmac.compare_digest(given.encode(), token.encode()):
+        raise HTTPException(status_code=401, detail="Invalid metrics token.", headers={"WWW-Authenticate": "Bearer"})
+    telemetry = getattr(app.state, "telemetry", None)
+    if telemetry is None or telemetry.metrics is None:
+        raise HTTPException(status_code=503, detail="Metrics are not available.")
+    from app.telemetry import CONTENT_TYPE
+
+    return Response(content=telemetry.metrics.render(), media_type=CONTENT_TYPE)
 
 
 # ---- observability: aggregates of the stored traces (no conversation text is stored or returned) ----

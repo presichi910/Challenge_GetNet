@@ -1,0 +1,75 @@
+# Alerts over the metrics the API exposes at /metrics (app/telemetry.py). Thresholds are set from what was MEASURED on the final run
+# (5 x 40 cases, 2026-11-15): turn p95 13.9-18.2 s, ~$0.0012 per case, handoffs 15% of those cases (a test set that asks for humans on purpose),
+# 0 provider errors. Each alert has a unit test in alerts_test.yml (`promtool test rules`).
+groups:
+  - name: getnet-agents
+    rules:
+      - alert: GetnetApiDown
+        expr: up{job="getnet-api"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "The Getnet API is not answering Prometheus"
+          description: "No scrape of /metrics has worked for 2 minutes: the API is down, or METRICS_TOKEN does not match infra/observability/metrics_token."
+
+      - alert: GetnetTurnLatencyHigh
+        expr: histogram_quantile(0.95, sum(rate(getnet_turn_duration_seconds_bucket[10m])) by (le)) > 30
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "p95 of a customer turn is above 30 s"
+          description: "The final run measured p95 between 13.9 and 18.2 s. A sustained 30 s is a provider slowdown or a retry storm (see getnet_node_duration_seconds by node)."
+
+      - alert: GetnetTurnCostHigh
+        expr: sum(increase(getnet_llm_cost_usd_total[30m])) / sum(increase(getnet_turns_total[30m])) > 0.01
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Average model cost per turn is above $0.01"
+          description: "Measured: about $0.0012 per turn. Ten times that is a runaway loop or a model that was swapped for a dearer one."
+
+      - alert: GetnetProviderRateLimited
+        expr: sum(increase(getnet_rate_limited_total[10m])) > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "A model provider is answering 429 (rate limit)"
+          description: "Calls hit a provider limit for 5 minutes in a row. With FALLBACK_PROVIDER set they move to the other provider; without it the turn degrades."
+
+      - alert: GetnetProviderErrorRatioHigh
+        expr: sum(rate(getnet_provider_errors_total[10m])) / sum(rate(getnet_turns_total[10m])) > 0.1
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "More than one failed model or tool call per ten turns"
+          description: "The final run had none. Look at getnet_provider_errors_total by node and error_type."
+
+      - alert: GetnetHandoffRateHigh
+        expr: sum(increase(getnet_handoffs_total[30m])) / sum(increase(getnet_turns_total[30m])) > 0.4
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "Over 40% of turns end with a human"
+          description: "Customers asking for a person is normal; a jump usually means the agents cannot answer (an empty knowledge base, a provider outage turned into technical_failure)."
+
+      - alert: GetnetHandoffSlaBreached
+        expr: increase(getnet_handoff_sla_breaches_total[15m]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: "A handoff waited past the SLA without an operator"
+          description: "It was escalated (priority high) and the operator webhook was sent; nobody has claimed it."
+
+      - alert: GetnetApprovalsBacklog
+        expr: getnet_approvals_pending > 10
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "More than 10 ticket requests are waiting for approval"
+          description: "Unapproved requests expire after APPROVAL_TTL_MINUTES: the customer gets no ticket."
+
+      - alert: GetnetWebhookFailing
+        expr: delta(getnet_webhook_events{result="failed"}[15m]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "The operator webhook is failing"
+          description: "Events are not reaching the operators' tool (the queue in /operator/handoffs still works)."

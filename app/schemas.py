@@ -253,6 +253,7 @@ class RejectRequest(BaseModel):
 
 
 class HandoffSummary(BaseModel):
+    escalated_at: str | None = None  # set when it waited past the SLA unclaimed (its priority was raised to high)
     """One row of the operator queue."""
 
     id: str

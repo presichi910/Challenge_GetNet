@@ -1,5 +1,5 @@
 # Pinned versions of every dependency (direct and transitive), generated INSIDE the image's own base (python:3.12-slim, Linux)
-# with: docker run python:3.12-slim pip install -r requirements.txt && pip freeze   (see README, Production notes).
+# with `python scripts/lock_deps.py` (it installs requirements.txt in a clean container and runs `pip freeze`).
 # The Dockerfile installs with `-c constraints.txt`, so a rebuild cannot pick up a newer transitive release.
 aiohappyeyeballs==2.7.1
 aiohttp==3.14.5
@@ -79,6 +79,7 @@ ormsgpack==1.13.1
 overrides==7.7.0
 packaging==26.3
 pillow==13.0.0
+prometheus_client==0.26.0
 propcache==0.5.4
 protobuf==7.36.2
 pybase64==1.5.2

@@ -1,0 +1,169 @@
+# Unit tests of alerts.yml:  docker run --rm --entrypoint promtool -v "<this folder>:/w" prom/prometheus:v3.0.1 test rules /w/alerts_test.yml
+# Each alert has a case where it MUST fire and a case where it must stay quiet.
+rule_files:
+  - alerts.yml
+evaluation_interval: 1m
+
+tests:
+  # ---- the API is down ----
+  - interval: 1m
+    input_series:
+      - series: 'up{job="getnet-api"}'
+        values: '1 1 0 0 0 0 0 0'
+    alert_rule_test:
+      - {eval_time: 3m, alertname: GetnetApiDown, exp_alerts: []}   # down for one minute: not yet (for: 2m)
+      - eval_time: 6m
+        alertname: GetnetApiDown
+        exp_alerts:
+          - exp_labels: {severity: critical, job: getnet-api}
+            exp_annotations:
+              summary: "The Getnet API is not answering Prometheus"
+              description: "No scrape of /metrics has worked for 2 minutes: the API is down, or METRICS_TOKEN does not match infra/observability/metrics_token."
+
+  # ---- p95 of a turn: every turn between 30 s and 60 s fires; every turn under 5 s does not ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_turn_duration_seconds_bucket{le="5"}', values: '0+0x30'}
+      - {series: 'getnet_turn_duration_seconds_bucket{le="30"}', values: '0+0x30'}
+      - {series: 'getnet_turn_duration_seconds_bucket{le="60"}', values: '0+10x30'}
+      - {series: 'getnet_turn_duration_seconds_bucket{le="+Inf"}', values: '0+10x30'}
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: GetnetTurnLatencyHigh
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "p95 of a customer turn is above 30 s"
+              description: "The final run measured p95 between 13.9 and 18.2 s. A sustained 30 s is a provider slowdown or a retry storm (see getnet_node_duration_seconds by node)."
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_turn_duration_seconds_bucket{le="5"}', values: '0+10x30'}
+      - {series: 'getnet_turn_duration_seconds_bucket{le="30"}', values: '0+10x30'}
+      - {series: 'getnet_turn_duration_seconds_bucket{le="60"}', values: '0+10x30'}
+      - {series: 'getnet_turn_duration_seconds_bucket{le="+Inf"}', values: '0+10x30'}
+    alert_rule_test:
+      - {eval_time: 25m, alertname: GetnetTurnLatencyHigh, exp_alerts: []}
+
+  # ---- cost per turn: $0.05 per turn fires; $0.0012 (what was measured) does not ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_llm_cost_usd_total{model="m"}', values: '0+0.5x60'}
+      - {series: 'getnet_turns_total{outcome="ok"}', values: '0+10x60'}
+    alert_rule_test:
+      - eval_time: 50m
+        alertname: GetnetTurnCostHigh
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "Average model cost per turn is above $0.01"
+              description: "Measured: about $0.0012 per turn. Ten times that is a runaway loop or a model that was swapped for a dearer one."
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_llm_cost_usd_total{model="m"}', values: '0+0.012x60'}
+      - {series: 'getnet_turns_total{outcome="ok"}', values: '0+10x60'}
+    alert_rule_test:
+      - {eval_time: 50m, alertname: GetnetTurnCostHigh, exp_alerts: []}
+
+  # ---- provider 429 ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_rate_limited_total{node="knowledge"}', values: '0+1x30'}
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: GetnetProviderRateLimited
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "A model provider is answering 429 (rate limit)"
+              description: "Calls hit a provider limit for 5 minutes in a row. With FALLBACK_PROVIDER set they move to the other provider; without it the turn degrades."
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_rate_limited_total{node="knowledge"}', values: '0+0x30'}
+    alert_rule_test:
+      - {eval_time: 15m, alertname: GetnetProviderRateLimited, exp_alerts: []}
+
+  # ---- failed calls per turn ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_provider_errors_total{node="support",error_type="APIConnectionError"}', values: '0+5x40'}
+      - {series: 'getnet_turns_total{outcome="ok"}', values: '0+10x40'}
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: GetnetProviderErrorRatioHigh
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "More than one failed model or tool call per ten turns"
+              description: "The final run had none. Look at getnet_provider_errors_total by node and error_type."
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_provider_errors_total{node="support",error_type="APIConnectionError"}', values: '0+0x40'}
+      - {series: 'getnet_turns_total{outcome="ok"}', values: '0+10x40'}
+    alert_rule_test:
+      - {eval_time: 30m, alertname: GetnetProviderErrorRatioHigh, exp_alerts: []}
+
+  # ---- handoff rate: 6 of 10 turns end with a human fires; 1.5 of 10 (the measured test-set rate) does not ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_handoffs_total{reason="user_requested"}', values: '0+6x60'}
+      - {series: 'getnet_turns_total{outcome="ok"}', values: '0+10x60'}
+    alert_rule_test:
+      - eval_time: 55m
+        alertname: GetnetHandoffRateHigh
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "Over 40% of turns end with a human"
+              description: "Customers asking for a person is normal; a jump usually means the agents cannot answer (an empty knowledge base, a provider outage turned into technical_failure)."
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_handoffs_total{reason="user_requested"}', values: '0+1.5x60'}
+      - {series: 'getnet_turns_total{outcome="ok"}', values: '0+10x60'}
+    alert_rule_test:
+      - {eval_time: 55m, alertname: GetnetHandoffRateHigh, exp_alerts: []}
+
+  # ---- SLA: a breach fires at once, no breach stays quiet ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_handoff_sla_breaches_total', values: '0 0 0 1 1 1'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: GetnetHandoffSlaBreached
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "A handoff waited past the SLA without an operator"
+              description: "It was escalated (priority high) and the operator webhook was sent; nobody has claimed it."
+      - {eval_time: 2m, alertname: GetnetHandoffSlaBreached, exp_alerts: []}
+
+  # ---- approvals backlog ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_approvals_pending', values: '12x30'}
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: GetnetApprovalsBacklog
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: "More than 10 ticket requests are waiting for approval"
+              description: "Unapproved requests expire after APPROVAL_TTL_MINUTES: the customer gets no ticket."
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_approvals_pending', values: '3x30'}
+    alert_rule_test:
+      - {eval_time: 20m, alertname: GetnetApprovalsBacklog, exp_alerts: []}
+
+  # ---- the webhook ----
+  - interval: 1m
+    input_series:
+      - {series: 'getnet_webhook_events{result="failed"}', values: '0 0 0 0 5 5 5 5'}
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: GetnetWebhookFailing
+        exp_alerts:
+          - exp_labels: {severity: warning, result: failed}
+            exp_annotations:
+              summary: "The operator webhook is failing"
+              description: "Events are not reaching the operators' tool (the queue in /operator/handoffs still works)."
+      - {eval_time: 3m, alertname: GetnetWebhookFailing, exp_alerts: []}

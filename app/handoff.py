@@ -26,7 +26,7 @@ import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Mapping, Protocol
 
 from langchain_core.messages import AIMessage
 
@@ -64,7 +64,7 @@ NOTICES = {
 }
 
 
-def handoff_reason(state: dict) -> str | None:
+def handoff_reason(state: Mapping[str, Any]) -> str | None:
     """Why a human must take over, or None."""
     if state.get("wants_human"):
         return "user_requested"

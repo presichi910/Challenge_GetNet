@@ -34,6 +34,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 log = logging.getLogger("handoff_store")
+# bandit B608 (marked on each such line) is a false positive here: the only things interpolated into SQL text are `?` placeholders and constant WHERE/column
+# fragments written in this file; every VALUE (a user id, an id, a time) is a bound parameter.
 
 STATUSES = ("pending", "claimed", "resolved")
 DECISIONS = ("approve", "reject")
@@ -55,7 +57,8 @@ CREATE TABLE IF NOT EXISTS handoffs (
     operator_reply  TEXT,
     resolved_at     REAL,
     created_at      REAL NOT NULL,
-    idempotency_key TEXT
+    idempotency_key TEXT,
+    escalated_at    REAL
 );
 CREATE INDEX IF NOT EXISTS handoffs_queue ON handoffs(status, created_at);
 CREATE INDEX IF NOT EXISTS handoffs_conversation ON handoffs(merchant_id, conversation_id);
@@ -84,7 +87,7 @@ CREATE INDEX IF NOT EXISTS handoff_events_handoff ON handoff_events(handoff_id);
 """
 
 _LIST_COLUMNS = ("id, conversation_id, merchant_id, reason, priority, summary, status, claimed_by, claimed_at, "
-                 "lease_expires_at, resolution, resolved_at, created_at")
+                 "lease_expires_at, resolution, resolved_at, created_at, escalated_at")
 
 
 class HandoffNotFound(Exception):
@@ -143,6 +146,8 @@ class HandoffStore:
             self.conn.executescript(SCHEMA)
             if "lease_expires_at" not in {r[1] for r in self.conn.execute("PRAGMA table_info(handoffs)")}:
                 self.conn.execute("ALTER TABLE handoffs ADD COLUMN lease_expires_at REAL")  # file from before leases
+            if "escalated_at" not in {r[1] for r in self.conn.execute("PRAGMA table_info(handoffs)")}:
+                self.conn.execute("ALTER TABLE handoffs ADD COLUMN escalated_at REAL")  # file from before the SLA
         self._closed = False
 
     def _now(self, now: float | None) -> float:
@@ -259,7 +264,7 @@ class HandoffStore:
             raise ValueError(f"status must be one of {STATUSES}")
         self._sweep()
         where, args = ("WHERE status = ?", (status,)) if status else ("", ())
-        rows = self._read(f"SELECT {_LIST_COLUMNS} FROM handoffs {where} ORDER BY created_at ASC, rowid ASC LIMIT ?",
+        rows = self._read(f"SELECT {_LIST_COLUMNS} FROM handoffs {where} ORDER BY created_at ASC, rowid ASC LIMIT ?",  # nosec B608
                           (*args, limit))
         return [dict(r) for r in rows]
 
@@ -399,7 +404,7 @@ class HandoffStore:
             return
         with self._tx() as c:
             marks = ",".join("?" * len(handoff_ids))
-            c.execute(f"UPDATE operator_messages SET delivered_at = NULL WHERE merchant_id = ? AND conversation_id = ? "
+            c.execute(f"UPDATE operator_messages SET delivered_at = NULL WHERE merchant_id = ? AND conversation_id = ? "  # nosec B608
                       f"AND handoff_id IN ({marks})", (merchant_id, conversation_id, *handoff_ids))
 
     def messages_for_conversation(self, merchant_id: str, conversation_id: str) -> list[dict]:
@@ -432,9 +437,9 @@ class HandoffStore:
         for i in range(0, len(ids), 500):  # stay under SQLite's variable limit
             chunk = ids[i:i + 500]
             marks = ",".join("?" * len(chunk))
-            conn.execute(f"DELETE FROM operator_messages WHERE handoff_id IN ({marks})", chunk)
-            conn.execute(f"DELETE FROM handoff_events WHERE handoff_id IN ({marks})", chunk)
-            conn.execute(f"DELETE FROM handoffs WHERE id IN ({marks})", chunk)
+            conn.execute(f"DELETE FROM operator_messages WHERE handoff_id IN ({marks})", chunk)  # nosec B608
+            conn.execute(f"DELETE FROM handoff_events WHERE handoff_id IN ({marks})", chunk)  # nosec B608
+            conn.execute(f"DELETE FROM handoffs WHERE id IN ({marks})", chunk)  # nosec B608
 
     def delete_conversation(self, merchant_id: str, conversation_id: str) -> int:
         """Erase every handoff of this merchant's conversation, with its operator messages and its
@@ -448,6 +453,29 @@ class HandoffStore:
             self._scrub()
             log.info("handoffs erased with their conversation: user=%s conv=%s count=%d", merchant_id, conversation_id, len(ids))
         return len(ids)
+
+    def escalate_overdue(self, sla_seconds: float, now: float | None = None) -> list[dict]:
+        """The SLA: a handoff that is still `pending` (nobody holds it) and was created more than `sla_seconds` ago is ESCALATED, once: its priority becomes
+        high, `escalated_at` is set and the audit trail gets an `sla_escalated` event. A claimed case is somebody's; a resolved one is done. Each row is one
+        guarded UPDATE, so two sweeps (or a claim a moment earlier) cannot escalate the same case twice or one that was just taken.
+        -> the rows escalated now: {id, merchant_id, conversation_id, reason, priority, created_at, waited_s}."""
+        if not sla_seconds or sla_seconds <= 0:
+            return []
+        now = self._now(now)
+        out = []
+        with self._tx() as c:
+            self._expire(c, now)  # a lease that ran out puts the case back in the queue first, so it can be seen as unclaimed
+            due = c.execute("SELECT id, merchant_id, conversation_id, reason, created_at FROM handoffs WHERE status = 'pending' "
+                            "AND escalated_at IS NULL AND created_at <= ?", (now - sla_seconds,)).fetchall()
+            for r in due:
+                cur = c.execute("UPDATE handoffs SET escalated_at = ?, priority = 'high' WHERE id = ? AND status = 'pending' AND escalated_at IS NULL",
+                                (now, r["id"]))
+                if cur.rowcount == 1:
+                    self._event(c, r["id"], "system", "sla_escalated", f"unclaimed for {int(now - r['created_at'])}s", now)
+                    out.append({"id": r["id"], "merchant_id": r["merchant_id"], "conversation_id": r["conversation_id"], "reason": r["reason"],
+                                "priority": "high", "created_at": r["created_at"], "waited_s": int(now - r["created_at"])})
+                    log.warning("handoff SLA breached id=%s waited=%ds", r["id"], int(now - r["created_at"]))
+        return out
 
     def purge_expired(self, ttl_days: int, now: float | None = None) -> int:
         """Retention, the same THREAD_TTL_DAYS as the conversations: erase every handoff whose last

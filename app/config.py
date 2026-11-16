@@ -93,6 +93,14 @@ class Settings(BaseSettings):
     # and went away does not keep a customer waiting. Claiming again (same operator) renews it
     handoff_lease_minutes: float = 15.0
 
+    # a handoff nobody claims within this many minutes is ESCALATED once: priority high, an event in its audit trail, and a webhook (0 = off)
+    handoff_sla_minutes: float = 30.0
+    # push to the operators (app/webhook.py): empty URL = off. The secret is required with a URL (an unsigned push is not offered)
+    webhook_url: str = ""
+    webhook_signing_key: str = ""
+    webhook_timeout_seconds: float = 3.0
+    webhook_retries: int = 3
+
     # conversation memory: LangGraph checkpoints in one SQLite file (inside the data volume in Docker)
     checkpoint_db_path: str = "./data/checkpoints.sqlite"
     # retention (the checkpoints hold customer data): a thread idle for more than this many days is
@@ -130,6 +138,11 @@ class Settings(BaseSettings):
     # 0 = never (the graph is what it was), 1 = retry the knowledge base once with the unsupported claims,
     # 2 = also offer a ticket or escalate when nothing actionable is left. Off by default until it is measured.
     replan_max: int = 0
+
+    # observability (app/telemetry.py). /metrics exists only with a token (Prometheus sends it as a bearer); traces go out only with an OTLP endpoint
+    metrics_token: str = ""
+    otlp_endpoint: str = ""  # e.g. http://jaeger:4317 (gRPC); empty = no traces exported
+    otel_service_name: str = "getnet-agents"
 
     log_level: str = "INFO"
 
