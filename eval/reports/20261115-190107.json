@@ -1,0 +1,75 @@
+{
+  "summary": {
+    "cases": 1,
+    "provider_errors": 0,
+    "routing_accuracy": 1.0,
+    "tool_use_accuracy": 1.0,
+    "degraded_rate": 0.0,
+    "latency_ms_p50": 846,
+    "latency_ms_p95": 846,
+    "handoff_accuracy": 0.0,
+    "handoff_rate": 0.0,
+    "agent_tokens": 2436,
+    "judge_tokens": 0,
+    "agent_tokens_per_case_mean": 2436,
+    "agent_cost_usd": 0.00042975,
+    "judge_cost_usd": 0.0,
+    "total_cost_usd": 0.00042975,
+    "tokens_by_model": [
+      {
+        "role": "agents",
+        "model": "accounts/fireworks/models/gpt-oss-120b",
+        "calls": 2,
+        "input_tokens": 2293,
+        "output_tokens": 143,
+        "cost_usd": 0.00042975
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "h03_unanswerable",
+      "message": "What is the exact interest rate on the loan contract I signed with Getnet last month?",
+      "plan": [
+        "support"
+      ],
+      "answer": "I’m sorry, but I can’t share that information. I can help you with details about your Getnet account, such as sales, payouts, terminal status, or existing tickets. Let me know if you’d like assistance with any of those.",
+      "tools_called": [],
+      "evidence": [],
+      "verify_note": "",
+      "verify_raw": "",
+      "tool_calls": [],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 846,
+      "handoff": null,
+      "handoff_ok": false,
+      "usage": {
+        "input_tokens": 2293,
+        "output_tokens": 143,
+        "total_tokens": 2436,
+        "cost_usd": 0.00042975,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1080,
+            "output_tokens": 64,
+            "cost_usd": 0.0002004
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1213,
+            "output_tokens": 79,
+            "cost_usd": 0.00022935
+          }
+        ]
+      }
+    }
+  ]
+}

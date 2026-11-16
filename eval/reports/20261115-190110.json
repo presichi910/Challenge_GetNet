@@ -1,0 +1,88 @@
+{
+  "summary": {
+    "cases": 1,
+    "provider_errors": 0,
+    "routing_accuracy": 1.0,
+    "tool_use_accuracy": 1.0,
+    "degraded_rate": 0.0,
+    "latency_ms_p50": 1839,
+    "latency_ms_p95": 1839,
+    "handoff_accuracy": 1.0,
+    "handoff_rate": 1.0,
+    "agent_tokens": 3760,
+    "judge_tokens": 0,
+    "agent_tokens_per_case_mean": 3760,
+    "agent_cost_usd": 0.00063915,
+    "judge_cost_usd": 0.0,
+    "total_cost_usd": 0.00063915,
+    "tokens_by_model": [
+      {
+        "role": "agents",
+        "model": "accounts/fireworks/models/gpt-oss-120b",
+        "calls": 3,
+        "input_tokens": 3593,
+        "output_tokens": 167,
+        "cost_usd": 0.00063915
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "h03_unanswerable",
+      "message": "What is the exact interest rate on the loan contract I signed with Getnet last month?",
+      "plan": [
+        "support"
+      ],
+      "answer": "I couldn't fully resolve this with the information I have, so I've passed your case to a human agent. Your reference is HND-9A3405 / TKT-DE7C95. They will follow up with you, and you won't need to repeat the details we already have.",
+      "tools_called": [
+        "escalate_to_human"
+      ],
+      "evidence": [
+        "[escalate_to_human] Escalation registered: a human agent will take over this case. Briefly tell the user you could not resolve it yourself. Do not state any unverified information.",
+        "[handoff system action] a human handoff record and ticket were created: {'id': 'HND-9A3405', 'reason': 'agent_unresolved', 'priority': 'normal', 'ticket_id': 'TKT-DE7C95', 'status': 'pending'}"
+      ],
+      "verify_note": "",
+      "verify_raw": "",
+      "tool_calls": [
+        {
+          "agent": "support",
+          "name": "escalate_to_human",
+          "args": {
+            "reason": "User requested loan contract interest rate, which is outside available data."
+          }
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 1839,
+      "handoff": "agent_unresolved",
+      "handoff_ok": true,
+      "usage": {
+        "input_tokens": 3593,
+        "output_tokens": 167,
+        "total_tokens": 3760,
+        "cost_usd": 0.00063915,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1080,
+            "output_tokens": 64,
+            "cost_usd": 0.0002004
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2513,
+            "output_tokens": 103,
+            "cost_usd": 0.00043875
+          }
+        ]
+      }
+    }
+  ]
+}
