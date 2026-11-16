@@ -35,10 +35,10 @@ def test_aggregate_counts_passes_and_finds_unstable_and_always_failing_cases():
     run3 = [{**OK, "id": "a"}, {**OK, "id": "b"}, {**OK, "id": "c", "tools_ok": False}, {**OK, "id": "h", "holdout": True}]
     runs = [run1, run2, run3]
     agg = aggregate(runs, [run_eval.summarize_all(r) for r in runs])
-    assert agg["cases"]["a"] == {"passed": 3, "ran": 3, "provider_errors": 0, "judge_errors": 0, "holdout": False}
+    assert agg["cases"]["a"] == {"passed": 3, "ran": 3, "provider_errors": 0, "judge_errors": 0, "holdout": False, "pending": 0}
     assert agg["cases"]["b"]["passed"] == 2 and agg["unstable"] == ["b"]
     assert agg["always_fail"] == ["c"]
-    assert agg["cases"]["h"] == {"passed": 2, "ran": 2, "provider_errors": 1, "judge_errors": 0, "holdout": True}
+    assert agg["cases"]["h"] == {"passed": 2, "ran": 2, "provider_errors": 1, "judge_errors": 0, "holdout": True, "pending": 0}
     assert agg["provider_errors"] == 1
     assert agg["regular"]["routing_accuracy"]["min"] == pytest.approx(2 / 3)
     assert agg["holdout"]["routing_accuracy"]["n"] == 2  # the run where h hit a provider error has no holdout metrics
@@ -88,9 +88,42 @@ def test_a_judge_error_is_left_out_of_the_pass_count_and_counted_apart():
     runs = [[{**OK, "id": "a"}, {**OK, "id": "b"}], [bad_judge | {"id": "a"}, {**OK, "id": "b"}],
             [{**OK, "id": "a"}, {**bad_judge, "id": "b", "routing_ok": False}]]
     agg = aggregate(runs, [run_eval.summarize_all(r) for r in runs])
-    assert agg["cases"]["a"] == {"passed": 2, "ran": 2, "provider_errors": 0, "judge_errors": 1, "holdout": False}  # the middle run is out
-    assert agg["cases"]["b"] == {"passed": 2, "ran": 3, "provider_errors": 0, "judge_errors": 1, "holdout": False}  # a failed check still fails
+    assert agg["cases"]["a"] == {"passed": 2, "ran": 2, "provider_errors": 0, "judge_errors": 1, "holdout": False, "pending": 0}  # the middle run is out
+    assert agg["cases"]["b"] == {"passed": 2, "ran": 3, "provider_errors": 0, "judge_errors": 1, "holdout": False, "pending": 0}  # a failed check still fails
     assert agg["judge_errors"] == 2
     text = render(agg, "stamp")
-    assert "Judge errors over all runs: 2" in text and "| a | 2/2 | 0 |" in text
+    assert "Judge errors over all runs: 2" in text and "| a | 2/2 | 0 | 0 |" in text
     assert "a" not in agg["unstable"]  # a judge outage must not make a case look unstable either
+
+
+# ---- a partial scoring (eval/rejudge.py stopped by the daily limit): the n of every judge-based rate, and pending is not a pass ----
+NOJ = {k: v for k, v in OK.items() if k != "judge"}  # a row the judge has not scored
+
+
+def scored(row, verdict="pass"):
+    return {**NOJ, **row, "judge": {"verdict": verdict, "relevance": 5, "groundedness": 5, "completeness": 5, "tone": 5, "reason": "x"}}
+
+
+def test_a_row_the_judge_has_not_scored_yet_is_pending_not_a_pass_in_a_run_that_is_being_scored():
+    from eval.repeats import case_passes
+
+    pending_row = {**NOJ, "id": "a"}
+    assert case_passes(pending_row) is True  # a --no-judge run: the checks alone decide, as before
+    assert case_passes(pending_row, judging=True) is None  # a run being scored: not scored yet says nothing
+    assert case_passes({**NOJ, "id": "a", "routing_ok": False}, judging=True) is False  # a failed check is a fail with or without the judge
+
+
+def test_with_a_partial_scoring_every_judge_rate_declares_how_many_rows_it_is_over():
+    full = [scored({"id": "a"}), scored({"id": "b"}, "fail")]
+    partial = [scored({"id": "a"}), {**NOJ, "id": "b"}]  # the judge stopped before row b
+    none_yet = [{**NOJ, "id": "a"}, {**NOJ, "id": "b"}]  # a --no-judge run, not scored at all
+    runs = [full, partial, none_yet]
+    agg = aggregate(runs, [run_eval.summarize_all(r) for r in runs])
+    rate = agg["regular"]["judge_pass_rate"]
+    assert rate["judged"] == [2, 1] and rate["n"] == 2  # the run with no scores has no rate at all, it is not averaged in as 0
+    assert rate["pooled"] == pytest.approx(2 / 3)  # 2 passes over the 3 rows that were scored, not over 6
+    assert agg["judged_per_run"] == [2, 1, 0] and agg["rows_per_run"] == [2, 2, 2] and agg["pending"] == 1
+    assert agg["cases"]["b"] == {"passed": 2, "ran": 2, "provider_errors": 0, "judge_errors": 0, "holdout": False, "pending": 1} or \
+        agg["cases"]["b"]["pending"] == 1  # run 3 has no scores at all: its checks decide there; run 2's row is the pending one
+    text = render(agg, "stamp")
+    assert "Scored by the judge, per run: 2 of 2, 1 of 2, 0 of 2" in text and "judged per run (n)" in text and "pooled 67% of 3" in text

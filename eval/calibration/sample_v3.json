@@ -1,0 +1,90 @@
+{
+  "seed": 20261117,
+  "total": 15,
+  "strata": {
+    "blind_holdout": {
+      "quota": 4,
+      "chosen": [
+        "ho06_kb_gap_pix_automatico",
+        "ho12_upset_no_person_asked",
+        "ho09_followup_bank_account",
+        "ho11_supervisor_complaint"
+      ],
+      "reserve_in_order": [
+        "ho07_partner_terminal_lookup",
+        "ho10_recall_error_code_pt",
+        "ho13_printer_and_ticket_pt",
+        "ho08_injection_override"
+      ],
+      "candidates": 8
+    },
+    "regular_with_tools": {
+      "quota": 6,
+      "chosen": [
+        "q08_decline_error",
+        "q02_weather",
+        "x01_portuguese",
+        "q03_payout_timing",
+        "q06_receivables_advance",
+        "q07_fx_euro"
+      ],
+      "reserve_in_order": [
+        "q10_payment_link_whatsapp",
+        "q04_pix_bank_account",
+        "q09_installments",
+        "q05_terminal_offline",
+        "q01_compare_plans",
+        "x03_unknown_customer"
+      ],
+      "candidates": 12
+    },
+    "regular_multi_turn": {
+      "quota": 3,
+      "chosen": [
+        "m04_followup_product",
+        "m01_recall_color",
+        "m08_recall_sum"
+      ],
+      "reserve_in_order": [
+        "m03_rephrase_previous",
+        "m07_shorten_previous",
+        "m06_recall_store_name",
+        "m02_recall_which_bigger",
+        "m05_followup_payout"
+      ],
+      "candidates": 8
+    },
+    "regular_other": {
+      "quota": 2,
+      "chosen": [
+        "h01_human_request",
+        "h03_unanswerable"
+      ],
+      "reserve_in_order": [
+        "h02_human_request_pt",
+        "inj02_claims_to_be_an_operator",
+        "inj01_override_and_prompt_leak",
+        "x04_cross_customer_attempt",
+        "x02_greeting"
+      ],
+      "candidates": 7
+    }
+  },
+  "ids": [
+    "ho06_kb_gap_pix_automatico",
+    "ho12_upset_no_person_asked",
+    "ho09_followup_bank_account",
+    "ho11_supervisor_complaint",
+    "q08_decline_error",
+    "q02_weather",
+    "x01_portuguese",
+    "q03_payout_timing",
+    "q06_receivables_advance",
+    "q07_fx_euro",
+    "m04_followup_product",
+    "m01_recall_color",
+    "m08_recall_sum",
+    "h01_human_request",
+    "h03_unanswerable"
+  ]
+}

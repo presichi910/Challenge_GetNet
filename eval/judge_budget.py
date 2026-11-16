@@ -148,3 +148,69 @@ class BudgetedScorer:
             if parse_left <= 0:
                 return out, "error"
             parse_left -= 1
+
+
+# ---- when the window frees and how much the judge can still score before a deadline --------------------------------------------
+
+def plan_capacity(entries: list[dict], start: float, deadline: float, ceiling: int = DAILY_LIMIT - MARGIN, window: float = DAY) -> dict:
+    """The most tokens that can be spent between `start` and `deadline` without the trailing `window` ever holding more than `ceiling`,
+    given what the ledger already holds. Spending as EARLY as possible is optimal (a token spent sooner leaves the window sooner), so it
+    is a simulation: spend all the room there is, jump to the next moment something leaves the window, spend again.
+    -> {"total": tokens, "steps": [(time, tokens spent then, why)], "frees": [(time, tokens) of the entries already in the ledger]}."""
+    spent = [(e["at"], int(e["tokens"])) for e in entries if start - window < e["at"] <= start]  # what is in the window at `start`
+    frees = sorted((at + window, t) for at, t in spent)
+    steps, total, now = [], 0, start
+    while now <= deadline:
+        used = sum(t for at, t in spent if now - window < at <= now)
+        room = ceiling - used
+        if room > 0:
+            steps.append((now, room, "start" if now == start else "window frees"))
+            spent.append((now, room))
+            total += room
+        later = sorted(at + window for at, _ in spent if at + window > now)
+        if not later or later[0] > deadline:
+            break
+        now = later[0]
+    return {"total": total, "steps": steps, "frees": frees}
+
+
+def main(argv: list[str] | None = None) -> int:
+    """python -m eval.judge_budget --deadline "2026-11-17 09:00" [--from "2026-11-15 21:00"] [--per-row 3100]"""
+    import argparse
+    from datetime import datetime
+
+    ap = argparse.ArgumentParser(description=main.__doc__)
+    ap.add_argument("--deadline", required=True, help='local time, "YYYY-MM-DD HH:MM"')
+    ap.add_argument("--from", dest="start", default=None, help="when scoring would start (default: now)")
+    ap.add_argument("--per-row", type=int, nargs="+", default=[2500, 3100], help="judge tokens per scored row (measured: 3104 on long evidence)")
+    ap.add_argument("--rows-per-repetition", type=int, default=40)
+    ap.add_argument("--ledger", default=None)
+    args = ap.parse_args(argv)
+    fmt = "%Y-%m-%d %H:%M"
+    ledger = Ledger(args.ledger)
+    start = datetime.strptime(args.start, fmt).timestamp() if args.start else ledger.clock()
+    deadline = datetime.strptime(args.deadline, fmt).timestamp()
+    plan = plan_capacity(ledger.entries, start, deadline)
+    at = lambda t: datetime.fromtimestamp(t).strftime("%a %Y-%m-%d %H:%M")  # noqa: E731
+    print(f"In the window at {at(start)}: {ledger.spent() if args.start is None else sum(t for a, t in [(e['at'], e['tokens']) for e in ledger.entries] if start - DAY < a <= start)} "
+          f"tokens of {DAILY_LIMIT} (stop line {DAILY_LIMIT - MARGIN}).")
+    for when, tokens in plan["frees"][:1] + plan["frees"][-1:]:
+        print(f"   ledger entry of {tokens} tokens leaves the window at {at(when)}")
+    print("Spending as early as possible (steps less than 15 minutes apart are shown as one):")
+    grouped: list[list] = []
+    for when, tokens, why in plan["steps"]:
+        if grouped and when - grouped[-1][1] <= 900:
+            grouped[-1][1], grouped[-1][2] = when, grouped[-1][2] + tokens
+        else:
+            grouped.append([when, when, tokens, why])
+    for first, last, tokens, why in grouped:
+        print(f"   {at(first)}{'' if last == first else ' to ' + at(last)[-5:]}: room for {tokens} tokens ({why})")
+    print(f"TOTAL the judge can spend before {at(deadline)}: {plan['total']} tokens")
+    for per in args.per_row:
+        rows = plan["total"] // per
+        print(f"   at {per} tokens per row: {rows} rows = {rows / args.rows_per_repetition:.1f} repetitions of {args.rows_per_repetition} cases")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

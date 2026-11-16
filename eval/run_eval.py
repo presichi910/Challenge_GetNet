@@ -334,6 +334,10 @@ def summarize(rows: list[dict]) -> dict:
         for k in SCORE_KEYS:
             s[f"avg_{k}"] = round(statistics.mean(j[k] for j in judged), 2)
         s["judge_pass_rate"] = sum(j["verdict"] == "pass" for j in judged) / len(judged)
+        # how many rows the judge scored (every judge-based rate above is over THIS many, not over `cases`): with a partial scoring
+        # (eval/rejudge.py stopped by the daily limit) the two differ, and a rate without its n would pass for a full one
+        s["judged_cases"] = len(judged)
+        s["judge_passes"] = sum(j["verdict"] == "pass" for j in judged)
     s.update(usage_summary(rows))
     return s
 
@@ -478,8 +482,21 @@ def write_report(rows: list[dict], summary: dict, models: dict | None = None, up
     return path
 
 
+def run_config(label: str | None = None) -> dict:
+    """What the system was configured to do in this run, written into every report and JSON, so a run can never be mistaken for another:
+    a run with the observe step on is marked, and the main run says REPLAN_MAX 0 out loud."""
+    from app.config import get_settings
+
+    s = get_settings()
+    cfg = {"replan_max": s.replan_max, "rag_mode": s.rag_mode, "verifier_mode": s.verifier_mode, "approvals": "off (eval)", "fallback_provider": "off (eval)"}
+    if label:
+        cfg["label"] = label
+    return cfg
+
+
 def run_repeats(cases: list[dict], service, judge, repeats: int, pause: float, retries: int = 0,
-                models: dict | None = None, update_latest: bool = True, sleep=time.sleep) -> tuple[list, Path | None]:
+                models: dict | None = None, update_latest: bool = True, sleep=time.sleep,
+                config: dict | None = None) -> tuple[list, Path | None]:
     """Run the cases `repeats` times. Each run gets its own report; only the FIRST run may become latest.md
     (and only if it is full and clean, as always). With more than one run, the spread goes to REPEATS-<stamp>.md.
     -> ([(rows, summary, report path)], repeats report path or None)."""
@@ -490,13 +507,13 @@ def run_repeats(cases: list[dict], service, judge, repeats: int, pause: float, r
         if repeats > 1:
             print(f"\n=== run {i + 1} of {repeats} ===")
         rows = evaluate(cases, service, judge, pause, retries=retries, sleep=sleep)
-        summary = summarize_all(rows)
+        summary = {**summarize_all(rows), **(config or {})}
         path = write_report(rows, summary, models, update_latest=update_latest and i == 0)
         done.append((rows, summary, path))
     if repeats < 2:
         return done, None
     agg = rep_mod.aggregate([d[0] for d in done], [d[1] for d in done])
-    return done, rep_mod.write(agg, models, sources=[d[2].stem for d in done])
+    return done, rep_mod.write(agg, models, sources=[d[2].stem for d in done], config=config)
 
 
 def main() -> None:
@@ -509,6 +526,9 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=1, help="run the cases N times and write REPEATS-<stamp>.md")
     ap.add_argument("--keep-latest", action="store_true", help="never overwrite eval/reports/latest.md")
     ap.add_argument("--regular-only", action="store_true", help="leave the holdout cases out (they only measure, never tune)")
+    ap.add_argument("--replan-max", type=int, default=None,
+                    help="set REPLAN_MAX for this run (0 = the observe step off, the default; 2 = the 'replan on' branch)")
+    ap.add_argument("--label", default=None, help="mark the run in its reports and JSON, e.g. --label 'replan on'")
     ap.add_argument("--inject-history", action="store_true",
                     help="the old way: earlier turns of a multi-turn case go in as context (no checkpointer, no restart)")
     args = ap.parse_args()
@@ -523,6 +543,11 @@ def main() -> None:
         print(f"NOTE: FALLBACK_PROVIDER={get_settings().fallback_provider} is set; the eval turns provider failover off for this run.")
         os.environ["FALLBACK_PROVIDER"] = ""
         get_settings.cache_clear()
+    if args.replan_max is not None:  # the setting is read when the graph is built, so it is set before that
+        os.environ["REPLAN_MAX"] = str(args.replan_max)
+        get_settings.cache_clear()
+    config = run_config(args.label)
+    print("Config:", ", ".join(f"{k}={v}" for k, v in config.items()))
     cases = load_cases(args.only, regular_only=args.regular_only)
     models = current_models()
     print("Models:", ", ".join(f"{role}={name}" for role, name in models.items()))
@@ -535,7 +560,8 @@ def main() -> None:
     try:
         done, repeats_path = run_repeats(cases, service, None if args.no_judge else Judge(),
                                          max(1, args.repeats), args.pause, retries=args.retries, models=models,
-                                         update_latest=not args.only and not args.keep_latest)
+                                         update_latest=not args.only and not args.keep_latest and not args.label,
+                                         config=config)
     finally:
         if hasattr(service, "close"):
             service.close()

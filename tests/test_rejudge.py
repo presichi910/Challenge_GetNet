@@ -199,3 +199,44 @@ def test_the_ledger_is_shared_between_runs_slides_with_the_clock_and_survives_da
 
 def test_the_defaults_match_what_was_measured():
     assert DAILY_LIMIT == 200_000 and MARGIN == 10_000
+
+
+# ---------------- when the window frees and how much fits before a deadline ----------------
+
+def entries_at(*pairs):
+    return [{"at": a, "tokens": t, "label": ""} for a, t in pairs]
+
+
+def test_the_capacity_plan_spends_the_room_now_and_again_when_the_old_entries_leave_the_window():
+    from eval.judge_budget import plan_capacity
+
+    h, day = 3600.0, 86400.0
+    t0 = 1_800_000_000.0
+    ledger = entries_at((t0 - 2 * h, 37_000))  # spent two hours before the start
+    plan = plan_capacity(ledger, start=t0, deadline=t0 + 40 * h, ceiling=190_000)
+    # now: 190,000 - 37,000 = 153,000. When the 37,000 leave (22 h later): 37,000 more. When the 153,000 leave (24 h after the start):
+    # the whole ceiling is free again, less what was spent 2 h after the first leaving (the 37,000 re-spent) which is still inside
+    assert plan["steps"][0] == (t0, 153_000, "start")
+    assert plan["steps"][1][0] == t0 + day - 2 * h and plan["steps"][1][1] == 37_000
+    assert plan["steps"][2][0] == t0 + day and plan["steps"][2][1] == 153_000  # the 153,000 left; the 37,000 re-spent are still counted
+    assert plan["total"] == 153_000 + 37_000 + 153_000
+    assert plan["frees"][0][0] == t0 - 2 * h + day  # the replan tokens leave 24 h after they were spent
+
+
+def test_the_plan_never_lets_the_trailing_window_exceed_the_ceiling():
+    from eval.judge_budget import plan_capacity
+
+    t0 = 1_800_000_000.0
+    ledger = entries_at((t0 - 3600, 50_000), (t0 - 7200, 20_000))
+    plan = plan_capacity(ledger, t0, t0 + 60 * 3600, ceiling=190_000)
+    allspent = [(e["at"], e["tokens"]) for e in ledger] + [(t, k) for t, k, _ in plan["steps"]]
+    for t, _, _ in plan["steps"]:
+        assert sum(k for a, k in allspent if t - 86400 < a <= t) <= 190_000
+
+
+def test_nothing_is_planned_when_the_window_is_full_until_something_leaves_it():
+    from eval.judge_budget import plan_capacity
+
+    t0 = 1_800_000_000.0
+    plan = plan_capacity(entries_at((t0 - 600, 190_000)), t0, t0 + 3 * 3600, ceiling=190_000)
+    assert plan["total"] == 0 and plan["steps"] == []
