@@ -189,6 +189,38 @@ def raw_audit(statements: list[Statement], evidence: str) -> str:
                       ensure_ascii=False)
 
 
+def audit_claims(model, answer: str, evidence: str, messages, mode: str | None = None,
+                 keep_raw: bool = False) -> tuple[list[str], str, int]:
+    """Check `answer` against `evidence`. -> (the claims the evidence does not back, the raw audit as JSON when
+    `keep_raw`, how many statements or segments WERE backed). Raises if the model call fails (callers fail open)."""
+    segments = split_segments(answer) if (mode or get_settings().verifier_mode) == "segments" else None
+    if segments:  # the code chose what to audit: every segment, none can be skipped
+        checker = model.with_structured_output(SegmentedVerification, method="function_calling")
+        numbered = "\n".join(f"[{i}] {t}" for i, t in enumerate(segments, 1))
+        body = (f"## Conversation so far\n{dialogue_of(messages)}\n\n## Evidence\n{evidence}\n\n"
+                f"## Answer, in {len(segments)} numbered segments\n{numbered}")
+        audit = checker.invoke([SystemMessage(content=SEGMENT_VERIFY_PROMPT), HumanMessage(content=body)])
+        claims, table = audit_segments(segments, audit, evidence, customer_said(messages))
+        return claims, (json.dumps(table, ensure_ascii=False) if keep_raw else ""), len(segments) - len(claims)
+    checker = model.with_structured_output(Verification, method="function_calling")  # the model lists the statements it finds
+    body = f"## Conversation so far\n{dialogue_of(messages)}\n\n## Evidence\n{evidence}\n\n## Answer\n{answer}"
+    audit = checker.invoke([SystemMessage(content=VERIFY_PROMPT), HumanMessage(content=body)])
+    claims = unsupported_statements(audit.statements, evidence)
+    listed = sum(1 for st in audit.statements if st.statement.strip())
+    return claims, (raw_audit(audit.statements, evidence) if keep_raw else ""), max(0, listed - len(claims))
+
+
+def rewrite_without(model, answer: str, claims: list[str], language: str) -> str:
+    """The answer with those claims DELETED (one model call). The original if the model returns nothing."""
+    listed = "\n".join(f"- {c}" for c in claims)
+    msg = model.invoke([SystemMessage(content=REVISE_PROMPT.format(language=language, claims=listed)), HumanMessage(content=answer)])
+    return str(msg.content).strip() or answer
+
+
+def revised_note(claims: list[str]) -> str:
+    return f"revised:{len(claims)} [{' | '.join(c[:80] for c in claims)}]"
+
+
 def make_verify_node(llm=None, keep_raw: bool = False, mode: str | None = None):
     """`keep_raw=True` (only the eval asks for it) also returns `verify_raw`: the checker's raw statements and quotes.
     It is never set otherwise: the state is checkpointed, and the API and the logs must not carry evidence text.
@@ -216,32 +248,17 @@ def make_verify_node(llm=None, keep_raw: bool = False, mode: str | None = None):
             return update
 
         evidence = evidence_of(state)
-        if evidence:
+        if "claims" in (state.get("observe") or {}):  # the observe step already audited, retried and rewrote this answer
+            if state.get("verify_note"):
+                notes.append(state["verify_note"])
+            raw = state.get("verify_raw", "") if keep_raw else ""
+        elif evidence:
             try:
                 model = model or get_llm(temperature=0.0, model=get_settings().light_model)
-                segments = split_segments(answer) if (mode or get_settings().verifier_mode) == "segments" else None
-                if segments:  # the code chose what to audit: every segment, none can be skipped
-                    checker = model.with_structured_output(SegmentedVerification, method="function_calling")
-                    numbered = "\n".join(f"[{i}] {t}" for i, t in enumerate(segments, 1))
-                    body = (f"## Conversation so far\n{dialogue_of(messages)}\n\n## Evidence\n{evidence}\n\n"
-                            f"## Answer, in {len(segments)} numbered segments\n{numbered}")
-                    audit = checker.invoke([SystemMessage(content=SEGMENT_VERIFY_PROMPT), HumanMessage(content=body)])
-                    claims, table = audit_segments(segments, audit, evidence, customer_said(messages))
-                    if keep_raw:
-                        raw = json.dumps(table, ensure_ascii=False)
-                else:  # the original check: the model lists the statements it finds
-                    checker = model.with_structured_output(Verification, method="function_calling")
-                    body = f"## Conversation so far\n{dialogue_of(messages)}\n\n## Evidence\n{evidence}\n\n## Answer\n{answer}"
-                    audit = checker.invoke([SystemMessage(content=VERIFY_PROMPT), HumanMessage(content=body)])
-                    if keep_raw:
-                        raw = raw_audit(audit.statements, evidence)
-                    claims = unsupported_statements(audit.statements, evidence)
+                claims, raw, _ = audit_claims(model, answer, evidence, messages, mode, keep_raw)
                 if claims:
-                    listed = "\n".join(f"- {c}" for c in claims)
-                    msg = model.invoke([SystemMessage(content=REVISE_PROMPT.format(language=language, claims=listed)),
-                                        HumanMessage(content=answer)])
-                    answer = str(msg.content).strip() or answer
-                    notes.append(f"revised:{len(claims)} [{' | '.join(c[:80] for c in claims)}]")
+                    answer = rewrite_without(model, answer, claims, language)
+                    notes.append(revised_note(claims))
             except Exception as e:  # noqa: BLE001
                 log.exception("verify: groundedness check failed, keeping the answer")
                 if keep_raw and not raw:

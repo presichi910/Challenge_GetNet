@@ -38,7 +38,7 @@ DEFAULT_PRICES: dict[str, tuple[float, float]] = {
     "openai/gpt-oss-20b": (0.075, 0.30),   # Groq
     "qwen/qwen3.8-27b": (0.80, 4.00),      # Groq, the eval judge
 }
-NODES = ("summarize", "router", "knowledge", "support", "synthesizer", "handoff")
+NODES = ("summarize", "router", "knowledge", "support", "synthesizer", "observe", "verify", "handoff")
 RATE_LIMIT_RE = re.compile(r"RateLimit|\b429\b|rate.?limit|too many requests", re.I)
 
 

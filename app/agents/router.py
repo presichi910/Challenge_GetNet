@@ -59,6 +59,6 @@ def make_router_node(llm=None):
         # reset the per-turn fields, the checkpointer keeps state between turns
         return {"plan": plan, "step": 0, "language": language, "routing_reasoning": reasoning,
                 "agent_outputs": {}, "final_answer": "", "wants_human": wants_human, "handoff": None,
-                "router_error": router_error, "synth_error": "", "verify_note": ""}
+                "router_error": router_error, "synth_error": "", "verify_note": "", "observe": {}}
 
     return router_node

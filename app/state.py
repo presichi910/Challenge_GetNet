@@ -38,4 +38,5 @@ class GraphState(TypedDict, total=False):
     wants_human: bool  # user asked for a person
     handoff: dict | None  # set by the handoff node
     verify_note: str  # what the verify node changed ("" if nothing), for the eval
+    observe: dict  # what the observe step did this turn: claims left, replans, extra evidence and sources, escalate
     verify_raw: str  # the verifier's raw statements and quotes; only set when the eval asks for it, never in production

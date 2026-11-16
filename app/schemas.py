@@ -52,6 +52,8 @@ class Routing(BaseModel):
     plan: list[str]
     reasoning: str = ""
     language: str = ""
+    # what the observe step changed after the answer was written (empty when it did nothing)
+    replans: list[str] = []
 
 
 class HandoffInfo(BaseModel):

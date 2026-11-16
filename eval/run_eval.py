@@ -41,9 +41,9 @@ from eval.judge import SCORE_KEYS, Judge
 ROOT = Path(__file__).parent
 
 
-def load_cases(only: list[str] | None) -> list[dict]:
+def load_cases(only: list[str] | None, regular_only: bool = False) -> list[dict]:
     cases = [json.loads(l) for l in (ROOT / "dataset.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
-    return [c for c in cases if not only or any(c["id"].startswith(p) for p in only)]
+    return [c for c in cases if (not only or any(c["id"].startswith(p) for p in only)) and not (regular_only and c.get("holdout"))]
 
 
 def routing_ok(case: dict, plan: list[str]) -> bool:
@@ -239,8 +239,9 @@ def evaluate(cases: list[dict], service, judge: Judge | None, pause: float,
             rows.append(error_row(c, perr, latency))
             continue
         outs = state.get("agent_outputs", {})
-        called = [tc["name"] for o in outs.values() for tc in o.get("tool_calls", [])]
-        evidence = [ctx for o in outs.values() for ctx in o.get("contexts", [])]
+        obs = state.get("observe") or {}  # the observe step's retry: its passages are evidence the judge must see
+        called = [tc["name"] for o in outs.values() for tc in o.get("tool_calls", [])] + [tc["name"] for tc in obs.get("tool_calls", [])]
+        evidence = [ctx for o in outs.values() for ctx in o.get("contexts", [])] + list(obs.get("evidence", []))
         if state.get("handoff"):  # so the judge knows the handoff really happened
             evidence.append(f"[handoff system action] a human handoff record and ticket were created: {state['handoff']}")
         row = {
@@ -252,7 +253,9 @@ def evaluate(cases: list[dict], service, judge: Judge | None, pause: float,
             "verify_raw": state.get("verify_raw", ""),  # the verifier's statements and quotes, eval only
             # the exact calls (agent, tool, arguments), to see what the model really asked for
             "tool_calls": [{"agent": a, "name": tc["name"], "args": tc.get("args", {})}
-                           for a, o in outs.items() for tc in o.get("tool_calls", [])],
+                           for a, o in outs.items() for tc in o.get("tool_calls", [])]
+                          + [{"agent": "observe", "name": tc["name"], "args": tc.get("args", {})} for tc in obs.get("tool_calls", [])],
+            "replans": list(obs.get("replans", [])),
             "routing_ok": routing_ok(c, state.get("plan", [])), "tools_ok": tools_ok(c, called),
             "degraded": any(o.get("error") for o in outs.values()), "latency_ms": latency,
         }
@@ -482,12 +485,13 @@ def main() -> None:
     ap.add_argument("--retries", type=int, default=2, help="times to wait out a per-minute rate limit per case")
     ap.add_argument("--repeats", type=int, default=1, help="run the cases N times and write REPEATS-<stamp>.md")
     ap.add_argument("--keep-latest", action="store_true", help="never overwrite eval/reports/latest.md")
+    ap.add_argument("--regular-only", action="store_true", help="leave the holdout cases out (they only measure, never tune)")
     args = ap.parse_args()
 
     from app.graph import build_default_graph
     from app.service import ChatService
 
-    cases = load_cases(args.only)
+    cases = load_cases(args.only, regular_only=args.regular_only)
     models = current_models()
     print("Models:", ", ".join(f"{role}={name}" for role, name in models.items()))
     done, repeats_path = run_repeats(cases, ChatService(build_default_graph(keep_verify_raw=True)), None if args.no_judge else Judge(),

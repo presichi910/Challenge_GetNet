@@ -186,6 +186,13 @@ class ChatService:
                     seen.add(s["url"])
                     sources.append(Source(**s))
 
+        observed = state.get("observe") or {}
+        tool_calls += [ToolCall(agent="observe", **tc) for tc in observed.get("tool_calls", [])]
+        for src in observed.get("sources", []):  # the answer rests on these passages too
+            if src["url"] not in seen:
+                seen.add(src["url"])
+                sources.append(Source(**src))
+
         handoff, open_handoffs = self._human_side(
             user_id, conversation_id, HandoffInfo(**state["handoff"]) if state.get("handoff") else None)
         operator_messages = [OperatorMessage(**{**m, "created_at": self._iso(m["created_at"])}) for m in taken]
@@ -196,7 +203,7 @@ class ChatService:
             conversation_id=conversation_id,
             agents_used=list(outputs.keys()),
             routing=Routing(plan=state.get("plan", []), reasoning=state.get("routing_reasoning", ""),
-                            language=state.get("language", "")),
+                            language=state.get("language", ""), replans=list(observed.get("replans", []))),
             sources=sources,
             tool_calls=tool_calls,
             degraded=any(o.get("error") for o in outputs.values()),

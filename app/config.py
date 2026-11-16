@@ -106,6 +106,11 @@ class Settings(BaseSettings):
     # "segments" (the code splits the answer and the model must answer for every segment: nothing can be omitted)
     verifier_mode: str = "statements"
 
+    # how many times the observe step may change course after the answer is written (app/agents/observe.py):
+    # 0 = never (the graph is what it was), 1 = retry the knowledge base once with the unsupported claims,
+    # 2 = also offer a ticket or escalate when nothing actionable is left. Off by default until it is measured.
+    replan_max: int = 0
+
     log_level: str = "INFO"
 
 

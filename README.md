@@ -31,6 +31,8 @@ flowchart TD
 3. The synthesizer builds the final reply: no agent ran → answers directly, one → passes it through, two → merges them.
 4. If the user asks for a person, or nobody could resolve the request, the handoff node opens a ticket, queues the case for the operators and tells the user.
 
+5. After the synthesizer, two steps look at the answer before it is sent. **`observe`** (off by default, `REPLAN_MAX`) audits it against the evidence; if some claims have no support it first searches the knowledge base once more with those claims grouped (one Voyage call), checks again against the new passages, and deletes only what is still unsupported; with `REPLAN_MAX=2` it also offers a ticket when no actionable step is left, or sends the case to a human when nothing in the answer is backed. **`verify`** deletes the unsupported claims (if `observe` did not), makes the answer match the customer's language, and replaces an answer that repeats the system prompt (10+ consecutive words) with a short refusal. What `observe` did is in `routing.replans` of the response.
+
 The response also lists which agents ran, the tools they called, the sources and the token usage, so it is easy to debug.
 
 **Design choices**
@@ -262,6 +264,18 @@ The tests cover tools, router, ingestion, the API, authentication (valid, expire
 - **Repeats.** `python -m eval.run_eval --repeats 3` runs the cases N times and writes `REPEATS-<stamp>.md`: mean/min/max of every metric, passes per case and unstable cases (`python -m eval.repeats a.json b.json ...` does the same with saved reports).
 - **Retrieval metrics.** `python -m eval.run_retrieval` scores the real retriever (the same `retrieve()` the Knowledge agent calls) on `eval/retrieval.jsonl`: 21 questions with the page(s) that answer them, 6 of them holdout.
 - **Judge calibration.** The judge is an LLM, so its verdicts need a human check. `python -m eval.calibration.export` writes `eval/calibration/labels_template.csv` from the newest run; copy it to `labels.csv`, fill `human_grounded`, `human_complete` (1-5), `human_pass` (yes/no), and `python -m eval.calibration.agreement eval/calibration/labels.csv` reports pass/fail agreement, Cohen's kappa, the confusion matrix and the mean absolute error per dimension. The human labels are not done yet, so there is no agreement number.
+
+### Verifier alternatives that were evaluated and not adopted
+
+The verify step lists the statements of an answer and the code checks that each one's quote is really in the evidence (`VERIFIER_MODE=statements`, in production). One thing it cannot do is audit what the model leaves out of its list: on 15 real drafts it covered 72% of the answer's sentences. A second checker, `VERIFIER_MODE=segments` (`app/segments.py`), splits the answer in code and makes the model answer for **every** segment, so nothing can be omitted. It is implemented and tested but **off**, because on the same 15 drafts it did worse where it matters (`eval/verifier_ab.py`, one judge score per text, 12 valid paired cases; small, so read it as direction, not proof):
+
+| text the customer would read | unsupported claims the judge finds | of them actionable | completeness | judge pass |
+|---|---|---|---|---|
+| the unverified draft | 18 | 14 | 4.08 | 8/13 |
+| **current verifier (`statements`, in production)** | **12** | **5** | **3.31** | **6/13** |
+| segment verifier (`segments`, not adopted) | 14 | 7 | 3.08 | 5/12 |
+
+Its coverage is complete (0 segments omitted) but it flags 1.87 segments per answer against 0.8, and the extra flags are false positives: lead-in lines ending in ":", figures and dates derived from a tool's JSON in another format (`R$ 88,15` against `88.15`), one-word answers ("Yes.") and plain inferences. Known limit of the current verifier, accepted: the 28% of sentences it does not audit, and a quote that is really in the evidence but does not back the claim.
 
 ### Results
 

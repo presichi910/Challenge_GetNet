@@ -30,7 +30,7 @@ def next_node(state: GraphState) -> str:
 
 def build_graph(router: Callable, knowledge: Callable, support: Callable, synthesizer: Callable,
                 handoff: Callable, checkpointer=None, summarizer: Callable | None = None,
-                verify: Callable | None = None):
+                verify: Callable | None = None, observe: Callable | None = None):
     """Nodes are passed in so tests can use stubs. With a `summarizer`, it runs before the router
     every turn (it only acts above the message threshold). Routing itself is unchanged."""
     g = StateGraph(GraphState)
@@ -49,9 +49,15 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
     targets = {**{n: n for n in AGENT_NODES}, "synthesizer": "synthesizer", "handoff": "handoff"}
     for src in ("router", *AGENT_NODES):
         g.add_conditional_edges(src, next_node, targets)
-    if verify is not None:  # synthesizer -> verify -> END; without it the graph is exactly as before
+    if verify is not None:  # synthesizer -> [observe ->] verify -> END; without it the graph is exactly as before
         g.add_node("verify", verify)
-        g.add_edge("synthesizer", "verify")
+        if observe is not None:  # the observe step may send the case to a human instead of the (unbacked) answer
+            g.add_node("observe", observe)
+            g.add_edge("synthesizer", "observe")
+            g.add_conditional_edges("observe", lambda state: "handoff" if (state.get("observe") or {}).get("escalate") else "verify",
+                                    {"handoff": "handoff", "verify": "verify"})
+        else:
+            g.add_edge("synthesizer", "verify")
         g.add_edge("verify", END)
     else:
         g.add_edge("synthesizer", END)
@@ -62,12 +68,13 @@ def build_graph(router: Callable, knowledge: Callable, support: Callable, synthe
     return g.compile(checkpointer=checkpointer or MemorySaver())
 
 
-def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_raw=False, verify_node=None):
+def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_raw=False, verify_node=None, observe_node=None):
     """`checkpointer=None` keeps the memory in process (the eval does that, so it never writes
     conversations to disk). The API passes the persistent one, see `app.main.lifespan`.
     `handoff_notifier=None` only appends a redacted audit line to the JSONL file; the API passes one that also queues the
     handoff in the SQLite store the operators work from."""
     from app.agents.knowledge import make_knowledge_node
+    from app.agents.observe import make_observe_node
     from app.agents.router import make_router_node
     from app.agents.summarizer import make_summarizer_node
     from app.agents.support import make_support_node
@@ -80,4 +87,5 @@ def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_ra
     repo = CustomerRepository(tickets_file=get_settings().tickets_file)  # shared, so handoff tickets show up for Support
     return build_graph(make_router_node(), make_knowledge_node(), make_support_node(repo=repo),
                        make_synthesizer_node(), make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
-                       summarizer=make_summarizer_node(), verify=verify_node or make_verify_node(keep_raw=keep_verify_raw))
+                       summarizer=make_summarizer_node(), verify=verify_node or make_verify_node(keep_raw=keep_verify_raw),
+                       observe=observe_node or make_observe_node(keep_raw=keep_verify_raw))
