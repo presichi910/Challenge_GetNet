@@ -81,6 +81,15 @@ To run the tests without keys or network: `pytest -m "not eval"`.
 | Prometheus, Grafana and the dashboard are provisioned and bound to localhost | `docker-compose.yml:102` (Prometheus) and `:116` (Grafana), `infra/observability/prometheus.yml`, `infra/observability/grafana/dashboards/getnet.json` | `tests/test_observability_infra.py:43`, `:54`, `:70`, `:78` | The checks against a real Jaeger and Grafana were made by hand while building it; they are not in the repository |
 | 9 alert rules, each with a unit test that fires it and one that keeps it quiet | `infra/observability/alerts.yml` | `tests/test_observability_infra.py:36`, `:59`, `infra/observability/alerts_test.yml` (run by `promtool`) | `.github/workflows/ci.yml:80` (job `alerts`) |
 
+## Retrieval
+
+| Claim | Where in the code | Test | Other evidence |
+|---|---|---|---|
+| The knowledge base can be searched in three modes: `dense` (the original), `hybrid` (dense plus BM25, fused with RRF) and `hybrid_rerank` (hybrid, then a Voyage reranker reorders the best candidates); if BM25 or the reranker fails the search falls back to the stage before | `app/rag/hybrid.py:103` (`rrf`), `app/rag/hybrid.py:185` (`hybrid_search`), `app/tools/knowledge_tools.py:44` (the mode is chosen here), `app/config.py:61-64` | `tests/test_hybrid.py:43`, `:54`, `:58` | |
+| The three modes were measured on the same 21 questions, with the parameters chosen on one half of the regular questions and the other half and the holdout only measured | `eval/run_retrieval.py:86` (`average`) | `tests/test_retrieval_metrics.py` | `eval/reports/RETRIEVAL-20261115-182559.md` (the tables per set and per mode), `eval/reports/RETRIEVAL-20261115-182559.json` |
+| **The default is `dense`, and it stays so.** The README's reasons: fusion and the reranker put the right page higher, but they lose coverage in the top 5; on the holdout the plain hybrid is worse than dense; the improvement on the half where the parameters were chosen does not carry over to the questions it was not chosen on; and the knowledge agent reads all 5 chunks, so coverage matters more to it than the order inside the 5 | `app/config.py:61` (`rag_mode` defaults to `dense`) | | The README, "Results", the paragraph "What it says, honestly" |
+| The retrieval table typed in the README says what the saved report says (the four sets and the three modes) | | `tests/test_retrieval_table.py` (it fails if a value of the README differs from the report, and it is skipped if the report is not in the checkout) | The README, "Results", the table of the paragraph "Retrieval" |
+
 ## CI
 
 | Claim | Where in the code | Test | Other evidence |
