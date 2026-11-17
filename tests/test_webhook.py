@@ -95,11 +95,18 @@ def test_the_event_carries_ids_and_routing_data_and_none_of_what_the_customer_wr
 
 def test_the_approval_event_has_no_summary_text(tmp_path):
     store = ApprovalStore(tmp_path / "a.sqlite")
-    row, _ = store.create("cliente1988", "c-1", "terminal", "Terminal offline, card 4111 1111 1111 1111", "English", 3600)
+    summary = "Terminal offline, card 4111 1111 1111 1111"
+    row, _ = store.create("cliente1988", "c-1", "terminal", summary, "English", 3600)
     event = approval_event(row)
     store.close()
     assert event["event"] == "approval.requested" and event["approval_id"] == row["id"] and event["category"] == "terminal"
-    assert "4111" not in json.dumps(event) and "summary" not in event
+    # What the customer contributed must not be in the event. The check does not look for the bare digits "4111": the event also holds
+    # generated values (the request id and two timestamps in seconds) that can contain them by chance.
+    dumped = json.dumps(event)
+    for contributed in (summary, "Terminal offline", "4111 1111 1111 1111", "4111111111111111"):
+        assert contributed not in dumped
+    assert "summary" not in event
+    assert set(event) == {"event", "approval_id", "category", "conversation_id", "user_id", "expires_at", "created_at"}
 
 
 # ---------------- delivery ----------------
