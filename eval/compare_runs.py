@@ -1,6 +1,6 @@
-"""A deterministic, scripted comparison of ONE judged run (the candidate, e.g. the replan branch) with one or more judged baseline runs.
+"""A deterministic, scripted comparison of one or more judged runs (the candidates, e.g. the replan branch) with one or more judged baseline runs.
 
-    python -m eval.compare_runs --candidate eval/reports/20261116-234030.judged.json \\
+    python -m eval.compare_runs --candidate eval/reports/20261116-234030.judged.json [more candidates ...] \\
         --baseline eval/reports/20261115-202155.judged.json eval/reports/20261115-202732.judged.json ... \\
         --out eval/reports/REPLAN-AB-20261116-234030.md
 
@@ -184,13 +184,108 @@ def build(candidate: dict, baselines: list[dict]) -> str:
     return "\n".join(out)
 
 
+INFERENCE = ("With {k} repetitions with the replan on against {n} base repetitions and a judge that is not deterministic, this report makes no statistical inference: "
+             "it lists, row by row, what each repetition did.")
+
+
+def build_many(candidates: list[dict], baselines: list[dict]) -> str:
+    """The same comparison for several candidate repetitions (e.g. the three replan-on repetitions) against the baselines, in one report."""
+    for c in candidates:
+        check_ids(c, baselines)
+        if not any("replans" in r for r in c["rows"].values()):
+            raise SystemExit(f"compare_runs: no row of {c['name']} has a 'replans' field, so it cannot tell where the replan fired")
+    k, n = len(candidates), len(baselines)
+    ids = sorted(candidates[0]["rows"])
+    out: list[str] = [f"# {k} candidate repetitions against {n} baseline repetitions (regular cases, scripted)", ""]
+    for j, c in enumerate(candidates, 1):
+        out.append(f"- **Candidate {j}:** `{c['name']}`, commit {short_commit(c)}, replan_max={c['summary'].get('replan_max', 'not recorded')}, "
+                   f"label={c['summary'].get('label') or 'none'}, {len(c['rows'])} regular rows")
+    for i, b in enumerate(baselines, 1):
+        out.append(f"- **Baseline {i}:** `{b['name']}`, commit {short_commit(b)}, replan_max={b['summary'].get('replan_max', 'not recorded')}, {len(b['rows'])} regular rows")
+    commits = {str(r["summary"].get("commit")) for r in [*candidates, *baselines]}
+    if len(commits) > 1:
+        out.append("- The runs come from different commits (shown above); the code between them is not compared by this script.")
+    notice = (f"This compares {k} judged repetitions (the candidates) with the {n} baseline repetitions listed above. The judge is not deterministic: "
+              "the same text can get another verdict on another pass, so a single row that differs is not a finding.")
+    out += ["", f"**{notice}**", "", "Only the regular cases are compared (ids that start with `ho` are left out). A verdict is the judge's `verdict` field as saved; "
+            "`error` is a row the judge could not score and `unscored` a row with no judge field.", ""]
+    for j, c in enumerate(candidates, 1):
+        out += [f"Candidate {j} (`{c['name']}`):", "", headline(c, baselines), ""]
+
+    out += ["## Verdict counts", "", "| run | " + " | ".join(VERDICTS) + " |", "|---|" + "---|" * len(VERDICTS)]
+    for run, label in [(c, f"candidate {j}") for j, c in enumerate(candidates, 1)] + [(b, f"baseline {i}") for i, b in enumerate(baselines, 1)]:
+        cnt = counts(run)
+        out.append(f"| {label} | " + " | ".join(str(cnt.get(v, 0)) for v in VERDICTS) + " |")
+
+    rows = []
+    for cid in ids:
+        bverdicts = [verdict_of(b["rows"][cid]) for b in baselines]
+        per = []
+        for c in candidates:
+            crow = c["rows"][cid]
+            per.append({"v": verdict_of(crow), "actions": replan_actions(crow), "g": score(crow, "groundedness"), "c": score(crow, "completeness")})
+        rows.append({"id": cid, "bv": bverdicts, "k": sum(v == "pass" for v in bverdicts), "unan": unanimous(bverdicts), "per": per})
+
+    def kof(r: dict) -> str:
+        missing = sum(v not in ("pass", "fail") for v in r["bv"])
+        return f"{r['k']} of {n}" + (f" ({missing} without verdict)" if missing else "")
+
+    def fired(p: dict) -> str:
+        return ("yes: " + ", ".join(p["actions"])) if p["actions"] else "no"
+
+    cols = range(1, k + 1)
+    out += ["", "## Per case", "", f"`baselines that passed` is k of N (N = {n}); a baseline row with no pass/fail verdict counts as not passed and is listed as such. "
+            "Scores are the judge's groundedness / completeness for that candidate.", "",
+            "| case | " + " | ".join(f"verdict {j}" for j in cols) + " | baselines that passed | " + " | ".join(f"replan fired {j}" for j in cols) + " | "
+            + " | ".join(f"scores {j}" for j in cols) + " |", "|---|" + "---|" * (3 * k + 1)]
+    for r in rows:
+        out.append(f"| {r['id']} | " + " | ".join(p["v"] for p in r["per"]) + f" | {kof(r)} | " + " | ".join(fired(p) for p in r["per"]) + " | "
+                   + " | ".join(f"{p['g']} / {p['c']}" for p in r["per"]) + " |")
+
+    for j in cols:
+        out += ["", f"## Candidate {j}: rows where its verdict differs from the unanimous verdict of the baselines", "",
+                "Unanimous means every baseline that has a pass or fail verdict on the row gave the same one. Rows where the baselines disagree among themselves are not listed.", ""]
+        differing = [(r, r["per"][j - 1]) for r in rows if r["per"][j - 1]["v"] in ("pass", "fail") and r["unan"] is not None and r["per"][j - 1]["v"] != r["unan"]]
+        for title, was_fired in (("replan fired", True), ("replan did not fire", False)):
+            group = [(r, p) for r, p in differing if bool(p["actions"]) == was_fired]
+            out += [f"### Candidate {j}: {title} ({len(group)})", ""]
+            out += [f"- `{r['id']}`: candidate {p['v']}, baselines unanimous {r['unan']} ({r['k']} of {n} passed); candidate groundedness {p['g']}, completeness {p['c']}"
+                    for r, p in group] or ["- none"]
+            out.append("")
+
+    hit = [r for r in rows if any(p["actions"] for p in r["per"])]
+    out += ["## Rows where the replan fired in at least one candidate", "",
+            "The verdict of every candidate on the row (whether or not the replan fired in that candidate), and the baselines that passed.", "",
+            "| case | " + " | ".join(f"replan fired {j}" for j in cols) + " | " + " | ".join(f"verdict {j}" for j in cols) + " | baselines that passed |",
+            "|---|" + "---|" * (2 * k + 1)]
+    for r in hit:
+        out.append(f"| {r['id']} | " + " | ".join(fired(p) for p in r["per"]) + " | " + " | ".join(p["v"] for p in r["per"]) + f" | {kof(r)} |")
+    if not hit:
+        out.append("| none |" + " |" * (2 * k + 1))
+    out += ["", "Latency in ms and agent cost in USD (from each row's `usage`) of those cases: each candidate's value, and the mean of the same case over the baselines (the baselines never fire a replan). "
+            "`-` where a file has no value.", "",
+            "| case | " + " | ".join(f"latency {j}" for j in cols) + " | baseline mean latency | " + " | ".join(f"cost {j}" for j in cols) + " | baseline mean cost |",
+            "|---|" + "---|" * (2 * k + 2)]
+    for r in hit:
+        cid = r["id"]
+        lat = [b["rows"][cid].get("latency_ms") for b in baselines]
+        cost = [(b["rows"][cid].get("usage") or {}).get("cost_usd") for b in baselines]
+        out.append(f"| {cid} | " + " | ".join(fmt_ms(c["rows"][cid].get("latency_ms")) for c in candidates) + f" | {fmt_ms(mean(lat))} | "
+                   + " | ".join(fmt_usd((c["rows"][cid].get("usage") or {}).get("cost_usd")) for c in candidates) + f" | {fmt_usd(mean(cost))} |")
+    if not hit:
+        out.append("| none |" + " |" * (2 * k + 2))
+    out += ["", "## How to read the differences", "", ATTRIBUTION, "", INFERENCE.format(k=k, n=n), ""]
+    return "\n".join(out)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--candidate", required=True, help="the judged run to compare (a .judged.json)")
+    ap.add_argument("--candidate", required=True, nargs="+", action="extend", help="the judged run(s) to compare (a .judged.json); repeat the flag or list several")
     ap.add_argument("--baseline", required=True, nargs="+", help="one or more judged baseline runs")
     ap.add_argument("--out", required=True, help="the Markdown file to write")
     args = ap.parse_args(argv)
-    text = build(load_run(args.candidate), [load_run(p) for p in args.baseline])
+    candidates, baselines = [load_run(p) for p in args.candidate], [load_run(p) for p in args.baseline]
+    text = build(candidates[0], baselines) if len(candidates) == 1 else build_many(candidates, baselines)
     Path(args.out).write_text(text, encoding="utf-8", newline="\n")
     print(f"wrote {args.out}")
     return 0
