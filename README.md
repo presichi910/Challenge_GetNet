@@ -77,7 +77,7 @@ curl -s -X POST http://localhost:8000/chat \
 
 `scripts/` is a development helper and is **not** in the Docker image, so run it from your checkout (`pip install -r requirements-dev.txt`).
 
-Without Docker for the API (Keycloak still comes from compose: `docker compose up -d keycloak`):
+Without Docker for the API (Keycloak still comes from compose: `docker compose up -d keycloak`). In your `.env`, uncomment `JWKS_URL` and `OPERATOR_JWKS_URL`: they are commented out in `.env.example` because inside Docker compose supplies the service-name URLs (`http://keycloak:8080/...`), and `localhost:8180` there would be the API container itself.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
