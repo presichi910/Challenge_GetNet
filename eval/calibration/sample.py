@@ -7,7 +7,7 @@
 The sample is chosen BEFORE any judge note exists, and from the DATASET ALONE (case ids and their kind): it cannot depend on how the judge scored
 anything, so it cannot be tilted toward the cases where the judge is wrong (or right). It is STRATIFIED, with a fixed seed, so anyone reproduces it:
 
-    4 blind holdout   (ho06 and later: written before any prompt fix) = ho06 and ho12 ALWAYS, plus 2 drawn from the other 6
+    4 new holdout     (ho06 and later; ho06, ho08 and ho12 are baseline seen) = ho06 and ho12 ALWAYS, plus 2 drawn from the other 6
     6 regular with tools (single-turn: the answers whose groundedness the judge can check against tool output)
     3 regular multi-turn (m01-m08: they exercise memory)
     2 regular other   (single-turn without tools: refusals, handoffs, injection)

@@ -55,8 +55,8 @@ def test_repeats_spreads_the_two_holdouts_apart():
     assert agg["holdout_original"]["routing_accuracy"]["mean"] == 1.0
     assert agg["holdout_blind"]["routing_accuracy"]["mean"] == 0.0
     text = render(agg, "stamp")
-    assert text.index("## Holdout - original (ho01-ho05), seen during development") < text.index("## Holdout - new blind (ho06 and later)")
-    assert "| ho02_a (holdout, original) | 2/2 | 0 |" in text and "| ho07_b (holdout, blind) | 0/2 | 0 |" in text
+    assert text.index("## Holdout - original (ho01-ho05), seen during development") < text.index("## Holdout - new (ho06 and later; ho06, ho08 and ho12 are baseline seen)")
+    assert "| ho02_a (holdout, original) | 2/2 | 0 |" in text and "| ho07_b (holdout, new) | 0/2 | 0 |" in text
 
 
 def test_run_repeats_writes_one_report_per_run_and_only_the_first_may_become_latest(tmp_path, monkeypatch):

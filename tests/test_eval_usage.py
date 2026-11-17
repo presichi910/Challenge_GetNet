@@ -85,16 +85,16 @@ def test_holdout_cases_are_summarized_apart_and_never_mixed_into_the_main_metric
     text = render_report(rows, s, "stamp")
     assert "## Holdout - original (ho01-ho05), seen during development" in text and "| ho1 (holdout, original) |" in text
     held = [c for c in load_cases(None) if c.get("holdout")]
-    # ho01-ho05: the original holdout, seen during development; ho06-ho13: the blind one, added before the prompt fixes
+    # ho01-ho05: the original holdout, seen during development; ho06-ho13: the new one, added before the prompt fixes
     assert [c["id"][:4] for c in held] == [f"ho{i:02d}" for i in range(1, 14)]
 
 
-def test_the_original_and_the_new_blind_holdout_are_reported_apart_and_the_group_comes_from_the_id():
+def test_the_original_and_the_new_holdout_are_reported_apart_and_the_group_comes_from_the_id():
     from eval.run_eval import holdout_group, summarize_all
 
     assert [holdout_group(i) for i in ("ho01_get_tap", "ho05_out_of_scope_poem", "ho06_kb_gap", "ho13_printer")] == \
         ["original", "original", "blind", "blind"]
-    assert holdout_group("ho1") == "original" and holdout_group("h") == "original"  # blindness is never assumed
+    assert holdout_group("ho1") == "original" and holdout_group("h") == "original"  # the new group is never assumed
     ok = {"routing_ok": True, "tools_ok": True, "latency_ms": 10, "handoff_ok": True}
     rows = [{**ok, "id": "q1"},
             {**ok, "id": "ho02_a", "holdout": True},
@@ -107,8 +107,8 @@ def test_the_original_and_the_new_blind_holdout_are_reported_apart_and_the_group
     assert s["holdout_groups"]["blind"]["cases"] == 1 and s["holdout_groups"]["blind"]["routing_accuracy"] == 0.0
     text = render_report(rows, s, "stamp")
     assert text.index("## Holdout - original (ho01-ho05), seen during development") < \
-        text.index("## Holdout - new blind (ho06 and later), written before any prompt fix")
-    assert "| ho02_a (holdout, original) |" in text and "| ho07_c (holdout, blind) |" in text
+        text.index("## Holdout - new (ho06 and later; ho06, ho08 and ho12 are baseline seen)")
+    assert "| ho02_a (holdout, original) |" in text and "| ho07_c (holdout, new) |" in text
     only_new = summarize_all([{**ok, "id": "ho09_x", "holdout": True}])
     assert list(only_new["holdout_groups"]) == ["blind"]  # a group with no cases is not invented
 

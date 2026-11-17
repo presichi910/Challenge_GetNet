@@ -80,7 +80,7 @@ def aggregate(runs: list[list[dict]], summaries: list[dict]) -> dict:
     always_fail = [c for c, v in cases.items() if v["ran"] and v["passed"] == 0]
     return {"runs": len(runs), "regular": spread(summaries),
             "holdout": spread([s["holdout"] for s in summaries if s.get("holdout")]),
-            # the original holdout (seen during development) and the new blind one, never averaged together
+            # the original holdout (seen during development) and the new one (key name kept: saved summaries use it), never averaged together
             "holdout_original": spread([s["holdout_groups"]["original"] for s in summaries
                                         if s.get("holdout_groups", {}).get("original")]),
             "holdout_blind": spread([s["holdout_groups"]["blind"] for s in summaries
@@ -120,7 +120,7 @@ def render(agg: dict, stamp: str, models: dict | None = None, sources: list[str]
               "is left out of passed / ran: not a pass, not a fail).", ""]
     sections = [("Regular cases", "regular"),
                 ("Holdout - original (ho01-ho05), seen during development", "holdout_original"),
-                ("Holdout - new blind (ho06 and later)", "holdout_blind")]
+                ("Holdout - new (ho06 and later; ho06, ho08 and ho12 are baseline seen)", "holdout_blind")]
     if not (agg.get("holdout_original") or agg.get("holdout_blind")):
         sections.append(("Holdout cases", "holdout"))  # summaries without groups
     for title, key in sections:
@@ -138,9 +138,9 @@ def render(agg: dict, stamp: str, models: dict | None = None, sources: list[str]
               "_Pass = routing OK, tools OK, handoff not failed and judge pass._", "",
               "| case | passed / ran | provider errors | not scored yet |", "|---|---|---|---|"]
     for cid, v in agg["cases"].items():
-        from eval.run_eval import holdout_group  # lazy: run_eval imports this module only inside run_repeats
+        from eval.run_eval import HOLDOUT_MARK, holdout_group  # lazy: run_eval imports this module only inside run_repeats
 
-        mark = f" (holdout, {holdout_group(cid)})" if v["holdout"] else ""
+        mark = f" (holdout, {HOLDOUT_MARK[holdout_group(cid)]})" if v["holdout"] else ""
         lines.append(f"| {cid}{mark} | {v['passed']}/{v['ran']} | {v['provider_errors']} | {v.get('pending', 0)} |")
     lines += ["", "**Unstable (pass in some runs, not all):** " + (", ".join(agg["unstable"]) or "none"),
               "", "**Fail in every run:** " + (", ".join(agg["always_fail"]) or "none"), ""]

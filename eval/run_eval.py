@@ -14,7 +14,7 @@ Per case: routing check, tool check, handoff check, and the LLM judge (relevance
 groundedness, completeness, tone, 1-5). Also latency p50/p95, degraded rate, and the tokens and
 estimated cost of every case (agents and judge, per model; app/observability.py prices).
 
-Holdout cases ("holdout": true in the dataset) are written blind and are never used to tune a prompt.
+Holdout cases ("holdout": true in the dataset) are never used to tune a prompt (ho06, ho08 and ho12 are "baseline seen": see docs/FINAL_REPORT.md, section 7).
 They run with the rest but are summarized apart ("Holdout" section), so the main metrics stay comparable
 with earlier reports and the holdout shows how the system does on cases nobody tuned it for.
 
@@ -141,14 +141,16 @@ def split_holdout(rows: list[dict]) -> tuple[list[dict], list[dict]]:
     return [r for r in rows if not r.get("holdout")], [r for r in rows if r.get("holdout")]
 
 
-HOLDOUT_ORIGINAL_LAST = 5  # ho01-ho05 were seen during development; ho06 and later were written blind afterwards
+HOLDOUT_ORIGINAL_LAST = 5  # ho01-ho05 were seen during development; ho06 and later are the new holdout (ho06, ho08 and ho12 are baseline seen)
 HOLDOUT_GROUPS = {"original": "original (ho01-ho05), seen during development",
-                  "blind": "new blind (ho06 and later), written before any prompt fix"}
+                  "blind": "new (ho06 and later; ho06, ho08 and ho12 are baseline seen)"}
+# What the per-case marks say. The key "blind" is the historical name of the new holdout group: saved summaries and the final report read it, so only the text changed.
+HOLDOUT_MARK = {"original": "original", "blind": "new"}
 
 
 def holdout_group(case_id: str) -> str:
-    """"blind" only for ids ho06 and later; every other holdout id counts as "original" (never claim blindness
-    that the id does not show). Derived from the id, so no case in the dataset has to change."""
+    """The group "blind" (the new holdout, historical key) only for ids ho06 and later; every other holdout id counts as "original" (the new
+    group is never assumed). Derived from the id, so no case in the dataset has to change."""
     m = re.match(r"ho(\d+)", case_id)
     return "blind" if m and int(m.group(1)) > HOLDOUT_ORIGINAL_LAST else "original"
 
@@ -452,7 +454,7 @@ def render_report(rows: list[dict], summary: dict, stamp: str, models: dict | No
         j = r.get("judge", {})
         u = r.get("usage") or {}
         h_ok = {True: "OK", False: "FAIL", None: "-"}[r.get("handoff_ok")]
-        lines.append(f"| {r['id']}{' (holdout, ' + holdout_group(r['id']) + ')' if r.get('holdout') else ''} | {'OK' if r['routing_ok'] else 'FAIL'} {r.get('plan', '')} | {'OK' if r['tools_ok'] else 'FAIL'} "
+        lines.append(f"| {r['id']}{' (holdout, ' + HOLDOUT_MARK[holdout_group(r['id'])] + ')' if r.get('holdout') else ''} | {'OK' if r['routing_ok'] else 'FAIL'} {r.get('plan', '')} | {'OK' if r['tools_ok'] else 'FAIL'} "
                      f"| {h_ok} {r.get('handoff') or ''} | {_score_pct(j.get('relevance'))} | {_score_pct(j.get('groundedness'))} "
                      f"| {_score_pct(j.get('completeness'))} | {_score_pct(j.get('tone'))} "
                      f"| {j.get('verdict', '-')} | {r['latency_ms']} | {u.get('total_tokens', '-')} "
