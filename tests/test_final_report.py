@@ -18,10 +18,18 @@ def outside_blocks(text: str) -> str:
     return text
 
 
-def test_the_three_generated_blocks_exist_once_each_and_start_empty():
+def test_the_three_generated_blocks_have_one_pair_of_markers_each_and_filling_one_replaces_only_what_is_between_them():
+    """True of the draft and of the filled report alike: what is inside the blocks is not this test's business, only where the blocks are."""
     for name in BLOCKS:
-        assert TEXT.count(f"<!-- {name}:start -->") == TEXT.count(f"<!-- {name}:end -->") == 1
-        assert re.search(rf"<!-- {name}:start -->\s*_Not generated yet._\s*<!-- {name}:end -->", TEXT), f"the {name} block is not in its initial state"
+        start, end = f"<!-- {name}:start -->", f"<!-- {name}:end -->"
+        assert TEXT.count(start) == TEXT.count(end) == 1, f"the {name} block must have exactly one start and one end marker"
+        assert TEXT.index(start) < TEXT.index(end)
+        filled = fill(TEXT, name, "SENTINEL BODY")
+        assert filled.count(start) == filled.count(end) == 1
+        between = filled[filled.index(start) + len(start):filled.index(end)]
+        assert between.strip() == "SENTINEL BODY"
+        assert filled[:filled.index(start)] == TEXT[:TEXT.index(start)]  # everything before the block is byte for byte the same
+        assert filled[filled.index(end):] == TEXT[TEXT.index(end):]  # and everything after it
 
 
 def test_no_judged_rate_is_typed_by_hand_outside_the_generated_blocks():
