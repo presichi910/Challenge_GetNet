@@ -6,32 +6,41 @@ A multi-agent assistant for Getnet customers. A router reads each message and de
 
 Demo video: https://youtu.be/bnBYBmf2AlQ
 
-**Docs:** [SPEC](docs/SPEC.md) (requirements and the test or eval case that checks each one) · [Challenge statement](docs/CHALLENGE.md)
+**Docs:** [SPEC](docs/SPEC.md) (requirements and the test or eval case that checks each one) · [Final evaluation report](docs/FINAL_REPORT.md) (a draft: what was run, the numbers, the disclosures) · [Challenge statement](docs/CHALLENGE.md)
 
 ## How it works
 
 ```mermaid
 flowchart TD
     U[User] --> API[API /chat]
-    API --> R[Router]
+    API --> M[Summarize history]
+    M --> R[Router]
     R --> S[Support agent]
     R --> K[Knowledge agent]
     S --> K
-    S --> Y[Synthesizer]
+    R -->|no agent needed| Y[Synthesizer]
+    S --> Y
     K --> Y
     R -->|asks for a human| H[Human handoff]
     S -->|can't resolve| H
     K -->|can't resolve| H
-    Y --> A[Answer]
+    Y --> O[Observe]
+    O -.->|add_support, REPLAN_MAX 2| S
+    O -->|nothing backed, REPLAN_MAX 2| H
+    O --> V[Verify]
+    V -->|ticket proposed| P[Request approval]
+    V --> A[Answer]
+    P --> A
     H --> A
 ```
+
+The dotted edge is drawn as a loop to the support agent, but `observe` calls that node itself and merges the answers with the synthesizer's own merge prompt; it is not a LangGraph edge. `observe` and the `add_support` action do nothing with the default `REPLAN_MAX=0`; `request_approval` exists only in the API and only while `APPROVAL_REQUIRED_CATEGORIES` is not empty; the eval runs without it.
 
 1. The router picks the agents (`support`, `knowledge`, both, or none) and detects the language. If both are needed, support goes first so knowledge can use what it found.
 2. Each agent uses tools. Support reads account data; knowledge searches the Getnet knowledge base (Chroma) or the web (Tavily).
 3. The synthesizer builds the final reply: no agent ran → answers directly, one → passes it through, two → merges them.
 4. If the user asks for a person, or nobody could resolve the request, the handoff node opens a ticket, queues the case for the operators and tells the user.
-
-5. After the synthesizer, two steps look at the answer before it is sent. **`observe`** (off by default, `REPLAN_MAX`) audits it against the evidence; if some claims have no support it first searches the knowledge base once more with those claims grouped (one Voyage call), checks again against the new passages, and deletes only what is still unsupported; with `REPLAN_MAX=2` it also offers a ticket when no actionable step is left, or sends the case to a human when nothing in the answer is backed. **`verify`** deletes the unsupported claims (if `observe` did not), makes the answer match the customer's language, and replaces an answer that repeats the system prompt (10+ consecutive words) with a short refusal. What `observe` did is in `routing.replans` of the response.
+5. After the synthesizer, two steps look at the answer before it is sent. **`observe`** (off by default, `REPLAN_MAX=0`) audits it against the evidence; if some claims have no support it first searches the knowledge base once more with those claims grouped (one Voyage call), checks again against the new passages, and deletes only what is still unsupported. With `REPLAN_MAX=2` it takes one more action, the first that applies: **`add_support`** (the router sent only the knowledge agent and an unsupported claim is about the customer's own account: the support agent runs with the authenticated user id, the two answers are merged and the merge is audited again), or else it offers a ticket when no actionable step is left, or sends the case to a human when nothing in the answer is backed. If `add_support` fails, the turn falls back to the ticket offer or the escalation. **`verify`** deletes the unsupported claims (if `observe` did not), makes the answer match the customer's language, and replaces an answer that repeats the system prompt (10+ consecutive words) with a short refusal. What `observe` did is in `routing.replans` of the response.
 
 The response also lists which agents ran, the tools they called, the sources and the token usage, so it is easy to debug.
 
@@ -106,6 +115,8 @@ Everything comes from `.env` (see [.env.example](.env.example), every variable i
 | `METRICS_TOKEN` | Bearer token for `GET /metrics` (Prometheus). Empty = the endpoint does not exist | empty |
 | `OTLP_ENDPOINT` | Where to send one trace per turn (OTLP/gRPC, e.g. `http://jaeger:4317`). Empty = no traces | empty |
 | `RAG_MODE` | How the knowledge base is searched: `dense`, `hybrid` (+ BM25, RRF) or `hybrid_rerank` (+ Voyage reranker). See Results | `dense` |
+| `REPLAN_MAX` | What the `observe` step may do about unsupported claims. `0` = nothing (the graph as it was); `1` = one more knowledge-base search before deleting; `2` or more = also `add_support`, a ticket offer or an escalation (one action per turn; a larger value behaves like 2). Measured, not adopted: see `docs/FINAL_REPORT.md`, section 4 | `0` |
+| `VERIFIER_MODE` | How the `verify` step lists the claims to check: `statements` (the model lists them, the code checks each quote) or `segments` (the code splits the answer and the model answers for every segment; evaluated and not adopted, see below) | `statements` |
 
 The `.env.example` setting for Support is deliberate: on a declined payment the 20b often skips `get_recent_transactions` and blames the terminal, while the 120b calls it every time. Groq's free tier limits tokens per model (gpt-oss: 8K per minute, 200K per day), so roles that share a model share one quota; that is why the light roles run on a different model than Knowledge.
 
@@ -290,7 +301,7 @@ Every `/chat` turn is measured without touching a prompt or a node: `ChatService
   curl -s -H "Authorization: Bearer $OP" "localhost:8000/operator/metrics?since=2026-11-12T00:00:00"
   ```
 - **Logs and alerts.** One log line per request, ending with `tokens=<n> cost_usd=<usd>`. A turn above `MAX_TURN_TOKENS` (30000) or `MAX_TURN_COST_USD` (0.02), or one that got a 429 from the provider, logs a `WARNING` starting with `ALERT`, ready for a log-based alert rule.
-- **Not included.** Visual dashboards, OpenTelemetry/Langfuse export and alert delivery. The metrics come from one SQLite file, fine for one worker.
+- **Not included.** Alert delivery (the rules are not wired to Alertmanager) and Langfuse (traces go out over OTLP, see above). The numbers of `GET /operator/metrics` come from one SQLite file, fine for one worker, and the Prometheus series are per process.
 
 ## Tests and evaluation
 
@@ -311,7 +322,7 @@ The tests cover tools, router, ingestion, the API, authentication (valid, expire
 - **Multi-turn cases run on the real memory.** The earlier turns are written INTO the conversation thread of a real SQLite checkpointer (a temporary folder; no model calls, so every run starts from the same conversation), the checkpointer and the graph are **closed and reopened** (a restart), and only then is the last message answered (`eval/persistent.py`; `--inject-history` is the old way). Two deterministic checks per case, `memory_ok` and the summary's `memory_accuracy`: the reopened thread holds exactly the turns that were written, and after the answer it holds them plus the new exchange. The eval also turns provider failover off (`FALLBACK_PROVIDER`) so a report is measured on one provider, and runs with ticket approval off (tickets open at once), so it does not exercise the approval path (the tests do).
 - **V2 re-scored with the current judge (19 of 27 rows; done, `eval/calibration/V2_RESCORE_REPORT.md`).** `python -m eval.calibration.v2_rescore prepare` fixed the rows (`random.Random(20261116).sample` over the 27 ids alone, seed written down before anything ran) and `... report` puts the old judge, the current judge and the human side by side on the SAME rows, each with its n. On those 19 rows both judges give the same number of passes, so in that subset the current judge is **not** stricter; n = 19, so a difference under about 20 points cannot be told apart. The subset is atypical: by chance (about 6 draws in 100) it holds all 7 rows on which the old judge and the human disagreed, and the seed was not changed after seeing that. **V2 is the sheet the judge was adjusted on, so its agreement is not an independent measure** (V3 is, with 15 rows), and none of this shows that the judge is validated.
 - **Which rows a human labels.** The 15 rows for the judge's agreement (kappa) are fixed BEFORE any judge note exists, from the dataset alone, stratified with a fixed seed (`python -m eval.calibration.sample`, manifest in `eval/calibration/sample_v3.json`): 4 new holdout (ho06 and ho12 always, both "baseline seen", plus 2 drawn), 6 regular with tools, 3 multi-turn, 2 regular other. The sample never reads a key or a judge note.
-- **A run says how it was configured.** Every report and JSON carries `replan_max`, `rag_mode`, `verifier_mode` and, if given, a `label`. The main run has `replan_max=0`; the branch `--replan-max 2 --label "replan on"` is saved apart, never scored, and `python -m eval.replan_stats --off ... --on ...` summarizes how often the observe step fired, its latency and cost and what it escalated.
+- **A run says how it was configured.** Every report and JSON carries `replan_max`, `rag_mode`, `verifier_mode` and, if given, a `label`. The main run has `replan_max=0`; the branches `--replan-max 2 --label "replan on"` (40 cases x 2, run before `add_support` existed) and `--replan-max 2 --label "replan on add_support"` (the 27 regular cases x 3) are saved apart, not scored by the judge (the scoring of repetition 1 of the second one is pending), and `python -m eval.replan_stats --off ... --on ...` summarizes how often the observe step fired, its latency and cost and what it escalated.
 - **The results table below is generated** (`python -m eval.results_block A.judged.json ... --readme README.md`), from the saved runs, and every judge-based rate states the number of rows the judge scored (a partial scoring never passes for a full one; a row not scored yet is never a pass). `python -m eval.judge_budget --deadline "YYYY-MM-DD HH:MM"` computes from the token ledger when the judge's window frees and how many rows it can still score.
 - **Agents first, judge later.** `python -m eval.run_eval --repeats 5 --no-judge` runs the agents with no judge tokens (the 40 cases take ~6 min per repetition); `python -m eval.rejudge A.json B.json ...` then scores the saved rows, repetition 1 completely, then 2, and so on, into `A.judged.json` (the input is never touched), saving after every row and resuming where it stopped. `eval/judge_budget.py` keeps the judge inside a daily token budget from outside `eval/judge.py` (Groq's free tier at first; `--daily-limit` moves the line when the account's limit changes): it paces calls under the 8,000 tokens a minute, waits out a per-minute 429, retries an unparseable answer a few times (an error is counted apart, never a fail) and **stops before** the 200,000-tokens-a-rolling-day cap, using a ledger of every call's tokens on disk (`eval/reports/judge_ledger.json`, shared with the replan measurement). Measured: a judge call costs ~3.1K tokens on the saved drafts, not the ~1.9K first estimated, so a full 40-case repetition is ~100-125K and the free tier fitted about one and a half repetitions a day. That is why the five repetitions were scored over several sessions, finished after a paid reset of the daily limit on 2026-11-16, after the API key was replaced (see docs/FINAL_REPORT.md, section 7, item 1; `--daily-limit 391000`); two `ho02` rows stayed judge errors (a per-minute request-size limit, not the daily one). Details: `docs/FINAL_REPORT.md`, section 7, item 1.
 - **Repeats.** `python -m eval.run_eval --repeats 3` runs the cases N times and writes `REPEATS-<stamp>.md`: mean/min/max of every metric, passes per case and unstable cases (`python -m eval.repeats a.json b.json ...` does the same with saved reports).
@@ -425,8 +436,8 @@ These are single full runs plus three repeats, and the judge is not ground truth
 
 - Customer data is fake. Auth is RS256 against a Keycloak in dev mode (in-memory database, password grant for the demo users): a real deployment needs the company's identity provider, refresh-token handling, and a rate-limit store shared by several workers (it lives in the API process today; the API runs ONE worker).
 - Memory is persistent but **not encrypted at rest**, and assumes one uvicorn worker.
-- The handoff queue has an API but no operator UI and no notification when a case arrives, so "a human will follow up" is only as true as somebody polling `/operator/handoffs`. A real setup needs Slack/Teams/helpdesk behind `HandoffNotifier`. There is no way to hand a claimed case straight to a named operator (release it and let them claim it).
-- Not done: guardrails, visual dashboards, OpenTelemetry/Langfuse export and alert delivery.
+- The handoff queue has an API but no operator UI. A new case, a ticket request waiting for approval and a handoff past its SLA are pushed through the signed webhook when `WEBHOOK_URL` is set (see "Telling the operators, and the SLA"); without it, "a human will follow up" is only as true as somebody polling `/operator/handoffs`. The receiver's acknowledgement is not tracked and there is no second escalation level. There is no way to hand a claimed case straight to a named operator (release it and let them claim it).
+- Not done: guardrail classifiers (the only guard is the prompt-leak check), alert delivery (Alertmanager), Langfuse, and a look at the Grafana dashboard under live traffic.
 - The knowledge base is only as good as the crawl. There is little troubleshooting content, so those answers are generic; adding help-center URLs to `app/rag/sources.py` would help most.
 - Retrieval ranks the page that answers first in only a third of the questions (hit@1 0.33): contract and manual PDF chunks outrank product pages.
 
@@ -447,16 +458,20 @@ These are single full runs plus three repeats, and the judge is not ground truth
 
 ```
 app/
-  main.py auth.py service.py graph.py handoff.py handoff_store.py memory.py observability.py
-  state.py prompts.py schemas.py config.py llm.py
-  agents/   router, knowledge, support, synthesizer, summarizer
+  main.py service.py graph.py state.py config.py llm.py prompts.py schemas.py lang.py guard.py segments.py
+  auth.py jwks.py ratelimit.py revocation.py          # RS256 + JWKS, rate limit per sub, jti denylist
+  handoff.py handoff_store.py approvals.py webhook.py # handoff queue, ticket approval (interrupt), operator webhook
+  memory.py observability.py telemetry.py             # checkpointer, per-turn trace store, /metrics and OTLP
+  agents/   router, knowledge, support, synthesizer, summarizer, observe, verifier, common
   tools/    customer_tools, knowledge_tools, handoff_tools
-  rag/      sources, ingest, store
+  rag/      sources, ingest, store, hybrid, cache
   data/     customers.json, repository.py
-eval/       dataset.jsonl, retrieval.jsonl, run_eval.py, run_retrieval.py, repeats.py, judge.py,
-            calibration/, reports/
-scripts/    issue_token.py (asks Keycloak for a demo token; not in the Docker image)
-infra/      keycloak/ (the two demo realms, merchants and operators)
+eval/       dataset.jsonl, retrieval.jsonl, run_eval.py, run_retrieval.py, repeats.py, judge.py, rejudge.py,
+            judge_budget.py, results_block.py, same_behavior.py, replan_ab.py, replan_stats.py, verifier_ab.py,
+            persistent.py, provenance.py, addsupport_capture.py, calibration/, reports/
+scripts/    issue_token.py (asks Keycloak for a demo token), lock_deps.py (regenerates constraints.txt); not in the Docker image
+infra/      keycloak/ (the two demo realms), observability/ (Prometheus, alert rules and their tests, Grafana)
 tests/
-docs/       SPEC.md, CHALLENGE.md
+docs/       SPEC.md, FINAL_REPORT.md, CHALLENGE.md
+Dockerfile  docker-compose.yml  constraints.txt  requirements.txt  requirements-dev.txt
 ```
