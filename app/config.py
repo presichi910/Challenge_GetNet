@@ -136,7 +136,9 @@ class Settings(BaseSettings):
 
     # how many times the observe step may change course after the answer is written (app/agents/observe.py):
     # 0 = never (the graph is what it was), 1 = retry the knowledge base once with the unsupported claims,
-    # 2 = also offer a ticket or escalate when nothing actionable is left. Off by default until it is measured.
+    # 2 = ONE more action: add the support agent when the router sent only knowledge and an unsupported claim is about the customer's
+    # account, otherwise offer a ticket or escalate when nothing actionable is left. Any value above 2 behaves exactly like 2.
+    # Off by default until it is measured.
     replan_max: int = 0
 
     # observability (app/telemetry.py). /metrics exists only with a token (Prometheus sends it as a bearer); traces go out only with an OTLP endpoint

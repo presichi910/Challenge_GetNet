@@ -99,9 +99,10 @@ def build_default_graph(checkpointer=None, handoff_notifier=None, keep_verify_ra
 
     repo = repo or CustomerRepository(tickets_file=get_settings().tickets_file, dedup_window_s=get_settings().ticket_dedup_window_s)  # shared, so handoff tickets show up for Support
     categories = get_settings().approval_categories if approvals is not None else frozenset()
-    return build_graph(make_router_node(), make_knowledge_node(), make_support_node(repo=repo, approval_categories=categories),
-                       make_synthesizer_node(), make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
+    support, synthesizer = make_support_node(repo=repo, approval_categories=categories), make_synthesizer_node()
+    return build_graph(make_router_node(), make_knowledge_node(), support,
+                       synthesizer, make_handoff_node(repo=repo, notifier=handoff_notifier), checkpointer=checkpointer,
                        summarizer=make_summarizer_node(), verify=verify_node or make_verify_node(keep_raw=keep_verify_raw),
-                       observe=observe_node or make_observe_node(keep_raw=keep_verify_raw),
+                       observe=observe_node or make_observe_node(keep_raw=keep_verify_raw, support_fn=support, synth_fn=synthesizer),
                        request_approval=(make_request_approval_node(approvals, get_settings().approval_ttl_minutes * 60, on_approval_created)
                                          if approvals is not None else None))
