@@ -25,8 +25,8 @@ flowchart TD
     S -->|can't resolve| H
     K -->|can't resolve| H
     Y --> O[Observe]
-    O -.->|add_support, REPLAN_MAX 2| S
-    O -->|nothing backed, REPLAN_MAX 2| H
+    O -.->|add_support| S
+    O -->|nothing backed| H
     O --> V[Verify]
     V -->|ticket proposed| P[Request approval]
     V --> A[Answer]
@@ -34,7 +34,7 @@ flowchart TD
     H --> A
 ```
 
-The dotted edge is drawn as a loop to the support agent, but `observe` calls that node itself and merges the answers with the synthesizer's own merge prompt; it is not a LangGraph edge. `observe` and the `add_support` action do nothing with the default `REPLAN_MAX=0`; `request_approval` exists only in the API and only while `APPROVAL_REQUIRED_CATEGORIES` is not empty; the eval runs without it.
+The dotted `add_support` edge is drawn as a loop to the support agent, but `observe` calls that node itself and merges the answers with the synthesizer's own merge prompt; it is not a LangGraph edge. Both edges that leave `observe` for the support agent or for the human only exist with `REPLAN_MAX=2` (any larger value behaves like 2): `add_support` acts when the router sent only the knowledge agent and an unsupported claim is about the customer's own account, and the `nothing backed` edge sends the case to a human when no claim of the answer is backed by the evidence and the answer had steps. With the default `REPLAN_MAX=0` `observe` does nothing, and with `REPLAN_MAX=1` it only retries the knowledge base once; `request_approval` exists only in the API and only while `APPROVAL_REQUIRED_CATEGORIES` is not empty; the eval runs without it.
 
 1. The router picks the agents (`support`, `knowledge`, both, or none) and detects the language. If both are needed, support goes first so knowledge can use what it found.
 2. Each agent uses tools. Support reads account data; knowledge searches the Getnet knowledge base (Chroma) or the web (Tavily).
@@ -306,7 +306,7 @@ Every `/chat` turn is measured without touching a prompt or a node: `ChatService
 ## Tests and evaluation
 
 ```bash
-pytest -q                            # 943 pass, 4 skipped here; in a clean checkout (what CI runs) 942 pass, 5 skipped. No network or keys needed (also: pytest -m "not eval")
+pytest -q                            # No network or keys needed (also: pytest -m "not eval"). At the time of this submission, the CI test job reports 1260 passed and 4 skipped; the 4 skipped need a running Keycloak (RUN_KEYCLOAK_TESTS=1, tests/test_keycloak_live.py)
 docker compose run --rm eval         # full evaluation (needs keys + knowledge base)
 python -m eval.run_eval --only q05   # just some cases
 ```
