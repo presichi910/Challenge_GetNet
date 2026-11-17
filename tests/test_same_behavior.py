@@ -6,8 +6,15 @@ from eval.same_behavior import compare, main, render
 FINAL_COMMIT, SMOKE_COMMIT = "a" * 40, "b" * 40
 
 
-def row(i, routing=True, tools=True, handoff=None, memory=None):
-    return {"id": i, "routing_ok": routing, "tools_ok": tools, "handoff_ok": handoff, "memory_ok": memory}
+def row(i, routing=True, tools=True, handoff=None, memory=None, plan=None, calls=None, replans=None, **more):
+    r = {"id": i, "routing_ok": routing, "tools_ok": tools, "handoff_ok": handoff, "memory_ok": memory, **more}
+    if plan is not None:
+        r["plan"] = plan
+    if calls is not None:  # the agents that made tool calls, as the eval's tool_calls rows carry them
+        r["tool_calls"] = [{"agent": a, "name": "t", "args": {}} for a in calls]
+    if replans is not None:
+        r["replans"] = replans
+    return r
 
 
 def run(rows, commit, clean=True):
@@ -61,4 +68,85 @@ def test_the_exit_code_is_non_zero_when_something_changed(tmp_path):
     f, s = tmp_path / "f.json", tmp_path / "s.json"
     f.write_text(json.dumps(run([row("q01")], FINAL_COMMIT)), encoding="utf-8")
     s.write_text(json.dumps(run([row("q01", tools=False)], SMOKE_COMMIT)), encoding="utf-8")
+    assert main(["--final", str(f), "--smoke", str(s)]) == 1
+
+
+# ---------- identity with REPLAN_MAX=0 ----------
+
+def agent_rows(**over):
+    base = {"q01": row("q01", plan=["knowledge"], calls=["knowledge"], replans=[]),
+            "q02": row("q02", plan=["support"], calls=["support"], replans=[]),
+            "h01": row("h01", plan=[], calls=[], replans=[])}
+    base.update(over)
+    return list(base.values())
+
+
+def identity_runs():
+    return [run(agent_rows(), FINAL_COMMIT) for _ in range(3)]
+
+
+def test_identity_passes_when_no_row_has_replans_and_every_case_used_the_agents_the_final_run_showed():
+    res = compare(identity_runs(), run(agent_rows(), SMOKE_COMMIT))
+    assert res["identical"] is True and res["identity"]["replans"]["pass"] and res["identity"]["agents"]["pass"]
+    text = render(res, ["f.json"], "s.json")
+    assert "(a) no replans in any row: PASS" in text and "agents of each case among the sets seen in the final repetitions: PASS" in text
+    assert "IDENTICAL" in text and "NOT IDENTICAL" not in text
+
+
+def test_identity_fails_with_a_row_that_has_replans_and_names_it():
+    smoke = run(agent_rows(q01=row("q01", plan=["knowledge"], calls=["knowledge", "observe"], replans=["retry_kb: 1 unsupported -> 1 passages -> 0 still unsupported"])), SMOKE_COMMIT)
+    res = compare(identity_runs(), smoke)
+    assert res["identical"] is False and res["identity"]["replans"]["failing"] == ["q01"]
+    text = render(res, ["f.json"], "s.json")
+    assert "(a) no replans in any row: **FAIL**" in text and "Rows with replans: q01" in text and "NOT IDENTICAL" in text
+
+
+def test_identity_fails_when_a_case_used_agents_no_final_repetition_showed_for_it():
+    added = row("q01", plan=["knowledge"], calls=["knowledge", "support"], replans=[])  # the router chose knowledge; support was added later
+    res = compare(identity_runs(), run(agent_rows(q01=added), SMOKE_COMMIT))
+    assert res["identical"] is False and res["identity"]["replans"]["pass"] is True and res["identity"]["agents"]["pass"] is False
+    assert [f[0] for f in res["identity"]["agents"]["failing"]] == ["q01"]
+    text = render(res, ["f.json"], "s.json")
+    assert "(b) agents of each case among the sets seen in the final repetitions: **FAIL**" in text and "q01 used ['knowledge', 'support']" in text
+
+
+def test_the_agent_set_must_match_a_set_seen_for_that_case_not_just_use_agents_seen_somewhere_for_it():
+    knowledge_once = row("q01", plan=["knowledge"], calls=["knowledge"], replans=[])
+    support_once = row("q01", plan=["support"], calls=["support"], replans=[])
+    finals = [run([knowledge_once], FINAL_COMMIT), run([support_once], FINAL_COMMIT)]
+    for seen_set in (knowledge_once, support_once):  # either of the two sets the repetitions showed is fine
+        assert compare(finals, run([seen_set], SMOKE_COMMIT))["identical"] is True
+    both = row("q01", plan=["knowledge"], calls=["knowledge", "support"], replans=[])  # inside the UNION of the agents, but a set nobody showed
+    assert compare(finals, run([both], SMOKE_COMMIT))["identity"]["agents"]["pass"] is False
+
+
+def test_the_retry_search_of_the_observe_step_is_not_an_agent():
+    assert compare(identity_runs(), run(agent_rows(q01=row("q01", plan=["knowledge"], calls=["knowledge", "observe"], replans=[])), SMOKE_COMMIT))["identity"]["agents"]["pass"] is True
+
+
+def test_rows_with_a_provider_error_and_cases_the_final_never_ran_are_not_compared_and_are_listed():
+    smoke = run(agent_rows(q02=row("q02", provider_error="503"), new=row("new", plan=["support"], calls=["support"], replans=[])), SMOKE_COMMIT)
+    res = compare(identity_runs(), smoke)
+    assert res["identical"] is True and res["identity"]["skipped_errors"] == 1 and res["identity"]["agents"]["not_compared"] == ["new"]
+    assert "not compared (no final repetition ran them): new" in render(res, ["f.json"], "s.json")
+
+
+def test_a_candidate_that_ran_with_replan_max_above_zero_is_not_judged_on_identity():
+    smoke = {"summary": {"commit": SMOKE_COMMIT, "tree_clean": True, "replan_max": 2},
+             "rows": agent_rows(q01=row("q01", plan=["knowledge"], calls=["knowledge", "support"], replans=["add_support: 1 unsupported"]))}
+    res = compare(identity_runs(), smoke)
+    assert res["identity"]["applies"] is False and res["identical"] is True
+    assert "NOT APPLICABLE" in render(res, ["f.json"], "s.json")
+
+
+def test_rows_without_the_fields_pass_the_identity_check_so_the_older_runs_still_compare(tmp_path):
+    res = compare(final_runs(), run([row("q01"), row("q02"), row("h01", handoff=True), row("m01", memory=True)], SMOKE_COMMIT))
+    assert res["identical"] is True and res["unchanged"] is True  # no plan, no tool_calls, no replans: nothing to contradict
+
+
+def test_the_exit_code_is_non_zero_when_the_rates_are_fine_but_the_identity_fails(tmp_path):
+    f, s = tmp_path / "f.json", tmp_path / "s.json"
+    f.write_text(json.dumps(run(agent_rows(), FINAL_COMMIT)), encoding="utf-8")
+    s.write_text(json.dumps(run(agent_rows(q01=row("q01", plan=["knowledge"], calls=["knowledge"], replans=["offer_ticket: x"])), SMOKE_COMMIT)), encoding="utf-8")
+    assert compare([json.loads(f.read_text(encoding="utf-8"))], json.loads(s.read_text(encoding="utf-8")))["unchanged"] is True
     assert main(["--final", str(f), "--smoke", str(s)]) == 1
