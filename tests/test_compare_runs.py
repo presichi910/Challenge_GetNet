@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parent.parent
 REPORTS = ROOT / "eval" / "reports"
 
 
+NEW_ATTRIBUTION = ('A difference in a row where no replan action fired is not evidence about the replan: no replan action ran in that row. This report does not establish its cause. Candidates and baselines also differ in run date, commit and judge session, and some rows depend on tool data or web search results that change with the date.')
+
+
 def row(cid, verdict="pass", replans=None, g=5, c=5):
     r = {"id": cid, "answer": "a", "replans": replans or []}
     if verdict is not None:
@@ -74,7 +77,7 @@ def test_a_difference_where_the_replan_did_not_fire_is_listed_apart_and_the_fixe
     text = build(load_run(cand), [load_run(base)])
     assert "### Replan did not fire (1)" in text and "### Replan fired (0)" in text
     assert "- `q01`: candidate fail, baselines unanimous pass (1 of 1 passed)" in text.split("### Replan did not fire")[1]
-    assert "cannot be attributed to the replan" in text and "ONE judged repetition" in text
+    assert NEW_ATTRIBUTION in text and "ONE judged repetition" in text
 
 
 def test_no_interpretation_words_in_the_output(tmp_path):
@@ -267,7 +270,8 @@ def test_the_table_of_rows_where_the_replan_fired_in_at_least_one_candidate_has_
 
 def test_the_fixed_paragraphs_say_no_attribution_without_a_replan_and_no_statistical_inference(tmp_path):
     text = built(tmp_path)
-    assert "cannot be attributed to the replan" in text
+    assert NEW_ATTRIBUTION in text
+    assert "noise" not in text.lower() and "variation" not in text.lower()
     assert "With 2 repetitions with the replan on against 2 base repetitions and a judge that is not deterministic, this report makes no statistical inference" in text
     low = text.lower()
     for word in ("better", "worse", "improve", "regress", "judge pass rate", "%"):

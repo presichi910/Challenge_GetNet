@@ -20,9 +20,8 @@ VERDICTS = ("pass", "fail", "error", "unscored")
 NOTICE = ("This compares ONE judged repetition (the candidate) with the baseline repetitions listed above. The judge is not deterministic: "
           "the same text can get another verdict on another pass, so a single row that differs is not a finding.")
 
-ATTRIBUTION = ("A difference on a row where the replan did not fire cannot be attributed to the replan: on that row the observe step took no action, so the "
-               "answer came from the same steps as in the baseline, and a different verdict comes from the run-to-run variation of the agents or of the judge. "
-               "Even on a row where the replan fired, one repetition cannot separate the replan from that variation.")
+ATTRIBUTION = ("A difference in a row where no replan action fired is not evidence about the replan: no replan action ran in that row. This report does not establish its cause. "
+               "Candidates and baselines also differ in run date, commit and judge session, and some rows depend on tool data or web search results that change with the date.")
 
 
 def is_regular(case_id: str) -> bool:
