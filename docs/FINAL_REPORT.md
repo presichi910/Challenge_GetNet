@@ -31,8 +31,8 @@ _Not generated yet._
 <!-- results:end -->
 
 How to read it: the routing, tool, handoff and memory rates are over the case-runs that have that check, and the judge-based rates (groundedness, completeness, pass rate) are over
-the rows the judge scored, each with its n; the original holdout (`ho01`-`ho05`), the new holdout not targeted by a prompt rule (`ho07`, `ho09`-`ho11`, `ho13`) and the baseline-seen cases (`ho06`, `ho08`, `ho12`) are separate columns, with no pooled `ho06`-`ho13` total. A repetition scored in part is shown as such, not as a whole. A row the judge has not scored is **pending**, never a pass. The pass rate of the current judge is **not comparable** to the 86% of the
-2026-11-12 report: the judge changed after that run (see section 7).
+the rows the judge scored, each with its n; the original holdout (`ho01`-`ho05`), the new holdout not targeted by a prompt rule (`ho07`, `ho09`-`ho11`, `ho13`) and the baseline-seen cases (`ho06`, `ho08`, `ho12`) are separate columns, with no pooled `ho06`-`ho13` total. A repetition scored in part is shown as such, not as a whole. A row the judge has not scored is **pending**, never a pass. The pass rate of the current judge is **not comparable** to the one of the
+2026-11-12 report: that was another run, another set of cases and the previous judge (see section 7, item 2).
 
 ## 3. Does the judge agree with a human? (V3)
 
@@ -50,15 +50,19 @@ _Not generated yet._
   language check said they match), so on this row the stated reason and the cause of the verdict differ.
 - **`m08_recall_sum`:** the answer ("O total foi de R$ 200,00.") is correct from the conversation but is in Portuguese to a question in English. The judge failed it for language, as its rules say;
   the human noted the mismatch and still passed it, because the case's criteria ask only for the total, with no tools and no handoff.
-- **Pattern:** both are multi-turn rows (two of the three in the sample), and with 15 rows one row is 6.7 points, so 87% (13/15) and kappa 0.73 are indicative, not a precise measure.
+- **Pattern:** both are multi-turn rows (two of the three in the sample), and with 15 rows one row is 6.7 points, so the agreement and the kappa in the block above are indicative, not a precise measure.
   The `m08` answer language is a product defect that the judge saw and the human forgave; it is not fixed (the code has been frozen since the final run).
 
-History of the judge's agreement with a human, each on its own sample and its own version of the judge: V1 70% (kappa 0.20), V2 74% (kappa 0.46), V3 87% (kappa 0.73).
+The earlier measurements of the judge's agreement with a human (V1, V2) each used their own sample and their own version of the judge (`eval/calibration/CALIBRATION_V1.md`, `CALIBRATION_V2.md`) and cannot be lined up with V3 as a trend. **V3 is the only independent measure**: new answers, 15 rows fixed before any judge note existed. It is a small sample, and it does not make the judge "validated".
 
 ### 3.1 V2 re-scored with the current judge
 
-19 of the 27 V2 rows, chosen from the ids alone with seed 20261116 (written in `CLAUDE.md` before anything ran). **V2 is the sheet the judge was adjusted on, so this is not an
-independent measure.** By chance (about 6 draws in 100) the draw contains all seven rows on which the old judge and the human disagreed, so the old judge starts from a lower agreement on them.
+19 of the 27 V2 rows, chosen from the ids alone with seed 20261116 (written in `CLAUDE.md` before anything ran). What this subset can and cannot say:
+
+- **Same pass count.** On these 19 rows the old judge and the current judge give the same number of passes (the block shows it). In this subset the current judge is **not** stricter than the old one; four rows changed their verdict, two each way, which is why the counts agree.
+- **Small and atypical.** n = 19, and a difference under about 20 points (four rows) cannot be told apart. By chance (about 6 draws in 100) the draw contains all seven rows on which the old judge and the human disagreed, so the old judge starts from a lower agreement here than on the 27. The seed was **not** changed after seeing that.
+- **Not independent.** V2 is the sheet the judge was adjusted on, so the agreement of the current judge with the V2 human labels is not an independent measure. The independent one is V3 (section 3, n = 15).
+- **Not a validation.** None of this shows that the judge is validated.
 
 <!-- v2:start -->
 _Not generated yet._
@@ -103,11 +107,10 @@ Every later commit up to this report leaves `app/` byte-identical to `0835e91` (
 **About the judged numbers**
 1. **Not every repetition was scored.** The judge runs on Groq's free tier (200,000 tokens per rolling day, about 1.7K tokens per row), so the scoring was done in sessions after the run, repetition by repetition
    (`eval/rejudge.py`, resumable, stopping before the cap). The generated block says how many rows of each repetition were scored; the rates are over those rows, and a repetition scored in part is not weighted as a whole one.
-2. **The judge is not the one of the earlier reports.** After V2 its verdict became a function of its scores (relevance and groundedness at least 4, completeness at least 3, language by code, caps for unsupported claims).
-   The 86% regular pass rate of 2026-11-12 was measured with the previous judge and cannot be compared with today's. Whatever the generated block shows against it is a difference of at least four things at once (another judge, other agent prompts, another set of cases, another run),
-   so it is **not** attributed to the product getting better or worse; at most it is read as a direction, with caution.
-3. **The agreement figures are small-sample figures** (15 rows in V3; 19 in the V2 re-score). A one-row difference is 6.7 and 5.3 points. V3 was sampled on purpose to include two edge cases.
-4. **V2 is not independent.** The judge was adjusted on its disagreements. The 19-row re-score is also an **atypical subset**: the draw happens to hold all seven rows where the old judge and the human disagreed (section 3.1), so the old judge starts from a lower agreement there than on the 27.
+2. **The judge is not the one of the earlier reports, and the earlier pass rate does not carry over.** After V2 its verdict became a function of its scores (relevance and groundedness at least 4, completeness at least 3, language by code, caps for unsupported claims).
+   The regular pass rate of the 2026-11-12 report came from **another run, another set of cases, other agent prompts and the previous judge**, and **there are no human labels on those answers**. A lower rate in the generated block is therefore **not** attributed to the judge (it is not shown to be stricter) and **not** to the system, and this report does **not** say that the system did not get worse: the evidence cannot tell. The one like-for-like comparison, the 19 re-scored V2 rows (section 3.1), gives the two judges the same number of passes.
+3. **The agreement figures are small-sample figures** (15 rows in V3; 19 in the V2 re-score). A one-row difference is 6.7 and 5.3 points. V3 was sampled on purpose to include two edge cases. The judge is **not** presented as validated: these are small samples, and one of them was used to build it.
+4. **V2 is not independent.** The judge was adjusted on its disagreements. The 19-row re-score is also an **atypical subset**: the draw happens to hold all seven rows where the old judge and the human disagreed (section 3.1), so the old judge starts from a lower agreement there than on the 27. The seed (20261116) was fixed beforehand and not changed after seeing that, and with n = 19 a difference under about 20 points cannot be told apart.
 5. **The judge's free-text reason can be wrong about the language.** On `m04` it says the user wrote in Portuguese when they wrote in English. The verdict does not depend on that sentence (the language rule is applied by code with its own detector, and the cause of that verdict was groundedness),
    but the reason of a single row must not be quoted as evidence.
 
