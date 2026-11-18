@@ -28,6 +28,7 @@ import argparse
 import inspect
 import json
 import logging
+import os
 import re
 import statistics
 import time
@@ -41,8 +42,27 @@ from eval.judge import SCORE_KEYS, Judge
 ROOT = Path(__file__).parent
 
 
+def custom_dataset() -> Path | None:
+    """The cases file named by EVAL_DATASET, or None (the default: eval/dataset.jsonl). It lets a run and the judge's batch tool (eval/rejudge.py, which reads the
+    cases through `load_cases`) work on another file with the same schema, e.g. the replan probe, without touching the dataset. Unset or blank = today's behavior."""
+    value = os.environ.get("EVAL_DATASET", "").strip()
+    return Path(value) if value else None
+
+
+def dataset_path() -> Path:
+    return custom_dataset() or ROOT / "dataset.jsonl"
+
+
+def should_update_latest(only: list[str] | None, keep_latest: bool, label: str | None) -> bool:
+    """latest.md is the report of the main run: a partial run, a labeled branch or a run on another dataset never replaces it."""
+    return not only and not keep_latest and not label and custom_dataset() is None
+
+
 def load_cases(only: list[str] | None, regular_only: bool = False) -> list[dict]:
-    cases = [json.loads(line) for line in (ROOT / "dataset.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    path = dataset_path()
+    if not path.exists():
+        raise SystemExit(f"run_eval: the cases file {path} does not exist (EVAL_DATASET={os.environ.get('EVAL_DATASET', '')!r})")
+    cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     return [c for c in cases if (not only or any(c["id"].startswith(p) for p in only)) and not (regular_only and c.get("holdout"))]
 
 
@@ -497,6 +517,8 @@ def run_config(label: str | None = None) -> dict:
            "replan_max": s.replan_max, "rag_mode": s.rag_mode, "verifier_mode": s.verifier_mode, "approvals": "off (eval)", "fallback_provider": "off (eval)"}
     if label:
         cfg["label"] = label
+    if custom_dataset() is not None:  # only when it is not the default, so the report of a normal run is what it always was
+        cfg["dataset"] = custom_dataset().name  # type: ignore[union-attr]
     return cfg
 
 
@@ -537,6 +559,8 @@ def main() -> None:
     ap.add_argument("--label", default=None, help="mark the run in its reports and JSON, e.g. --label 'replan on'")
     ap.add_argument("--require-clean", action="store_true",
                     help="refuse to run unless the code is committed and the tree is clean: the reports cite the commit they came from")
+    ap.add_argument("--dataset", default=None, metavar="PATH",
+                    help="run another cases file with the same schema (sets EVAL_DATASET, which eval/rejudge.py also reads); latest.md is never replaced by such a run")
     ap.add_argument("--inject-history", action="store_true",
                     help="the old way: earlier turns of a multi-turn case go in as context (no checkpointer, no restart)")
     args = ap.parse_args()
@@ -551,6 +575,8 @@ def main() -> None:
         print(f"NOTE: FALLBACK_PROVIDER={get_settings().fallback_provider} is set; the eval turns provider failover off for this run.")
         os.environ["FALLBACK_PROVIDER"] = ""
         get_settings.cache_clear()
+    if args.dataset:
+        os.environ["EVAL_DATASET"] = str(Path(args.dataset).resolve())
     if args.require_clean:
         from eval.provenance import require_clean
 
@@ -575,7 +601,7 @@ def main() -> None:
     try:
         done, repeats_path = run_repeats(cases, service, None if args.no_judge else Judge(),
                                          max(1, args.repeats), args.pause, retries=args.retries, models=models,
-                                         update_latest=not args.only and not args.keep_latest and not args.label,
+                                         update_latest=should_update_latest(args.only, args.keep_latest, args.label),
                                          config=config)
     finally:
         if hasattr(service, "close"):

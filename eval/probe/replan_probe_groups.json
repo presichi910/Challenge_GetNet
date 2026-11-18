@@ -1,0 +1,6 @@
+{
+  "B1": ["p01_reprint_receipt", "p02_close_day_sales", "p03_antecipar_na_maquininha"],
+  "B2": ["p04_pix_fee", "p05_pix_savings_account", "p06_payment_link_cost"],
+  "B3": ["p07_printer_not_printing", "p08_software_update", "p09_reinicia_sozinha"],
+  "control": ["c01_payout_status", "c02_biggest_sale_yesterday", "c03_box_contents"]
+}

@@ -7,6 +7,12 @@
 It reads saved files only: no judge, no model, no network. It uses the REGULAR cases (ids that do not start with "ho"), checks that every
 file holds exactly the same set of regular ids, and writes a Markdown report that has no timestamp and a stable order, so the same inputs give
 the same bytes. Every number in the report is computed here; it says which rows differ, never which side is better.
+
+    python -m eval.compare_runs --paired --groups eval/probe/replan_probe_groups.json --candidate ON1.judged.json ON2.judged.json \\
+        --baseline OFF1.judged.json OFF2.judged.json --out eval/reports/REPLAN-PROBE-<stamp>.md
+
+The paired mode is the one exception to "never which side is better": it applies the rule of docs/REPLAN_PROBE_PREREG.md (and its amendment 0) to the pairs and names
+the outcome that rule gives, with the numbers it used. It is the only place that rule is computed.
 """
 from __future__ import annotations
 
@@ -276,15 +282,182 @@ def build_many(candidates: list[dict], baselines: list[dict]) -> str:
     out += ["", "## How to read the differences", "", ATTRIBUTION, "", INFERENCE.format(k=k, n=n), ""]
     return "\n".join(out)
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+# The paired section (the replan probe, docs/REPLAN_PROBE_PREREG.md and its amendment 0). The ON runs are the candidates and the OFF runs the baselines,
+# given in the same order: the i-th ON run is paired with the i-th OFF run, case by case. Everything here is computed from the saved files.
+# ---------------------------------------------------------------------------------------------------------------------------------------------
+
+N_MIN = 20  # valid pairs needed for the rule to say anything but "inconclusive"
+NET_MIN = 3  # the net of passes (and the net of the pairs where the step acted) that the rule asks for
+GROUP_ORDER = ("B1", "B2", "B3", "control")
+BRANCH_KINDS = {"B1": ("retry_kb",), "B2": ("add_support",), "B3": ("offer_ticket", "escalate")}  # the replan entry that shows each branch acted
+PAIRED_NOTICE = ("A pair is one case at one repetition number: the ON row and the OFF row. It counts only if BOTH rows have a pass or fail verdict. A pair in which the ON row has no replan "
+                 "entry is the same system in both rows, so what differs there is noise, not the step. This report applies the rule of the preregistration mechanically and says "
+                 "which of its outcomes the numbers give; it makes no other inference.")
+
+
+def load_groups(path: str | Path) -> dict[str, list[str]]:
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if set(data) != set(GROUP_ORDER) or any(not isinstance(v, list) or not v for v in data.values()):
+        raise SystemExit(f"compare_runs: {path} must name exactly the groups {list(GROUP_ORDER)}, each with at least one case id")
+    return {g: list(data[g]) for g in GROUP_ORDER}
+
+
+def sign_test_p(b: int, c: int) -> float | None:
+    """Exact two-sided sign test on b + c discordant pairs, each side equally likely under the null. None when there are no discordant pairs."""
+    from math import comb
+
+    n = b + c
+    if n == 0:
+        return None
+    tail = sum(comb(n, i) for i in range(min(b, c) + 1)) / 2 ** n
+    return min(1.0, 2 * tail)
+
+
+def percentile(values: list[float], q: float) -> float | None:
+    got = sorted(v for v in values if isinstance(v, (int, float)))
+    if not got:
+        return None
+    return got[min(len(got) - 1, max(0, round(q * (len(got) - 1))))]
+
+
+def paired_stats(pairs: list[dict]) -> dict:
+    """pairs: dicts with `on`, `off` (verdicts) and `acted` (the ON row has a replan entry). -> the counts of the rule, over the VALID pairs."""
+    valid = [p for p in pairs if p["on"] in ("pass", "fail") and p["off"] in ("pass", "fail")]
+    b = sum(p["off"] == "fail" and p["on"] == "pass" for p in valid)
+    c = sum(p["off"] == "pass" and p["on"] == "fail" for p in valid)
+    acted = [p for p in valid if p["acted"]]
+    b_act = sum(p["off"] == "fail" and p["on"] == "pass" for p in acted)
+    c_act = sum(p["off"] == "pass" and p["on"] == "fail" for p in acted)
+    return {"pairs": len(pairs), "valid": len(valid), "on_pass": sum(p["on"] == "pass" for p in valid), "off_pass": sum(p["off"] == "pass" for p in valid),
+            "net": sum(p["on"] == "pass" for p in valid) - sum(p["off"] == "pass" for p in valid), "b": b, "c": c, "acted": len(acted), "b_act": b_act, "c_act": c_act,
+            "acted_net": b_act - c_act}
+
+
+def rule_outcome(s: dict, false_triggers: int, n_min: int = N_MIN, net_min: int = NET_MIN) -> tuple[str, str]:
+    """(outcome, why), the rule of the preregistration and its amendment 0, applied to the counts of all the valid pairs."""
+    if s["valid"] < n_min:
+        return "inconclusive", f"{s['valid']} valid pairs, fewer than {n_min}"
+    if s["net"] >= net_min:
+        if s["acted_net"] < net_min:
+            return "noise", f"Net {s['net']:+d} but acted-net {s['acted_net']:+d} (< +{net_min}): the global difference comes mostly from pairs where the step did not act"
+        if false_triggers:
+            return "null", f"Net {s['net']:+d} and acted-net {s['acted_net']:+d}, but {false_triggers} control row(s) of the ON arm triggered a replan"
+        return "benefit suggested", f"Net {s['net']:+d}, acted-net {s['acted_net']:+d}, {s['valid']} valid pairs, no control triggered"
+    if s["net"] <= -net_min:
+        where = "from pairs where the step acted" if s["acted_net"] <= -net_min else f"mostly NOT from pairs where the step acted (acted-net {s['acted_net']:+d})"
+        return "harm suggested", f"Net {s['net']:+d}, {where}"
+    return "null", f"Net {s['net']:+d}, inside +/-{net_min - 1}"
+
+
+def build_paired(on_runs: list[dict], off_runs: list[dict], groups: dict[str, list[str]], n_min: int = N_MIN, net_min: int = NET_MIN) -> str:
+    if not on_runs or len(on_runs) != len(off_runs):
+        raise SystemExit(f"compare_runs --paired: it needs the same number of ON and OFF runs, in the same order (got {len(on_runs)} and {len(off_runs)})")
+    check_ids(on_runs[0], [*on_runs[1:], *off_runs])
+    ids = sorted(on_runs[0]["rows"])
+    named = sorted(i for g in groups.values() for i in g)
+    if named != ids:
+        raise SystemExit(f"compare_runs --paired: the groups file and the runs do not name the same cases (groups only: {sorted(set(named) - set(ids)) or 'none'}; "
+                         f"runs only: {sorted(set(ids) - set(named)) or 'none'})")
+    for run in on_runs:
+        if not any("replans" in r for r in run["rows"].values()):
+            raise SystemExit(f"compare_runs --paired: no row of {run['name']} has a 'replans' field, so it cannot tell where the step acted")
+    group_of = {i: g for g, members in groups.items() for i in members}
+    pairs = []
+    for k, (on, off) in enumerate(zip(on_runs, off_runs), 1):
+        for cid in ids:
+            orow, frow = on["rows"][cid], off["rows"][cid]
+            pairs.append({"rep": k, "id": cid, "group": group_of[cid], "on": verdict_of(orow), "off": verdict_of(frow), "actions": replan_actions(orow),
+                          "acted": bool(replan_actions(orow)), "orow": orow, "frow": frow})
+    overall = paired_stats(pairs)
+    false_rows = [p for p in pairs if p["group"] == "control" and p["acted"]]
+    outcome, why = rule_outcome(overall, len(false_rows), n_min, net_min)
+    p_act = sign_test_p(overall["b_act"], overall["c_act"])
+
+    out: list[str] = ["# Replan probe: ON runs against OFF runs, paired (scripted)", ""]
+    for k, (on, off) in enumerate(zip(on_runs, off_runs), 1):
+        out.append(f"- **Repetition {k}:** ON `{on['name']}` (replan_max={on['summary'].get('replan_max', 'not recorded')}, commit {short_commit(on)}) with OFF `{off['name']}` "
+                   f"(replan_max={off['summary'].get('replan_max', 'not recorded')}, commit {short_commit(off)}), {len(ids)} cases")
+    out += ["", f"**{PAIRED_NOTICE}**", "", f"**Outcome of the preregistered rule: {outcome}.** {why}.", ""]
+
+    dropped = [p for p in pairs if not (p["on"] in ("pass", "fail") and p["off"] in ("pass", "fail"))]
+    out += ["## The pairs", "", f"- pairs: {overall['pairs']}; valid: {overall['valid']} (the rule needs at least {n_min}); dropped: {len(dropped)}"]
+    out += [f"  - dropped: `{p['id']}` repetition {p['rep']}: ON {p['on']}, OFF {p['off']}" for p in dropped]
+    out += [f"- ON passes {overall['on_pass']}, OFF passes {overall['off_pass']}, **Net {overall['net']:+d}** over the valid pairs",
+            f"- discordant pairs: OFF fail -> ON pass {overall['b']}, OFF pass -> ON fail {overall['c']}",
+            f"- pairs where the ON row acted: {overall['acted']}; among them OFF fail -> ON pass {overall['b_act']}, OFF pass -> ON fail {overall['c_act']}, **acted-net {overall['acted_net']:+d}**",
+            f"- exact two-sided sign test on those discordant acted pairs ({overall['b_act'] + overall['c_act']}): "
+            + ("not applicable (none)" if p_act is None else f"p = {p_act:.4f}") + " (descriptive, no threshold)",
+            f"- false triggers (a control row of the ON arm with a replan entry): {len(false_rows)}"]
+    out += [f"  - `{p['id']}` repetition {p['rep']}: {', '.join(p['actions'])}" for p in false_rows]
+
+    out += ["", "## By group", "", "| group | pairs | valid | ON pass | OFF pass | Net | OFF fail -> ON pass | OFF pass -> ON fail | pairs where ON acted |", "|---|---|---|---|---|---|---|---|---|"]
+    blocks = [(g, [p for p in pairs if p["group"] == g]) for g in GROUP_ORDER]
+    blocks.insert(2, ("B1 + B2 (without the bias of B3)", [p for p in pairs if p["group"] in ("B1", "B2")]))
+    for name, rows in blocks:
+        s = paired_stats(rows)
+        out.append(f"| {name} | {s['pairs']} | {s['valid']} | {s['on_pass']} | {s['off_pass']} | {s['net']:+d} | {s['b']} | {s['c']} | {s['acted']} |")
+    out += ["", "B3 favors the ON arm by construction (its criterion rewards a concrete way forward and the ticket offer of the step supplies one); the line B1 + B2 is the reading "
+            "without that bias. The rule above uses all the valid pairs.", ""]
+
+    out += ["## Where the step acted (the ON rows)", "", "Each cell is the number of cases of the group whose ON row has an entry of the branch (B1 `retry_kb`, B2 `add_support`, "
+            "B3 `offer_ticket` or `escalate`); the rows `any entry` count any replan entry of the ON row, whatever its kind.", "",
+            "| group | " + " | ".join(f"repetition {k}" for k in range(1, len(on_runs) + 1)) + " |", "|---|" + "---|" * len(on_runs)]
+    for g in ("B1", "B2", "B3"):
+        cells = []
+        for k in range(1, len(on_runs) + 1):
+            hit = [p for p in pairs if p["rep"] == k and p["group"] == g and any(a in BRANCH_KINDS[g] for a in p["actions"])]
+            cells.append(f"{len(hit)} of {len(groups[g])}")
+        out.append(f"| {g} ({', '.join(BRANCH_KINDS[g])}) | " + " | ".join(cells) + " |")
+    for g in GROUP_ORDER:
+        cells = [f"{sum(p['acted'] for p in pairs if p['rep'] == k and p['group'] == g)} of {len(groups[g])}" for k in range(1, len(on_runs) + 1)]
+        out.append(f"| any entry, {g} | " + " | ".join(cells) + " |")
+    out += ["", "| case | group | repetition | replan entries of the ON row | ON verdict | OFF verdict |", "|---|---|---|---|---|---|"]
+    for p in pairs:
+        if p["acted"]:
+            out.append(f"| {p['id']} | {p['group']} | {p['rep']} | {', '.join(p['actions'])} | {p['on']} | {p['off']} |")
+    if not any(p["acted"] for p in pairs):
+        out.append("| none | | | | | |")
+
+    out += ["", "## Noise baseline: OFF 1 against OFF 2", ""]
+    if len(off_runs) < 2:
+        out.append("There is only one OFF run: no baseline.")
+    else:
+        o1, o2 = off_runs[0], off_runs[1]
+        both = [cid for cid in ids if verdict_of(o1["rows"][cid]) in ("pass", "fail") and verdict_of(o2["rows"][cid]) in ("pass", "fail")]
+        diff = [cid for cid in both if verdict_of(o1["rows"][cid]) != verdict_of(o2["rows"][cid])]
+        out += [f"The same cases with the same configuration (`{o1['name']}` and `{o2['name']}`): {len(both)} cases have a verdict in both, **{len(diff)} get a different one**."]
+        out += [f"- `{cid}`: OFF 1 {verdict_of(o1['rows'][cid])}, OFF 2 {verdict_of(o2['rows'][cid])}" for cid in diff]
+
+    def usd(rows: list[dict]) -> list[float]:
+        return [(r.get("usage") or {}).get("cost_usd") for r in rows]
+
+    on_rows, off_rows = [p["orow"] for p in pairs], [p["frow"] for p in pairs]
+    out += ["", "## Agent cost, latency and what was written", "", "| arm | rows | mean agent cost | total agent cost | latency p50 (ms) | latency p95 (ms) | rows with a handoff |", "|---|---|---|---|---|---|---|"]
+    for name, rows in (("ON", on_rows), ("OFF", off_rows)):
+        costs = [c for c in usd(rows) if isinstance(c, (int, float))]
+        lat = [r.get("latency_ms") for r in rows]
+        out.append(f"| {name} | {len(rows)} | {fmt_usd(mean(costs))} | {fmt_usd(sum(costs) if costs else None)} | {fmt_ms(percentile(lat, 0.5))} | {fmt_ms(percentile(lat, 0.95))} | "
+                   f"{sum(bool(r.get('handoff')) for r in rows)} |")
+    out += ["", "The tickets and handoffs each run wrote are counted from the files of its own folders by the person who ran it, not from the rows.", "", "## How to read this", "", ATTRIBUTION, ""]
+    return "\n".join(out)
+
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--candidate", required=True, nargs="+", action="extend", help="the judged run(s) to compare (a .judged.json); repeat the flag or list several")
     ap.add_argument("--baseline", required=True, nargs="+", help="one or more judged baseline runs")
     ap.add_argument("--out", required=True, help="the Markdown file to write")
+    ap.add_argument("--paired", action="store_true", help="the replan probe: the i-th candidate (ON) is paired with the i-th baseline (OFF) case by case; needs --groups")
+    ap.add_argument("--groups", help="with --paired: the JSON file that names the cases of each group (B1, B2, B3, control), eval/probe/replan_probe_groups.json")
     args = ap.parse_args(argv)
     candidates, baselines = [load_run(p) for p in args.candidate], [load_run(p) for p in args.baseline]
-    text = build(candidates[0], baselines) if len(candidates) == 1 else build_many(candidates, baselines)
+    if args.paired:
+        if not args.groups:
+            raise SystemExit("compare_runs --paired needs --groups")
+        text = build_paired(candidates, baselines, load_groups(args.groups))
+    else:
+        text = build(candidates[0], baselines) if len(candidates) == 1 else build_many(candidates, baselines)
     Path(args.out).write_text(text, encoding="utf-8", newline="\n")
     print(f"wrote {args.out}")
     return 0
