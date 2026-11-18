@@ -68,6 +68,8 @@ The full text of each criterion is in the file; `tests/test_replan_probe_cases.p
 
 ## The decision rule
 
+*(Amended before any datum: read Amendment 0 at the end of this page; where they differ, the amendment is the rule.)*
+
 Let **N** be the number of valid pairs (at most 24) and **Net** = (ON passes) minus (OFF passes) over those pairs. A **false trigger** is an ON row of a control case with any replan entry.
 
 - **Benefit suggested:** N >= 20 **and** Net >= +3 **and** no false trigger on any of the 6 ON control rows.
@@ -104,4 +106,25 @@ A first run with no judge and the step on (2 repetitions of the 12 cases, about 
 
 ## Amendments
 
-None yet.
+### Amendment 0 (written before any row of the probe was run, judged or read; commit of its own)
+
+It changes the decision rule and the reports, and it is not a post hoc change: there are no data yet.
+
+**1. A guard against noise.** "Benefit suggested" now needs, besides N >= 20, Net >= +3 and no false trigger, that **acted-net >= +3**, where *acted-net* = (the pairs OFF `fail` -> ON `pass` in which the ON row acted) minus (the pairs OFF `pass` -> ON `fail` in which the ON row acted). "The ON row acted" = it has at least one replan entry of any kind (`retry_kb`, `add_support`, `offer_ticket`, `escalate`, or a `*_failed`). A pair in which the step did not act is the same system in both rows: whatever differs there is noise. So:
+
+- Net >= +3 **and** acted-net >= +3 **and** N >= 20 **and** no false trigger -> **benefit suggested**.
+- Net >= +3 but acted-net < +3 -> **noise** (the global difference comes mostly from pairs where the step did not act); it is reported as a null result and says so.
+- Net <= -3 with N >= 20 -> **harm suggested** (not guarded, as nobody asked for it: the report prints the acted-net beside it, and says when the harm does not come from pairs where the step acted).
+- Everything else -> **null**, or **inconclusive** if N < 20.
+
+**Noise baseline, always reported:** the discordance of OFF 1 against OFF 2 (the same case, the same configuration): among the cases that have a `pass`/`fail` verdict in both, how many get a different one. **An exact sign test**, two-sided, on the discordant pairs in which ON acted (OFF `fail` -> ON `pass` against OFF `pass` -> ON `fail`, each side equally likely under the null): reported as a number, **descriptive, with no threshold**; with no discordant acted pair it says "not applicable".
+
+**2. Reports by branch.** For B1, B2, B3 and the controls, and for the **subtotal B1 + B2**: valid pairs, ON passes, OFF passes, Net, discordant pairs and pairs where ON acted. These are preregistered as descriptive: the decision rule is the one above, on all the valid pairs. **B3 favors ON by construction**: its criterion rewards a concrete way forward and the ticket offer of the step supplies one. **The B1 + B2 subtotal is the reading without that bias**, and any sentence that quotes Net quotes that subtotal next to it.
+
+**3. Execution.**
+- The no-judge firing run of 4d is **only diagnostic** (it shows whether each branch acts at all) and is **not reused as the ON arm**: its files are the input of no report.
+- In 4e the four runs go **interleaved, OFF 1, ON 1, OFF 2, ON 2, on the same day** (`c02` depends on "yesterday", which the fake data resolves from the day of the run), each with its own empty folders for tickets and handoffs.
+- If the cases are amended after 4d (the one revision the page allows), the amendment has its own commit and 4e runs after it.
+- **Preflight before any judge token** (`eval/probe_preflight.py`): the dry-run of `rejudge` must count **48 rows to judge**, and every one of those rows must find its case (and its criterion) in the dataset that `EVAL_DATASET` names. `rejudge` skips a row whose id it does not find without stopping, so a count of 48 alone would not show a missing variable. If the count is not 48 or an id is not found, the preflight stops and nothing is judged.
+
+**4. Infrastructure for 4d, with tests** (all in `eval/`; no change to `eval/judge.py` or `eval/rejudge.py`): `EVAL_DATASET` and `run_eval --dataset` (unset, `load_cases` returns exactly what it returns today); the preflight; the paired section of `eval/compare_runs.py` (`--paired`, `--groups eval/probe/replan_probe_groups.json`) with the guard, the by-branch tables, the noise baseline and the sign test, generated.
