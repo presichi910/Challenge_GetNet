@@ -1,0 +1,974 @@
+{
+  "summary": {
+    "cases": 12,
+    "provider_errors": 0,
+    "routing_accuracy": 1.0,
+    "tool_use_accuracy": 1.0,
+    "degraded_rate": 0.0,
+    "latency_ms_p50": 6543,
+    "latency_ms_p95": 11228,
+    "handoff_accuracy": 1.0,
+    "handoff_rate": 0.08333333333333333,
+    "agent_tokens": 120296,
+    "judge_tokens": 0,
+    "agent_tokens_per_case_mean": 10025,
+    "agent_cost_usd": 0.02414775,
+    "judge_cost_usd": 0.0,
+    "total_cost_usd": 0.02414775,
+    "tokens_by_model": [
+      {
+        "role": "agents",
+        "model": "accounts/fireworks/models/gpt-oss-120b",
+        "calls": 68,
+        "input_tokens": 106733,
+        "output_tokens": 13563,
+        "cost_usd": 0.02414775
+      }
+    ],
+    "commit": "419234957c6b7582a6592c6b4ad76c97e73416ff",
+    "tree_clean": true,
+    "replan_max": 2,
+    "rag_mode": "dense",
+    "verifier_mode": "statements",
+    "approvals": "off (eval)",
+    "fallback_provider": "off (eval)",
+    "label": "replan probe: ON 1",
+    "dataset": "replan_probe.jsonl"
+  },
+  "rows": [
+    {
+      "id": "p01_reprint_receipt",
+      "message": "How do I reprint the receipt of a sale on my Get Smart?",
+      "plan": [
+        "support",
+        "knowledge"
+      ],
+      "answer": "**Re‑print a receipt on your Get Smart terminal**\n\n1. From the home screen tap **“Sales”** (or **“Pagamento”**).  \n2. Choose **“Last Sales” / “Últimas Vendas.”**  \n3. If asked, enter your merchant password.  \n4. Scroll to the date/time of the sale you need and select that transaction.  \n5. Pick **“Reprint Receipt” / “Reimprimir Comprovante.”**  \n6. Confirm the prompt – the terminal will send the receipt to the connected printer.\n\n**If nothing prints:**  \n- Verify the printer has paper and is properly connected.  \n- Make sure the terminal shows **“Online.”** Bring it online if needed and try again.",
+      "tools_called": [
+        "search_getnet_kb",
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.59) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nEscolha a via que deseja reimprimir: “Estabelecimento” ou “Cliente”.\nClique em “Confirmar” e pronto!\nNesta opção, só é possível reimprimir a última venda.\nSe precisar verificar ou reimprimir outra venda, acesse a opção Últimas Vendas → 1 2 3 4 Fim » › › Manual Get Smart 9 Índice « Como conferir suas últimas vendas 07 Nesta página, é possível consultar as transações aprovadas, estornadas e as transações via Pix que estão aguardando resposta, realizadas no terminal nas últimas 24 horas.\nAo selecionar uma transação das últimas vendas, é possível reimprimir o comprovante e até mesmo acessar a opção de estorno, sem a necessidade de apresentar o CV.\nNa tela inicial, clique em “Pagamento”.\nSelecione a opção “Últimas Vendas”.\nInsira a senha do lojista.\nPronto! Nesta tela, será exibida a listagem com as últimas vendas: Como conferir suas últimas vendas 1 2 3 4 Fim » › › Manual Get Smart 10 Índice « Como fazer a antecipação de vendas 08 Na tela inicial, clique em “Pagamento”.\n\n[2] (relevance=0.57) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nÚltima atualização: Junho/2025.\nManual Get Smart Manual Get Smart 2 Índice Índice Como fazer o fechamento de vendas 09 Como fazer a antecipação de vendas 08 Get Ajuda 11 Como reimprimir o comprovante de venda 06 Como fazer um estorno 05 Como fazer uma venda 04 Formas de pagamento 03 Configurações da Get Smart 02 Principais informações 01 Como conferir suas últimas vendas 07 Dicas de segurança 10 Fim » › › Índice « Manual Get Smart 3 Índice « Principais informações 01 Principais informações O que vem na caixa O que significa cada ícone Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos ■Tela touchscreen; ■Leitor de chip; ■Leitor de terja magnética; ■Leitor integrado sem-contato (NFC); ■Comunicação 4G, Wi-Fi e Bluetooth.\n\n[3] (relevance=0.50) Soluções Get Smart <https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart>\nSoluções Get Smart\n\n#### Recarga de celular\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n# Soluções Get Smart\n\n## O que é Get Smart em modo quiosque?\n\nEsta funcionalidade transforma o terminal em um sistema de autoatendimento com as seguintes características:\n\nO modo quiosque é gerenciado pelo aplicativo \"Configurar\" da Get Smart.\n\n## Como escolher a automação que será usada na Get Smart?\n\nVocê pode escolher diretamente pelo nosso site ou através da Getstore na Get Smart.\n\n## Após receber a Get Smart, como eu começo a usar o aplicativo escolhido?\n\n## Quais aplicativos vêm instalados quando eu recebo o terminal?\n\nOs aplicativos de sistema, como Pagamento, Getstore e Configurar, já estão instalados. Eles não podem ser removidos nem ocultados.\n\n[4] (relevance=0.49) The perfect point of sale begins with our POS <https://www.getnet.net/en/our-solutions/in-person-payments>\nThe perfect point of sale begins with our POS\n\n## Get Classic\n\nThe basic POS for your sales.\n\n* All our terminals comply with PCI security standards to make your transactions secure\n* Get paid anywhere in your business in order to offer more comfort and a seanless experience\n* IIt's reliadble, intuitive and allows you to start selling fast.\n* Acceot chip card, magnetic stripe, contactless and mobiile payments\n\n## Get Smart\n\nThe POS to make your business grow.\n\n* From entering the stock to closing the cashier, everything is integrated.\n* Debit, credit card, vouchers, payment by approximation or via apps. The customer chooses the best way to pay.\n* Provide a new experience for your costumers with the Android system.\n* You can integrate the best API that fits your type of business\n\nGet Tap\n\n## Turn your smartphone into a tap-to-pay system\n\n### Fast & Easy\n\nAccept payments on your Android mobile or NFC-enabled tablet. No additional hardware or equipment required.\n\n[5] (relevance=0.49) Get Advance <https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta>\nGet Advance\n\n### Hoteles\n\nOptimiza el tiempo de Chek-in, reautorización y Chek-out de tus huéspedes con el módulo para hoteles.\n\nPREGUNTAS FRECUENTES\n\n## ¡Estamos aquí para apoyarte!\n\nRespondemos las preguntas más frecuentes acerca de Get Advance.\n\n###\n\nGet Advance es un dispositivo que no necesita rollos.\n\n¡Es posible! Para ofrecer esta opción a tus clientes, por favor ponte en contacto con nosotros al siguiente número: 55 9177 9899\n\nNuestras Terminales Getnet cuentan con Internet ilimitado.\n\nEn nuestro canal de YouTube puedes conocer a detalle cómo funciona Get Advance.\n\n## Soluciones para todo tipo de negocio\n\n### Get Advance\n\nLigera y con conexión WI-FI, Bluetooth, 3G o 4G.\n\nDescubre más\n\nEN TU E-COMMERCE\n\n### G Tapp\n\nCobra con tu celular.\n\n### Get Smart\n\nImpresión de vouchers y administración total de tu negocio.",
+        "[1] (relevance=0.61) wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf <https://site.getnet.com.br/wp-content/uploads/2021/09/Manul-SG-3G-wi-fi-LP.pdf>\nwp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf\n\nAgora digite a data da venda que será estornada.\nSelecione (0) MENU > (2) SUPORTE > (1) BANDEIRAS > (1) ESTORNO PARA INSERIR O CHIP NA SUA MÁQUINA: Ź Com a máquina desligada, abra a tampa na parte de trás, • Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo, • Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados, • Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso, • Faça um teste de comunicação para veriﬁcar a conectividade do seu chip, seguindo os passos: 1. Pressione o botão função – F, # ou o da sua máquina, 2. Pressione 60, 3. Selecione a opção 2 – manutenção, 4. Selecione a opção 1 – teste de comunicação.\nCOMPROVANTES: Você recebe no e-mail cadastrado na Getnet.\nSua máquina possui a Senha Padrão 0000. INFORMAÇÕES BÁSICAS: OBRIGADA.\nEsta senha será solicitada em algumas funções como fechamento e estorno de vendas.\nSe o seu cliente quiser, ele recebe via SMS.",
+        "[2] (relevance=0.59) wp content > uploads > 2024 > 09 > Folder_Credirio.pdf <https://site.getnet.com.br/wp-content/uploads/2024/09/Folder_Credirio.pdf>\nwp content > uploads > 2024 > 09 > Folder_Credirio.pdf\n\nApós aprovado, aproxime novamente o cartão do cliente.\nAproxime o cartão do cliente.\nSolicite ao cliente que digite a senha do cartão.\nClique aqui para ver mais inforações Fim » › › 7 Índice « Manual de uso » Crediário Getnet 4.\nComece a vender Como vender na maquininha Getnet com crediário Passo 7 Passo 8 Passo 9 Aguarde enquanto as informações estão sendo enviadas e processadas.\nSe a transação for aprovada, aguarde a próxima tela.\nOfereça a impressão da via do cliente.\nPronto!\nApós a impressão, retire o cartão do cliente da máquina.\nVeja em quais máquinas já está disponível a venda no Crediário: Aproveite ao máximo as vantagens dessa nova opção de pagamento!\nMáquinas sem fio TEF Caso o crediário não esteja habilitado na sua maquinha, é só ir no Aplicativo Getnet Brasil > Serviços > Crediário e clicar em Habilitar Crediário.",
+        "[3] (relevance=0.59) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n**FECHAMENTO DAS VENDAS**\nMenu > Mastercard/Visa ou Bandeiras > SUPORTE > Fechamentos > Digite a senha do lojista > Selecione:\n1. Parcial: impressão do relatório com o fechamento de todas as vendas desde o último fechamento parcial. Não zera à meia noite.\n2. Final: somatória das vendas efetuadas durante o dia vigente até o momento da impressão. Pode ser extraído quantas vezes necessitar. Zera à meia noite.\n3. Detalhado: impressão do relatório com o fechamento venda a venda, por ordem cronológica. Pode ser impresso até duas vezes por dia.\n4. Fechamento Final por Data: impressão do comprovante de vendas diário com opção do dia vigente ou de outra data (podendo ser até quatro dias anteriores ao dia vigente). Pode ser extraído quantas vezes for necessário. Zera à meia noite.\n\nAcesse Menu > Bandeiras > Produtos > Crédito > Inserir Valor > Digitar número do cartão > Inserir Validade do Cartão > A vista ou Parcelado > Código de Segurança > Aguarde a impressão do comprovante.",
+        "[4] (relevance=0.57) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## demais\n\n## dúvidas\n\n## Algar\n\nSiga os passos a seguir:\n– Com a máquina desligada, abra a tampa na parte de trás\n– Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo\n– Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados\n– Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso\n– Faça um teste de comunicação para verificar a conectividade do seu chip, seguindo os passos:\n• Pressione o botão função – F, # ou o da sua máquina\n• Pressione 60\n• Selecione a opção 2 – manutenção\n• Selecione a opção 1 – teste de comunicação\n\n– Um único Chip que se conecta a várias operadoras\n– Você pode utilizar a sua máquina em qualquer local com cobertura 2G/3G\n– Elimina necessidade de trocas de Chip\n\nO chip algar é um chip multioperadora, ou seja, é uma solução na qual um único chip se conecta a várias operadoras, garantindo a conectividade em todo o Brasil.",
+        "[5] (relevance=0.57) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n3. Duplicidade de transação: única venda é processada mais de uma vez e não é reconhecida pelo portador do cartão.\nNão será considerada uma duplicidade caso seu estabelecimento apresente dois comprovantes distintos.\n\n4. Crédito não processado: quando o portador do cartão cancela a transação junto ao seu estabelecimento e o crédito (estorno) não foi lançado em sua fatura.\n\n5. Pagamento por meio alternativo: quando o portador do cartão alega que efetuou o pagamento da transação por outro meio (outro cartão, cheque ou dinheiro).\n\n**RESUMO DO DIA**\nMostra um resumo das vendas confirmadas do dia anterior. Cumulativo por 5 dias, caso não seja extraído.\nMenu > Mastercard/Visa ou Bandeiras > SUPORTE > Resumo do dia > Digite a senha do lojista > A impressão Resumo do Dia será realizada."
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"From the home screen tap “Pagamento”.\", \"evidence_quote\": \"Na tela inicial, clique em “Pagamento”.\", \"quote_found\": true}, {\"statement\": \"Choose “Últimas Vendas”.\", \"evidence_quote\": \"Selecione a opção “Últimas Vendas”.\", \"quote_found\": true}, {\"statement\": \"Enter your merchant password.\", \"evidence_quote\": \"Insira a senha do lojista.\", \"quote_found\": true}, {\"statement\": \"A list of the latest sales will be displayed.\", \"evidence_quote\": \"Pronto! Nesta tela, será exibida a listagem com as últimas vendas:\", \"quote_found\": true}, {\"statement\": \"Select a transaction from the latest sales to reprint the receipt.\", \"evidence_quote\": \"Ao selecionar uma transação das últimas vendas, é possível reimprimir o comprovante\", \"quote_found\": true}, {\"statement\": \"Only the last sale can be reprinted directly.\", \"evidence_quote\": \"Nesta opção, só é possível reimprimir a última venda.\", \"quote_found\": true}, {\"statement\": \"To reprint another sale, use the “Últimas Vendas” option.\", \"evidence_quote\": \"Se precisar verificar ou reimprimir outra venda, acesse a opção Últimas Vendas\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "reprint receipt Get Smart terminal"
+          }
+        },
+        {
+          "agent": "observe",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Verify the printer has paper and is properly connected. ; Make sure the terminal shows “Online.” Bring it online if needed and try again."
+          }
+        }
+      ],
+      "replans": [
+        "retry_kb: 2 unsupported -> 5 passages -> 0 still unsupported"
+      ],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 16077,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 12846,
+        "output_tokens": 1868,
+        "total_tokens": 14714,
+        "cost_usd": 0.0030476999999999995,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1077,
+            "output_tokens": 84,
+            "cost_usd": 0.00021195
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 3,
+            "input_tokens": 4831,
+            "output_tokens": 462,
+            "cost_usd": 0.0010018499999999999
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1296,
+            "output_tokens": 319,
+            "cost_usd": 0.0003858
+          },
+          {
+            "node": "synthesizer",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 595,
+            "output_tokens": 173,
+            "cost_usd": 0.00019305
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 5047,
+            "output_tokens": 830,
+            "cost_usd": 0.00125505
+          }
+        ]
+      }
+    },
+    {
+      "id": "p02_close_day_sales",
+      "message": "How do I do the end-of-day sales closing on the Get Smart?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "**End‑of‑day sales closing on the Get Smart terminal**\n\n1. **Open the “Fechamento” (Closing) menu**  \n   - From the main screen go to **Menu > Mastercard/Visa (or Bandeiras) > Suporte > Fechamentos**.  \n   - Enter the merchant password when prompted.\n\n2. **Choose the type of report you need**  \n\n| Option | What it includes | When it resets |\n|--------|------------------|----------------|\n| **Parcial** | All transactions since the last partial closing (does **not** reset at midnight). | No midnight reset. |\n| **Final** | All sales from 00:00 of the current day up to the moment of printing. | Resets at midnight. |\n| **Detalhado** | Transaction‑by‑transaction list, chronological order. | Resets at midnight. |\n| **Final por Data** | Daily sales receipt for a chosen date (up to 4 days back). | Resets at midnight. |\n\n3. **Print the report** – after selecting the desired option, the terminal prints the report automatically.\n\n**Key points**\n\n- You can issue a **Final** or **Final por Data** report any number of times; a **Parcial** report can be printed only once per day; a **Detalhado** report can be printed up to two times per day.  \n- The **Parcial** closing captures sales from the previous partial closing up to the request time, limited to a maximum of 5 days of data.  \n- The **Final** and **Detalhado** closings capture all sales from midnight of the current day onward, with no limit on the number of reports.\n\nFollow these steps each day to close your sales and start a new sales summary on the Get Smart terminal.",
+      "tools_called": [
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.52) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nAlém disso, ao realizar o fechamento, um novo resumo de vendas é iniciado, garantindo que você tenha um controle contínuo e atualizado das suas operações a partir daquele momento.\nSelecione a opção “Fechamento”.\nEscolha o tipo de relatório: Final, Parcial ou Detalhado.\n\n[2] (relevance=0.48) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nSelecione a opção “Fechamento”.\nEscolha o tipo de relatório: Final, Parcial ou Detalhado.\nPronto! O relatório será impresso automaticamente. ■Fechamento Parcial Contabiliza todas as transações do horário da última emissão do relatório Parcial até o momento da requisição de um novo relatório. Os dados contabilizados no relatório são limitados a no máximo 5 dias corridos anteriores à data da requisição do relatório. Este relatório pode ser emitido uma única vez ■Fechamento Final Contabiliza todas as transações desde a meia-noite do dia até o momento da requisição do relatório. Não há limitação na quantidade de relatórios a serem emitidos. ■Fechamento Detalhado Contabiliza todas as transações desde a meia-noite do dia até o momento da requisição do relatório. Tipos de fechamento Não há limitação na quantidade de relatórios a serem emitidos.\n\n[3] (relevance=0.48) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n**FECHAMENTO DAS VENDAS**\nMenu > Mastercard/Visa ou Bandeiras > SUPORTE > Fechamentos > Digite a senha do lojista > Selecione:\n1. Parcial: impressão do relatório com o fechamento de todas as vendas desde o último fechamento parcial. Não zera à meia noite.\n2. Final: somatória das vendas efetuadas durante o dia vigente até o momento da impressão. Pode ser extraído quantas vezes necessitar. Zera à meia noite.\n3. Detalhado: impressão do relatório com o fechamento venda a venda, por ordem cronológica. Pode ser impresso até duas vezes por dia.\n4. Fechamento Final por Data: impressão do comprovante de vendas diário com opção do dia vigente ou de outra data (podendo ser até quatro dias anteriores ao dia vigente). Pode ser extraído quantas vezes for necessário. Zera à meia noite.\n\nAcesse Menu > Bandeiras > Produtos > Crédito > Inserir Valor > Digitar número do cartão > Inserir Validade do Cartão > A vista ou Parcelado > Código de Segurança > Aguarde a impressão do comprovante.\n\n[4] (relevance=0.38) Prepare-se para a Black Friday com a Getnet <https://site.getnet.com.br>\nPrepare-se para a Black Friday com a Getnet\n\n## Nós podemos te ajudar a vender mais\n\n##### Já sou cliente\n\nQuero ser atendido por\n\nTelefone\n\n4002-4000\n\nDas 6h às 22h\nWhatsApp\n\nPrático e rápido\n\n##### Quero ser cliente\n\nVamos começar\n o seu atendimento?\n\n[5] (relevance=0.37) ¡Ganá más cobrando con Getnet! <https://www.getnet.net/ar/landings/cobra-con-terminal>\n¡Ganá más cobrando con Getnet!\n\nSuperado dicho tope se cobrará la tasa del servicio “Pago Inmediato” en los días que restan del mes. Desde el 01/02/2027 el cliente deberá abonar el arancel correspondiente a sus ventas y la tasa correspondiente al Servicio “Pago Inmediato”, pudiendo solicitar la baja del servicio a través los canales oficiales de Getnet (mail a **comercios@getnet.com.ar**, teléfono +54 11 6074-7001). Beneficios otorgados por Getnet o a discreción exclusiva de ésta, reservándose el derecho a realizar o no acciones similares en el futuro.*"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Open the “Fechamento” menu via Menu > Mastercard/Visa (or Bandeiras) > SUPORTE > Fechamentos and enter the merchant password.\", \"evidence_quote\": \"Menu > Mastercard/Visa ou Bandeiras > SUPORTE > Fechamentos > Digite a senha do lojista > Selecione:\", \"quote_found\": true}, {\"statement\": \"Select the report type: Parcial, Final, Detalhado, or Final por Data.\", \"evidence_quote\": \"Selecione:\\n1. Parcial: impressão do relatório com o fechamento de todas as vendas desde o último fechamento parcial. Não zera à meia noite.\\n2. Final: somatória das vendas efetuadas durante o dia vigente até o momento da impressão. Pode ser extraído quantas vezes necessitar. Zera à meia noite.\\n3. Detalhado: impressão do relatório com o fechamento venda a venda, por ordem cronológica. Pode ser impresso até duas vezes por dia.\\n4. Fechamento Final por Data: impressão do comprovante de vendas diário com opção do dia vigente ou de outra data (podendo ser até quatro dias anteriores ao dia vigente). Pode ser extraído quantas vezes for necessário. Zera à meia noite.\", \"quote_found\": true}, {\"statement\": \"Parcial report prints only once per day and captures transactions since the last partial closing, limited to a maximum of 5 days of data.\", \"evidence_quote\": \"Fechamento Parcial Contabiliza todas as transações do horário da última emissão do relatório Parcial até o momento da requisição de um novo relatório. Os dados contabilizados no relatório são limitados a no máximo 5 dias corridos anteriores à data da requisição do relatório. Este relatório pode ser emitido uma única vez\", \"quote_found\": true}, {\"statement\": \"Final report can be issued any number of times and captures all sales from midnight of the current day, with no limit on reports.\", \"evidence_quote\": \"Fechamento Final Contabiliza todas as transações desde a meia‑noite do dia até o momento da requisição do relatório. Não há limitação na quantidade de relatórios a serem emitidos.\", \"quote_found\": true}, {\"statement\": \"Detalhado report can be printed up to two times per day and captures all sales from midnight of the current day.\", \"evidence_quote\": \"Fechamento Detalhado Contabiliza todas as transações desde a meia‑noite do dia até o momento da requisição do relatório. Tipos de fechamento Não há limitação na quantidade de relatórios a serem emitidos.\", \"quote_found\": true}, {\"statement\": \"Final por Data report can be printed any number of times, allows selection of the current day or up to four days prior, and resets at midnight.\", \"evidence_quote\": \"Fechamento Final por Data: impressão do comprovante de vendas diário com opção do dia vigente ou de outra data (podendo ser até quatro dias anteriores ao dia vigente). Pode ser extraído quantas vezes for necessário. Zera à meia noite.\", \"quote_found\": true}, {\"statement\": \"After selecting the desired option, the terminal prints the report automatically.\", \"evidence_quote\": \"Pronto! O relatório será impresso automaticamente.\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "end-of-day sales closing Get Smart"
+          }
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 6584,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 5543,
+        "output_tokens": 1305,
+        "total_tokens": 6848,
+        "cost_usd": 0.00161445,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1077,
+            "output_tokens": 74,
+            "cost_usd": 0.00020595
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2784,
+            "output_tokens": 440,
+            "cost_usd": 0.0006815999999999999
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1682,
+            "output_tokens": 791,
+            "cost_usd": 0.0007268999999999999
+          }
+        ]
+      }
+    },
+    {
+      "id": "p03_antecipar_na_maquininha",
+      "message": "Como faço para antecipar minhas vendas direto na maquininha?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "Para antecipar as vendas diretamente na maquininha Get Smart, siga os passos abaixo:\n\n1. **Acesse o menu da maquininha** e escolha a opção **“Antecipação”**.  \n2. **Selecione a bandeira** (Visa, Mastercard, etc.) que deseja consultar.  \n3. Clique em **“Antecipar”**.  \n4. **Informe o código da antecipação** que foi gerado no fluxo de consulta anterior.  \n5. Confirme a operação; a maquininha enviará a solicitação ao sistema Getnet e imprimirá um comprovante com os detalhes da antecipação.\n\nEssas instruções constam no manual da Get Smart da Getnet【2†L1-L7】. Caso precise de mais detalhes ou queira simular valores antes de confirmar, use o aplicativo Getnet Brasil (menu → Serviços → Antecipação de Vendas) ou entre em contato com o suporte (4002‑4000).",
+      "tools_called": [
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.66) Antecipação de vendas <https://site.getnet.com.br/get-ajuda-antecipacao-de-venda>\nAntecipação de vendas\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n# Antecipação de vendas\n\n## Antecipação de Vendas\n\n## Veja os nossos vídeos\n\nCom as principais dicas e informações:\n\n#### Ainda não tem o Aplicativo Getnet Brasil?\n\nClique abaixo e baixe agora\n\n#### Acesse o manual da sua maquininha\n\nAcesse a nossa lista de manuais navegáveis.\n\n#### Não é cliente?\n\nAdquira nossos produtos e impulsione suas vendas​​\n\nTenha suporte:\n\n[2] (relevance=0.64) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nSelecione a opção “Antecipação”.\nSelecione a bandeira que deseja consultar.\nDepois, clique na opção “Antecipar”.\nInsira o código da antecipação, informado no fluxo anterior da consulta.\nPronto! O terminal confirmará a antecipação solicitada no sistema da Getnet, e um comprovante será impresso com as informações da antecipação realizada.\nComo fazer a antecipação de vendas 1 2 3 4 5 6 7 Essa opção permite antecipar os recebíveis das vendas realizadas no crédito.\nPrimeiro, é necessário consultar os valores disponíveis e realizar uma simulação de antecipação: Fim » › › Manual Get Smart 11 Índice « Como fazer o fechamento de vendas 09 Como fazer o fechamento de vendas O fechamento da Get Smart permite imprimir um resumo detalhado das transações realizadas desde o último fechamento, proporcionando uma visão clara do desempenho das vendas.\n\n[3] (relevance=0.58) Como antecipar suas vendas pelo app? <https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app>\nComo antecipar suas vendas pelo app?\n\n# Como antecipar suas vendas pelo app?\n\nÉ possível antecipar o recebimento das vendas realizadas no crédito, à vista ou parcelado, por meio do aplicativo Getnet Brasil, disponível para Android e iOS.\n\n## Passo a passo para antecipar suas vendas pelo APP:\n\n1. 1. Acesse com seu login e senha.\n2. 2. Clique no menu Serviços.\n3. 3. Selecione Antecipação de Vendas.\n4. 4. Na tela vai mostrar o valor disponível para antecipar e suas contas bancárias cadastradas. Escolha qual você deseja receber o valor antecipado.\n5. 5. Leia e aceite os termos.\n6. 6. Faça simulação da antecipação, conferindo os valores, bandeiras e taxas. Clique em confirmar.\n7. 7. Verifique o valor final e clique em Antecipar.\n8. 8. Insira sua senha.\n9. 9. Pronto sua solicitação foi realizado.\n\nAcesse a área de \"Meus Pedidos\" para acompanhar o status da sua solicitação. Lembrando que o valor mínimo para antecipação é de R$50,00.\n\nRespondeu à sua dúvida?\n\n## Veja os nossos vídeos\n\nCom as principais dicas e informações:\n\n[4] (relevance=0.56) Como antecipar suas vendas pelo app? <https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app>\nComo antecipar suas vendas pelo app?\n\n## Veja os nossos vídeos\n\nCom as principais dicas e informações:\n\n#### Ainda não tem o Aplicativo Getnet Brasil?\n\nClique abaixo e baixe agora\n\n[](https://apps.apple.com/br/app/superget-mobile/id1461510055)   [](https://play.google.com/store/apps/details?id=br.com.getnet.supergetmobile&hl=pt_BR)\n\n#### Acesse o manual da sua maquininha\n\nAcesse a nossa lista de manuais navegáveis.\n\n Clique aqui\n\nVamos começar o seu atendimento?\n\nAinda não é cliente?\n\nAdquira agora e venda mais!\n\nCENTRAL DE VENDAS\n\nJá é nosso cliente?\n\nCENTRAL DE AJUDA\n\n#### Não é cliente?\n\nAdquira nossos produtos e impulsione suas vendas​​\n\nwhatsApp   4002-4000\n\nTenha suporte:\n\nPor telefone Ligue 4002-4000 Por WhatsApp Prático e rápido.\n\n**Nossas ofertas imperdíveis te aguardam:** selecione uma opção e acesse agora!\n\nJá sou cliente! Ainda não sou cliente\n\n[5] (relevance=0.54) wp content > uploads > 2023 > 12 > Contrato versao Web.pdf <https://site.getnet.com.br/wp-content/uploads/2023/12/Contrato-versao-Web.pdf>\nwp content > uploads > 2023 > 12 > Contrato versao Web.pdf\n\nprocessados para pagamento antecipado. 15.9. A Getnet poderá limitar ou suspender a contratação da Antecipação de Recebíveis, a qualquer momento, sem aviso prévio. 15.10. Para formalização e eficácia da Antecipação de Recebíveis, o Cliente deverá atender a todos os requisitos de validação e segurança solicitados pela Getnet, como digitação de senhas e/ou confirmação de dados do Cliente e do usuário solicitante, se for o caso, bem como da ciência e autorização para gravações telefônicas ou outros meios que se julgar necessário para a formalização da operação. 15.11. O Cliente desde já reconhece e aceita que é responsável pela legitimidade das vendas realizadas e antecipadas pela Getnet, sendo responsável ainda pelos débitos, estornos, cancelamentos ocorridos mesmo após a formalização da Antecipação de Recebíveis, devendo, nesta hipótese, ressarcir a Getnet de tais valores, acrescidos de juros de 1% ao mês e correção monetária pela variação positiva do IGPM/FGV ou outro índice que vier"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Acesse o menu da maquininha e escolha a opção “Antecipação”.\", \"evidence_quote\": \"Selecione a opção “Antecipação”.\", \"quote_found\": true}, {\"statement\": \"Selecione a bandeira que deseja consultar.\", \"evidence_quote\": \"Selecione a bandeira que deseja consultar.\", \"quote_found\": true}, {\"statement\": \"Clique em “Antecipar”.\", \"evidence_quote\": \"Depois, clique na opção “Antecipar”.\", \"quote_found\": true}, {\"statement\": \"Insira o código da antecipação, informado no fluxo anterior da consulta.\", \"evidence_quote\": \"Insira o código da antecipação, informado no fluxo anterior da consulta.\", \"quote_found\": true}, {\"statement\": \"O terminal confirmará a antecipação solicitada e imprimirá um comprovante.\", \"evidence_quote\": \"Pronto! O terminal confirmará a antecipação solicitada no sistema da Getnet, e um comprovante será impresso com as informações da antecipação realizada.\", \"quote_found\": true}, {\"statement\": \"No app, acesse com seu login e senha, clique no menu Serviços e selecione Antecipação de Vendas.\", \"evidence_quote\": \"1. Acesse com seu login e senha.\\n2. Clique no menu Serviços.\\n3. Selecione Antecipação de Vendas.\", \"quote_found\": true}, {\"statement\": \"Para suporte, ligue para 4002‑4000.\", \"evidence_quote\": \"Por telefone Ligue 4002-4000\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "antecipar vendas maquininha Getnet"
+          }
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 6543,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 6111,
+        "output_tokens": 981,
+        "total_tokens": 7092,
+        "cost_usd": 0.00150525,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1075,
+            "output_tokens": 92,
+            "cost_usd": 0.00021644999999999998
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 3155,
+            "output_tokens": 282,
+            "cost_usd": 0.00064245
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1881,
+            "output_tokens": 607,
+            "cost_usd": 0.00064635
+          }
+        ]
+      }
+    },
+    {
+      "id": "p04_pix_fee",
+      "message": "How much does Getnet charge me when a customer pays with Pix?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "Getnet charges a fee for each Pix transaction, but the exact amount isn’t fixed publicly. The tariff is shown individually for each merchant in the **Getnet portal or mobile app** (Menu → “Produtos e Serviços” → “Pix” → “Venda com Pix” → “Detalhes”).\n\nIf you need the precise percentage or amount for your account, please log in to the Getnet portal/app or contact your Getnet account manager.",
+      "tools_called": [
+        "search_getnet_kb",
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.59) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nque a primeira transação realizada mediante uso das novas funcionalidades do produto Pix – Agente de Coleta, Contrato de Credenciamento aos Serviços Getnet e Outras Avenças cujas condições serão disponibilizadas no App, será considerada como aceite e adesão ao Pix – Agente de Coleta e ao Termo e Condições de Uso. 5. Cobranças, Taxas e Tarifas 5.4. Pela contratação do Pix – Agente de Coleta, o Cliente pagará á Getnet as tarifas informadas quando de sua adesão, sem prejuízo dos valores devidos pelo Cliente pela contratação e utilização dos Serviços de Adquirência Getnet ou outros Produtos e Serviços contratados pelo Cliente. 5.5. A Getnet cobrará do Cliente uma tarifa pela utilização do produto Pix – Agente de Coleta. O valor da tarifa estará disponível no Portal Minha Conta ou no App Getnet (Aba ‘Produtos e Serviços’ > ‘Pix’ > 'Venda com Pix' > ' Detalhes') e poderá ser consultada pelo Cliente a qualquer momento. Caso o Cliente opte por se habilitar via nosso APP ou Portal Minha Conta,\n\n[2] (relevance=0.59) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nde acordo que, para utilização do produto Pix - Agente de Coleta, a Getnet atuará como um Agente de Coleta dos pagamentos efetuados pelos Usuários Pagadores. A Getnet será o Usuário Recebedor dos valores transacionados via Pix, realizando o repasse dos recebíveis devidos ao Cliente, deduzidas as tarifas e encargos aplicáveis, observado o fluxo de pagamento/liquidação previsto no Anexo XIV – Pix - Agente de Coleta. 8.4. A Getnet poderá cobrar tarifa pela utilização do Pix - Agente de coleta, conforme previsto no Anexo XIV do Contrato e no App Getnet e Portal Minha Conta. 8.5. A liquidação pela Getnet das transações ao Cliente será realizada pelo Valor Líquido, após descontados os valores devidos pelo Cliente à Getnet. 8.6. O PSP (Provedor de Serviços de Pagamento), ou seja, a instituição financeira responsável pelo pagamento ou recebimento do Pix, do Cliente pessoa jurídica poderá cobrar pelas transações Pix independente do meio utilizado (máquina, QR Code impresso, celular ou Chave\n\n[3] (relevance=0.54) Pagamentos digitais: saiba como facilitar transações e aumentar as vendas <https://site.getnet.com.br/pagamentos-digitais>\nPagamentos digitais: saiba como facilitar transações e aumentar as vendas\n\n### **Pix: revolução em pagamentos digitais**\n\n### **O que é o Pix?**\n\nCriado pelo Banco Central, o Pix **é um dos meios de pagamento mais utilizados do país**, graças à sua praticidade em realizar transferências bancárias 24 horas por dia, 7 dias por semana e em poucos segundos. A solução também permite que o cliente não pague taxas pela transação, o que facilita as vendas, para pessoas físicas e empreendedores.\n\nAtualmente, existem diversas formas de vender com o Pix. A Getnet, por exemplo, oferece a **integração direta do Pix com as** **maquininhas Get Clássica e Get Smart** que permitem o uso do **Pix por QR Code e do Pix por Aproximação**, além de outras integrações em plataformas digitais. Isso permite que o empreendedor consiga realizar a **conciliação das vendas** e obtenha uma visão completa dos recebimentos.\n\n### **Toque e pague com o NFC**\n\n[4] (relevance=0.54) Prepare-se para a Black Friday com a Getnet <https://site.getnet.com.br>\nPrepare-se para a Black Friday com a Getnet\n\n## Aceite pagamentos com Pix, QR Code, aproximação e mais de 80 bandeiras\n\nPedir minha maquininha\n\n## Soluções de pagamento completas para preparar o seu negócio para a Black Friday\n\n###### Link de pagamento\n\nVenda pelas redes sociais com o link de pagamento.\n\nSem mensalidade\n\nAceite débito, crédito ou Pix\n\nOpção de inclusão de frete\n\nPersonalizável\n\n###### Pix\n\nAceite pagamentos e venda na velocidade e segurança\nGetnet.\n\nComprovante de pagamento\n\nSegurança com QR Code dinmico\n\nRecebimento rápido\n\nPix por aproximação (NFC)\n\n###### Gestão de Vendas\n\nIntegre estoque, cozinha/pedido, atendimento e mais em um\nsó lugar.\n\nPortal de gerenciamento de vendas\n\nAntifraude para transações\n\nRetentativa inteligente\n\nAmbiente seguro para armazenar dados\n\n###### Get Checkout\n\nSolução de pagamentos para seu e-commerce\n\nSem taxa adicional por transação\n\n[5] (relevance=0.54) Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat <https://site.getnet.com.br/pix>\nSaiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contat\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n**Dica:** mantenha os dados de cadastro na Getnet sempre atualizados!\n\n## Saiba mais sobre o pagamento com Biometria via Pix. Preencha o formulário para que nossos especialistas entrem em contato com você.\n\n**Já é cliente Getnet?**SimNão\n\nAo clicar em enviar, você declara que leu e concorda integralmente\ncom os termos da Política de Privacidade da Getnet\n\n# Venda mais com Pix\n\nA Getnet tem soluções físicas e digitais para o seu negócio\n\nMaquininhas\n\nLink de pagamento\n\nGet Tap\n\nE-commerce\n\nTEF\n\n## Fazer parte da Getnet é garantir a segurança para as suas vendas!\n\n#### Gestão na palma da sua mão\n\nAproveite para utilizar o Aplicativo Getnet Brasil para facilitar o seu dia a dia e turbinar o seu negócio.\n\nAponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.",
+        "[1] (relevance=0.77) wp content > uploads > 2023 > 12 > Contrato versao Web.pdf <https://site.getnet.com.br/wp-content/uploads/2023/12/Contrato-versao-Web.pdf>\nwp content > uploads > 2023 > 12 > Contrato versao Web.pdf\n\nBandeira. Tarifa – Remuneração devida pelo Cliente que optar pela contratação de Produtos e Serviços, conforme constarem no Termo, em qualquer outro documento físico ou eletrônico parte deste Contrato ou ainda conforme informado noCanal de Atendimento, ou nas comunicações enviadas aoCliente. Tarifa de Chargeback: Tarifa devida pelo Cliente para análise, tratamento e processamento de cada procedimento de Chargeback. Taxa de Descontoou MDR (Merchant Discount Rate) – Remuneração devida pelo Cliente sob este contrato, por Transação, pelos Serviços de Adquirência Getnet, cobrada na forma de percentual (%) sobre o Valor Bruto transacionado, composta de valores devidos à Getnet, ao Emissor e à Bandeira e acordadas com o Cliente no Termo e em instrumentos próprios. Termo de Adesão ao Sistema Getnet (“Termo”) –Documento físico ou eletrônico, assinado ou aceito eletronicamente pelo Cliente, que contém a qualificação e os dados cadastrais do Cliente, que poderá conter ou não as condições",
+        "[2] (relevance=0.76) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nde Credenciamento aos Serviços Getnet e Outras Avenças cobrança desta tarifa sempre que o volume de transações negadas exceder 30% (trinta por cento) do volume de transações totais do Cliente, sem necessidade de aviso prévio pela Getnet, ou em casos de % (percentual) menor, mediante aviso prévio pela Getnet. Tarifa de Retentativa de Transação: tarifa devida pelo Cliente por nova submissão de uma Transação, que tenha sido anteriormente negada, com o mesmo Meio de Pagamento e valor. Esta tarifa poderá ser cobrada do Cliente a cada retentiva de transação negada e de acordo com o Tarifário Getnet em vigor, quando do respectivo evento. A cobrança desta tarifa não substitui e nem impede o eventual repasse de tarifas ou penalidades impostas pelas Bandeiras decorrentes das transações retentadas. Tarifário Getnet: tarifas disponibilizadas pela Getnet na aba “documentos” da área logada do Portal Minha Conta. Taxa de Desconto ou MDR (Merchant Discount Rate): Remuneração devida pelo Cliente sob",
+        "[3] (relevance=0.75) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## Taxas\n\nSim, você pode solicitar a alteração das taxas nos canais da Getnet:\n\nA Antecipação Automática é uma condição para obtenção da isenção em clientes que optam pelo plano de recebimento ‘Receba Conforme suas Vendas’. Por tratar-se de um processo de aprovação de crédito, a Getnet reserva-se o direito de avaliar individualmente cada contrato na concessão (ou não) do produto Antecipação Automática.\n\n**Informações de taxas**para venda no débito e crédito\n\nPara maior transparência disponibilizamos todas as taxas cobradas em suas transações de vendas.\n\n| Plano de recebimento: | **2 dias úteis\\*** | **Receba conforme  suas vendas** |\n| --- | --- | --- |\n| Débito: | 1,89% | 1,95% |\n| Crédito à vista: | 3,99% | 3,09% |\n| Venda parcelada: | 1,98% | 6,40% |\n| Taxa adicional por mês\\*\\*: | 2,73% | — |",
+        "[4] (relevance=0.74) Getnet - A solução ideal para o seu negócio <https://site.getnet.com.br/pagamentos-pelo-whatsapp>\nGetnet - A solução ideal para o seu negócio\n\n## Venda online de forma prática e segura com Link de Pagamento\n\nRecomendado\n\nLeve agora\n\nLink de pagamento Inicial\n\nGrátis\n\n**R$1,00** por link pago.\n\nPague somente quando o pagamento do link for aprovado.\n\nTaxas exclusivas para você.\n\nBásico\n\nPor\n\nR$28\n\n/mês\n\n**60 transações** de cartão por mês\n\n**+ R$0,50** por transação excedente",
+        "[5] (relevance=0.74) Getnet - A solução ideal para o seu negócio <https://site.getnet.com.br/link-de-pagamento>\nGetnet - A solução ideal para o seu negócio\n\n## Venda online de forma prática e segura com Link de Pagamento\n\nRecomendado\n\nLeve agora\n\nLink de pagamento Inicial\n\nGrátis\n\n**R$1,00** por link pago.\n\nPague somente quando o pagamento do link for aprovado.\n\nTaxas exclusivas para você.\n\nBásico\n\nPor\n\nR$28\n\n/mês\n\n**60 transações** de cartão por mês\n\n**+ R$0,50** por transação excedente"
+      ],
+      "verify_note": "revised:1 [The fee may differ per merchant contract, plan, or volume.]",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Getnet charges a tariff for using Pix – Agente de Coleta.\", \"evidence_quote\": \"A Getnet cobrará do Cliente uma tarifa pela utilização do produto Pix – Agente de Coleta.\", \"quote_found\": true}, {\"statement\": \"The tariff amount is available in the Portal Minha Conta or the Getnet app under Products and Services > Pix > Venda com Pix > Detalhes.\", \"evidence_quote\": \"O valor da tarifa estará disponível no Portal Minha Conta ou no App Getnet (Aba ‘Produtos e Serviços’ > ‘Pix’ > 'Venda com Pix' > ' Detalhes')\", \"quote_found\": true}, {\"statement\": \"The fee may differ per merchant contract, plan, or volume.\", \"evidence_quote\": \"\", \"quote_found\": false}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Pix fee Getnet charge"
+          }
+        },
+        {
+          "agent": "observe",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "The fee is defined in the merchant’s contract and can differ by plan, volume or negotiated terms. ; If you need the precise percentage or amount for your account, contact your Getnet account manager."
+          }
+        }
+      ],
+      "replans": [
+        "retry_kb: 2 unsupported -> 5 passages -> 1 still unsupported"
+      ],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 9503,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 9882,
+        "output_tokens": 1850,
+        "total_tokens": 11732,
+        "cost_usd": 0.0025923,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1076,
+            "output_tokens": 56,
+            "cost_usd": 0.000195
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 3292,
+            "output_tokens": 225,
+            "cost_usd": 0.0006288
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 3,
+            "input_tokens": 5514,
+            "output_tokens": 1569,
+            "cost_usd": 0.0017684999999999999
+          }
+        ]
+      }
+    },
+    {
+      "id": "p05_pix_savings_account",
+      "message": "Can I receive my Pix sales in a savings account, or does it have to be a checking account?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "Yes. For Pix sales you can have the funds deposited in any bank account that you register with Getnet – a checking account, a savings account, or a payment‑type account. Just link the account (and the associated Pix key) in the Getnet platform and the Pix receipts will be credited there.",
+      "tools_called": [
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.69) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\npelo Portador, mediante assinatura utilização de senha ou outro meio de certificação admitido pela Bandeira e pelo Sistema Getnet, demonstrando a realização de uma Transação. Conta: é a conta corrente, poupança ou de pagamento de sua titularidade, mantida em instituição financeira ou instituição de pagamento, cadastrada no Sistema Getnet para receber créditos e débitos decorrentes das Transações ou de outras obrigações relacionadas no âmbito do Contrato de Credenciamento e que será também utilizada para recebimento dos valores no âmbito dos Serviços Pix Getnet. Conta de Pagamentos Instantâneos (“Conta PI”): conta de titularidade de um participante direto no Sistema de Pagamentos Instantâneos (SPI), mantida no pelo BACEN para fins de transferências de fundos no âmbito do SPI. Credenciadora: empresa licenciada pela Bandeira que, sem gerenciar conta de pagamento, habilita recebedores para a aceitação de meio de pagamento emitido por instituição de pagamento ou por instituição financeira\n\n[2] (relevance=0.68) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\no nome utilizado para relacionar um ou mais dados do Cliente às informações da sua Conta. O Cliente poderá ter os seguintes tipos de Chaves Pix: (i) CPF/CNPJ; (ii) e-mail; (iii) número de telefone celular; ou (iv) chave aleatória. O cadastro de uma Chave Pix é obrigatório para que o Cliente utilize o meio de pagamento instantâneo denominado “Pix” e refletirá os dados da Conta a qual foi atrelada. Cancelamento da Transação: medida tomada pela Getnet em caso de irregularidade na Transação ou a pedido do Cliente e que implica na reversão da Transação e (i) a não realização do pagamento do Valor Líquido ao Cliente ou, (ii) o estorno do crédito previsto na Agenda Financeira para reembolsar o portador, sendo devida a Taxa de Desconto e demais tarifas nos termos deste Contrato. Câmara de Compensação e Liquidação: instituição eleita pelas Bandeiras como responsável pelo gerenciamento da centralização das liquidações realizadas no âmbito dos respectivos arranjos, a qual à Getnet é vinculada.\n\n[3] (relevance=0.67) Como Habilitar o Recebimento de Vendas via Pix no Aplicativo Getnet Brasil? <https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil>\nComo Habilitar o Recebimento de Vendas via Pix no Aplicativo Getnet Brasil?\n\n#### Link de Pagamento\n\n##### Venda pelas redes sociais\n\n#### Checkout de Pagamentos\n\n##### Soluções completas para vendas online\n\n#### Get Conta\n\n##### Conta digital e cartão grátis\n\n#### Pix\n\n##### Receba suas vendas em segundos\n\n#### Empréstimo\n\n##### Faça o seu negócio decolar\n\n#### Crediário\n\n##### Parcelamento em até 48x\n\n#### Pagamentos recorrentes\n\n##### Venda com mensalidade\n\n#### Mundo Open\n\n##### Escolha como economizar\n\n#### Split\n\n##### Simplifique a divisão de vendas\n\n#### Conversor de moedas\n\n##### Receba do seu cliente em moeda estrangeira\n\n#### Get Store\n\n##### Automatize o seu negócio\n\n#### Solução TEF\n\n##### Automação de ponta a ponta\n\n#### POS TEF\n\n##### Flexibilidade para vender\n\n#### Conciliador\n\n##### Gestão financeira inteligente\n\n#### Ofertas TEF\n\n#### Recarga de celular\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n[4] (relevance=0.66) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## Pix\n\nÉ um “apelido” que você escolhe para sua conta para facilitar o recebimento de transações diretamente por meio deste apelido. A chave também permite gerar QR Codes. Cada correntista (PF ou PJ) pode vincular os seguintes tipos de chaves à sua conta:\n\nDica: Ideal que você use uma chave aleatória ou CNPJ, pois **o dado fica visível ao pagador.**\n\nPessoas físicas poderão ter até 5 chaves Pix por conta transacional da qual for titular. Pessoa jurídica, até 20 chaves. O limite de chaves é aplicado para cada conta transacional, independentemente da quantidade de titulares da conta. Uma mesma chave só pode estar vinculada a uma única instituição.\n\nPara contratar o produto na Getnet, é necessário informar somente uma chave de sua escolha que esteja atrelada à conta de recebimento desejada. Ou seja, caso você tenha mais de uma chave Pix cadastrada no seu domicílio bancário, escolha uma delas para informar à Getnet!\n\n[5] (relevance=0.66) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\nA partir de 16/11/20, você pode acessar um dos canais digitais Getnet (Portal Minha Conta ou Aplicativo Getnet) e fazer a contratação por lá, digitando a mesma chave que você cadastrou no seu domicílio bancário\\* onde receberá o Pix.\n\n\\*Consulte a disponibilidade dos PSP já integrados a Getnet na nossa Central de Atendimento. Em breve a solução para os demais domicílios estará disponível!\n\nVocê pode saber mais sobre a contratação no e-book Pix disponível na página principal <https://site.getnet.com.br/pix/>.\n\nNa Getnet é possível receber pagamentos com Pix gerando QR Code direto nos nossos meios de captura. A funcionalidade Pix está disponível nos terminais físicos, no TEF Auttar e no Ecommerce. Ou seja, em qualquer canal, você terá mais uma forma de pagamento para oferecer a seus clientes!"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Funds can be deposited in any bank account you register with Getnet.\", \"evidence_quote\": \"Conta: é a conta corrente, poupança ou de pagamento de sua titularidade, mantida em instituição financeira ou instituição de pagamento, cadastrada no Sistema Getnet para receber créditos e débitos decorrentes das Transações...\", \"quote_found\": true}, {\"statement\": \"Acceptable account types are checking account, savings account, or payment‑type account.\", \"evidence_quote\": \"Conta: é a conta corrente, poupança ou de pagamento de sua titularidade...\", \"quote_found\": true}, {\"statement\": \"You must link the account and the associated Pix key in the Getnet platform.\", \"evidence_quote\": \"Para contratar o produto na Getnet, é necessário informar somente uma chave de sua escolha que esteja atrelada à conta de recebimento desejada.\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Pix recebimento conta poupança ou conta corrente Getnet"
+          }
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 4061,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 6166,
+        "output_tokens": 688,
+        "total_tokens": 6854,
+        "cost_usd": 0.0013376999999999998,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1083,
+            "output_tokens": 60,
+            "cost_usd": 0.00019845
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 3256,
+            "output_tokens": 143,
+            "cost_usd": 0.0005742
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1827,
+            "output_tokens": 485,
+            "cost_usd": 0.00056505
+          }
+        ]
+      }
+    },
+    {
+      "id": "p06_payment_link_cost",
+      "message": "Do I have to pay anything to use the Payment Link?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "You can create a Payment Link at no upfront cost. The “Link de pagamento Inicial” plan is free, and you are only charged **R$ 1.00 for each link that results in an approved payment**. Transaction fees (e.g., the standard card‑sale rate) still apply, but there is no monthly or setup fee for using the link itself.",
+      "tools_called": [
+        "search_getnet_kb",
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.56) Getnet - A solução ideal para o seu negócio <https://site.getnet.com.br/link-de-pagamento>\nGetnet - A solução ideal para o seu negócio\n\n## Venda online de forma prática e segura com Link de Pagamento\n\nRecomendado\n\nLeve agora\n\nLink de pagamento Inicial\n\nGrátis\n\n**R$1,00** por link pago.\n\nPague somente quando o pagamento do link for aprovado.\n\nTaxas exclusivas para você.\n\nBásico\n\nPor\n\nR$28\n\n/mês\n\n**60 transações** de cartão por mês\n\n**+ R$0,50** por transação excedente\n\n[2] (relevance=0.56) Getnet - A solução ideal para o seu negócio <https://site.getnet.com.br/pagamentos-pelo-whatsapp>\nGetnet - A solução ideal para o seu negócio\n\n## Venda online de forma prática e segura com Link de Pagamento\n\nRecomendado\n\nLeve agora\n\nLink de pagamento Inicial\n\nGrátis\n\n**R$1,00** por link pago.\n\nPague somente quando o pagamento do link for aprovado.\n\nTaxas exclusivas para você.\n\nBásico\n\nPor\n\nR$28\n\n/mês\n\n**60 transações** de cartão por mês\n\n**+ R$0,50** por transação excedente\n\n[3] (relevance=0.55) Getnet - A solução ideal para o seu negócio <https://site.getnet.com.br/pagamentos-pelo-whatsapp>\nGetnet - A solução ideal para o seu negócio\n\n## Simule o recebimento das suas vendas com o Link de Pagamento\n\nForma de Recebimento\n\nComo quer receber?\n\n\\*Taxa única para compras com:\n\nCom a Getnet, você recebe:\n\nR$ 0 ,00\n\nTaxa 1,90%\n\nEu quero Confira nossas taxas\n\nTermos e condições\n\nCondição válida somente para Pessoa Física, MEI (Microempreendedor Individual), Pessoa Jurídica que faturar até R$ 3 milhões por ano e novos clientes. Clientes Getnet, devem fazer a simulação via App Getnet. Condição não cumulativa com outras negociações disponíveis pela Getnet Adquirência e Serviços para Meios de Pagamento SA ou pelo Banco Santander Brasil SA. Sujeito à análise cadastral. Todas as vendas feitas com crédito pré-pago tem recebimento em até 2 dias úteis e débito pré-pago em até 1 dia útil. Taxas sujeitas a alteração de acordo com as condições dos produtos e serviços contratados.\n\n## Veja como é fácil vender com o Link de Pagamento\n\n[4] (relevance=0.52) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nAutomatizada: O processo é realizado de forma recorrente pela Getnet para que seja realizada a disponibilização do produto PAT aos novos Clientes elegíveis ao produto e, ainda, desde que o Meio de Captura seja elegível. 5. Cobranças, Taxas e Tarifas 5.1. Pela contratação do Arranjo de Pagamento de Benefícios de Vale Alimentação e Vale Refeição, o Cliente pagará á Getnet as tarifas informadas quando de sua adesão, sem prejuízo dos valores devidos pelo Cliente pela contratação e utilização dos Serviços de Adquirência Getnet ou outros Produtos e Serviços contratados pelo Cliente. 5.2. A Getnet cobrará do Cliente uma tarifa pela utilização do Arranjo de Pagamento de Benefícios de Vale Alimentação e Vale Refeição. O valor da tarifa estará disponível no site da Getnet: https://site.getnet.com.br/taxas/, Portal Minha Conta ou no App Getnet (Aba ‘Produtos e Serviços’ > ‘PAT’) e poderá ser consultada pelo Cliente a qualquer momento. Caso o Cliente opte por se habilitar via nosso APP ou Portal\n\n[5] (relevance=0.51) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nque a primeira transação realizada mediante uso das novas funcionalidades do produto Pix – Agente de Coleta, Contrato de Credenciamento aos Serviços Getnet e Outras Avenças cujas condições serão disponibilizadas no App, será considerada como aceite e adesão ao Pix – Agente de Coleta e ao Termo e Condições de Uso. 5. Cobranças, Taxas e Tarifas 5.4. Pela contratação do Pix – Agente de Coleta, o Cliente pagará á Getnet as tarifas informadas quando de sua adesão, sem prejuízo dos valores devidos pelo Cliente pela contratação e utilização dos Serviços de Adquirência Getnet ou outros Produtos e Serviços contratados pelo Cliente. 5.5. A Getnet cobrará do Cliente uma tarifa pela utilização do produto Pix – Agente de Coleta. O valor da tarifa estará disponível no Portal Minha Conta ou no App Getnet (Aba ‘Produtos e Serviços’ > ‘Pix’ > 'Venda com Pix' > ' Detalhes') e poderá ser consultada pelo Cliente a qualquer momento. Caso o Cliente opte por se habilitar via nosso APP ou Portal Minha Conta,",
+        "[1] (relevance=0.54) ¡Ganá más cobrando con Getnet! <https://www.getnet.net/ar/landings/cobra-con-terminal>\n¡Ganá más cobrando con Getnet!\n\n*\\*\\*\\* Disponible cartera comercial. Válido para clientes que se den de alta ante Getnet por primera y única vez hasta el 30/11/2026. Se bonificará el costo mensual de GetPOS durante 12 meses corridos. Pasados los 12 meses de la bonificación, el cliente deberá abonar el abono mensual por contar con la terminal. El costo mensual vigente por cada terminal es de $51.500 + IVA.*\n\n*(1) Aranceles aplicables conforme Texto Ordenado BCRA \"Sistema nacional de Pagos- Transferencias- Normas complementarias (“TO”)\". Durante los primeros 3 meses no aplica comisión sobre comercios que cumplan con condiciones establecidas en 6.3.1.1 TO.*\n\n*(2) Arancel aplicable a tarjetas de crédito y prepagas. En caso de ventas realizadas con tarjetas de crédito y prepagas VISA y Mastercard internacionales se adicionará un arancel de 0,7%.*",
+        "[2] (relevance=0.53) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\n11.2. A Taxa de Desconto é o valor devido pelo Cliente à Getnet pela prestação de serviços de captura, transmissão, processamento e liquidação financeira das Transações realizadas com cartão de crédito ou débito, o qual é aplicado sobre o Valor Bruto da Transação, sendo composto por valores devidos à Getnet, ao Emissor do Cartão (Taxa do Emissor) e à Bandeira (Taxa de Bandeira), que possuem denominações e condições conforme os regramentos específicos da Bandeira e que serão objeto de divisão entre o Emissor, a Getnet e a Bandeira, conforme regramento específico entre as partes. 11.3. Os valores das Taxas de Desconto ou Tarifas poderão ser diferentes, dependendo da modalidade da Transação, tipo do Meio de Pagamento, Produto ou Serviço, seguimento de atuação do Cliente e/ou Bandeira capturada. 11.4. Os valores devidos pelo Cliente serão deduzidos do Valor Bruto das Transações ou de quaisquer outros valores que a Getnet tiver de pagar ao Cliente em decorrência de seu credenciamento aos",
+        "[3] (relevance=0.53) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nestabelecidas pelo Banco Central do Brasil, devendo, quando for o caso, adequar-se às regras e exigências das Bandeiras e/ou do Banco Central do Brasil, no prazo e condições estabelecidas pela Getnet. Contrato de Credenciamento aos Serviços Getnet e Outras Avenças 5. Cláusula Quinta – Transações sem Cartão Presente 5.1. Consideram-se transações sem Cartão Presente aquelas realizadas sem a apresentação do Cartão de Pagamento, pelo Portador ao Cliente, exemplificativamente, tais transações são realizadas através de um site e-commerce, de algum estabelecimento e, somente serão permitidas se autorizadas expressamente pela Getnet e de acordo com as regras dos Serviços de Adquirência Getnet e das Bandeiras, considerando-se, ainda, o segmento de atuação do Cliente e as especificidades dos produtos e serviços por ele fornecidos. 5.2. O Cliente está ciente de que o pagamento do valor relativo a comissões ou honorários devidos às plataformas de e-commerce, na condição de site de venda, será",
+        "[4] (relevance=0.53) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## Taxas\n\nSim, você pode solicitar a alteração das taxas nos canais da Getnet:\n\nA Antecipação Automática é uma condição para obtenção da isenção em clientes que optam pelo plano de recebimento ‘Receba Conforme suas Vendas’. Por tratar-se de um processo de aprovação de crédito, a Getnet reserva-se o direito de avaliar individualmente cada contrato na concessão (ou não) do produto Antecipação Automática.\n\n**Informações de taxas**para venda no débito e crédito\n\nPara maior transparência disponibilizamos todas as taxas cobradas em suas transações de vendas.\n\n| Plano de recebimento: | **2 dias úteis\\*** | **Receba conforme  suas vendas** |\n| --- | --- | --- |\n| Débito: | 1,89% | 1,95% |\n| Crédito à vista: | 3,99% | 3,09% |\n| Venda parcelada: | 1,98% | 6,40% |\n| Taxa adicional por mês\\*\\*: | 2,73% | — |",
+        "[5] (relevance=0.53) Como deseja continuar? <https://site.getnet.com.br/todas-as-maquininhas>\nComo deseja continuar?\n\n## Leve sua maquininha e ganhe os serviços abaixo para acelerar suas vendas\n\nComece a vender agora e pague apenas a taxa de transação\n\n eu quero\n\n## Simule suas vendas\n\nAqui, você encontra taxas especiais para todas as bandeiras de cartões.\n Já é nosso cliente? Simule suas vendas em nosso app!\n\nForma de recebimento\n\nBandeira\n\nFaturamento mensal\n\nProdutos:\n\nTaxa única para compras com:\n\nCom a Getnet, você recebe:\n\nR$ 0 ,00\n\nTaxa 1,69%\n\n## Aceite pagamentos com Pix, QR Code, aproximação e mais de 80 bandeiras\n\n  Pedir minha maquininha"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"You can create a Payment Link at no upfront cost.\", \"evidence_quote\": \"Link de pagamento Inicial Grátis\", \"quote_found\": true}, {\"statement\": \"The “Link de pagamento Inicial” plan is free\", \"evidence_quote\": \"Link de pagamento Inicial Grátis\", \"quote_found\": true}, {\"statement\": \"you are only charged R$ 1.00 for each link that results in an approved payment\", \"evidence_quote\": \"**R$1,00** por link pago. Pague somente quando o pagamento do link for aprovado.\", \"quote_found\": true}, {\"statement\": \"no monthly or setup fee for using the link itself\", \"evidence_quote\": \"Link de pagamento Inicial Grátis\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Payment Link fees"
+          }
+        },
+        {
+          "agent": "observe",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Transaction fees (e.g., the standard card‑sale rate) still apply"
+          }
+        }
+      ],
+      "replans": [
+        "retry_kb: 1 unsupported -> 5 passages -> 0 still unsupported"
+      ],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 5849,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 8820,
+        "output_tokens": 864,
+        "total_tokens": 9684,
+        "cost_usd": 0.0018414,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1074,
+            "output_tokens": 62,
+            "cost_usd": 0.0001983
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 3067,
+            "output_tokens": 171,
+            "cost_usd": 0.00056265
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 4679,
+            "output_tokens": 631,
+            "cost_usd": 0.00108045
+          }
+        ]
+      }
+    },
+    {
+      "id": "p07_printer_not_printing",
+      "message": "I loaded a new paper roll in my Get Smart but it still won't print receipts. What should I do?",
+      "plan": [
+        "support",
+        "knowledge"
+      ],
+      "answer": "Your terminal is still not printing even after you’ve loaded a new paper roll. Let’s make sure the printer is set up correctly and that the device can communicate with the network.\n\n**2. Check the terminal’s connectivity**  \n- The terminal is currently showing as **offline** (network timeout, weak Wi‑Fi). If it can’t reach the acquirer gateway, no receipt will be printed.  \n\n**3. Next steps**  \n- If the printer test prints but receipts still don’t come out after the terminal is back online, the issue is likely network‑related.  \n- If the printer test fails or the terminal remains offline after the above checks, we should open a support ticket for a technician to investigate further.  \n\nThere are no documented steps for this issue; please let us know if you’d like further assistance.\n\nIf you'd like, I can open a support ticket so a technician can look into this.",
+      "tools_called": [
+        "get_terminal_status",
+        "search_getnet_kb",
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[get_terminal_status] {\"model\":\"Get Smart\",\"serial\":\"GS-88231-RS\",\"status\":\"offline\",\"connection_type\":\"wifi\",\"signal_strength\":\"weak\",\"minutes_since_last_seen\":95,\"last_error\":\"NET_TIMEOUT: could not reach the acquirer gateway\",\"firmware\":\"4.2.1\",\"battery_percent\":62}",
+        "[search_getnet_kb] [1] (relevance=0.49) wp content > uploads > 2025 > 12 > Getnet Sustainability Report 2024 English.pdf <https://site.getnet.com.br/wp-content/uploads/2025/12/Getnet-Sustainability-Report-2024-English.pdf>\nwp content > uploads > 2025 > 12 > Getnet Sustainability Report 2024 English.pdf\n\nCheckout Bank slip payment Getpay link Acquiring service Split payments Payment reconciler Secure vault Recurring payments Anti-fraud Consulting Getnet Check out our complete product portfolio at: getnet.com.br G R I 2- 6 | 3 -3 12 Presentation Environmental impact Social impact Corporate governance Appendix Credits Messages S U S TA I N A B I L I T Y R E P O R T 2 0 2 4 | B R A S I L Environmental impact Presentation Environmental impact Social impact Corporate governance Appendix Credits 13 Messages S U S TA I N A B I L I T Y R E P O R T 2 0 2 4 | B R A S I L Sustainable and circular machines Also in 2022, driven by innovation and a commitment to sustainability, we were pioneers in the market by starting a project to expand the recovery and reuse of terminals and their components, reducing costs and the environmental impact of our operations. The project also expanded the use of reels produced with BPA Free paper and without plastic tubes, ensuring greater safety for users and\n\n[2] (relevance=0.48) Get Advance <https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta>\nGet Advance\n\n### Hoteles\n\nOptimiza el tiempo de Chek-in, reautorización y Chek-out de tus huéspedes con el módulo para hoteles.\n\nPREGUNTAS FRECUENTES\n\n## ¡Estamos aquí para apoyarte!\n\nRespondemos las preguntas más frecuentes acerca de Get Advance.\n\n###\n\nGet Advance es un dispositivo que no necesita rollos.\n\n¡Es posible! Para ofrecer esta opción a tus clientes, por favor ponte en contacto con nosotros al siguiente número: 55 9177 9899\n\nNuestras Terminales Getnet cuentan con Internet ilimitado.\n\nEn nuestro canal de YouTube puedes conocer a detalle cómo funciona Get Advance.\n\n## Soluciones para todo tipo de negocio\n\n### Get Advance\n\nLigera y con conexión WI-FI, Bluetooth, 3G o 4G.\n\nDescubre más\n\nEN TU E-COMMERCE\n\n### G Tapp\n\nCobra con tu celular.\n\n### Get Smart\n\nImpresión de vouchers y administración total de tu negocio.\n\n[3] (relevance=0.48) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nBrilho da Tela ■Ajuste o nível de brilho da tela conforme sua preferência.\nTeste de Hardware Execute uma série de testes para verificar o funcionamento dos componentes da maquininha. Entre os testes disponíveis estão: ■Touchscreen ■Conectividade ■Data e hora ■Impressão ■Luzes LED ■Câmera ■Mifare ■NFC ■Leitor de tarja magnética ■Leitor de chip ■E outros Fim » › › Manual Get Smart 5 Índice « Formas de Pagamento 03 Formas de pagamento Existes varias opções para receber um pagamento com a sua Get Smart: Leitor contactless Leitor de cartão magnético O cartão pode ser lido em ambos sentidos. Execute um movimento contínuo para garantir um melhor desempenho da leitura dos cartões.\nO local de leitura pode variar de acordo com o modelo do equipamento.\n\n[4] (relevance=0.46) Soluções Get Smart <https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart>\nSoluções Get Smart\n\n#### Recarga de celular\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n# Soluções Get Smart\n\n## O que é Get Smart em modo quiosque?\n\nEsta funcionalidade transforma o terminal em um sistema de autoatendimento com as seguintes características:\n\nO modo quiosque é gerenciado pelo aplicativo \"Configurar\" da Get Smart.\n\n## Como escolher a automação que será usada na Get Smart?\n\nVocê pode escolher diretamente pelo nosso site ou através da Getstore na Get Smart.\n\n## Após receber a Get Smart, como eu começo a usar o aplicativo escolhido?\n\n## Quais aplicativos vêm instalados quando eu recebo o terminal?\n\nOs aplicativos de sistema, como Pagamento, Getstore e Configurar, já estão instalados. Eles não podem ser removidos nem ocultados.\n\n[5] (relevance=0.46) The perfect point of sale begins with our POS <https://www.getnet.net/en/our-solutions/in-person-payments>\nThe perfect point of sale begins with our POS\n\n## Get Classic\n\nThe basic POS for your sales.\n\n* All our terminals comply with PCI security standards to make your transactions secure\n* Get paid anywhere in your business in order to offer more comfort and a seanless experience\n* IIt's reliadble, intuitive and allows you to start selling fast.\n* Acceot chip card, magnetic stripe, contactless and mobiile payments\n\n## Get Smart\n\nThe POS to make your business grow.\n\n* From entering the stock to closing the cashier, everything is integrated.\n* Debit, credit card, vouchers, payment by approximation or via apps. The customer chooses the best way to pay.\n* Provide a new experience for your costumers with the Android system.\n* You can integrate the best API that fits your type of business\n\nGet Tap\n\n## Turn your smartphone into a tap-to-pay system\n\n### Fast & Easy\n\nAccept payments on your Android mobile or NFC-enabled tablet. No additional hardware or equipment required.",
+        "[1] (relevance=0.78) wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf <https://site.getnet.com.br/wp-content/uploads/2021/09/Manul-SG-3G-wi-fi-LP.pdf>\nwp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf\n\nAgora digite a data da venda que será estornada.\nSelecione (0) MENU > (2) SUPORTE > (1) BANDEIRAS > (1) ESTORNO PARA INSERIR O CHIP NA SUA MÁQUINA: Ź Com a máquina desligada, abra a tampa na parte de trás, • Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo, • Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados, • Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso, • Faça um teste de comunicação para veriﬁcar a conectividade do seu chip, seguindo os passos: 1. Pressione o botão função – F, # ou o da sua máquina, 2. Pressione 60, 3. Selecione a opção 2 – manutenção, 4. Selecione a opção 1 – teste de comunicação.\nCOMPROVANTES: Você recebe no e-mail cadastrado na Getnet.\nSua máquina possui a Senha Padrão 0000. INFORMAÇÕES BÁSICAS: OBRIGADA.\nEsta senha será solicitada em algumas funções como fechamento e estorno de vendas.\nSe o seu cliente quiser, ele recebe via SMS.",
+        "[2] (relevance=0.78) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nBrilho da Tela ■Ajuste o nível de brilho da tela conforme sua preferência.\nTeste de Hardware Execute uma série de testes para verificar o funcionamento dos componentes da maquininha. Entre os testes disponíveis estão: ■Touchscreen ■Conectividade ■Data e hora ■Impressão ■Luzes LED ■Câmera ■Mifare ■NFC ■Leitor de tarja magnética ■Leitor de chip ■E outros Fim » › › Manual Get Smart 5 Índice « Formas de Pagamento 03 Formas de pagamento Existes varias opções para receber um pagamento com a sua Get Smart: Leitor contactless Leitor de cartão magnético O cartão pode ser lido em ambos sentidos. Execute um movimento contínuo para garantir um melhor desempenho da leitura dos cartões.\nO local de leitura pode variar de acordo com o modelo do equipamento.",
+        "[3] (relevance=0.75) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n**FECHAMENTO DAS VENDAS**\nMenu > Mastercard/Visa ou Bandeiras > SUPORTE > Fechamentos > Digite a senha do lojista > Selecione:\n1. Parcial: impressão do relatório com o fechamento de todas as vendas desde o último fechamento parcial. Não zera à meia noite.\n2. Final: somatória das vendas efetuadas durante o dia vigente até o momento da impressão. Pode ser extraído quantas vezes necessitar. Zera à meia noite.\n3. Detalhado: impressão do relatório com o fechamento venda a venda, por ordem cronológica. Pode ser impresso até duas vezes por dia.\n4. Fechamento Final por Data: impressão do comprovante de vendas diário com opção do dia vigente ou de outra data (podendo ser até quatro dias anteriores ao dia vigente). Pode ser extraído quantas vezes for necessário. Zera à meia noite.\n\nAcesse Menu > Bandeiras > Produtos > Crédito > Inserir Valor > Digitar número do cartão > Inserir Validade do Cartão > A vista ou Parcelado > Código de Segurança > Aguarde a impressão do comprovante.",
+        "[4] (relevance=0.75) Como Habilitar o Recebimento de Vendas via Pix no Aplicativo Getnet Brasil? <https://site.getnet.com.br/get-ajuda-pix/como-habilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil>\nComo Habilitar o Recebimento de Vendas via Pix no Aplicativo Getnet Brasil?\n\n#### Acesse o manual da sua maquininha\n\nAcesse a nossa lista de manuais navegáveis.\n\n#### Não é cliente?\n\nAdquira nossos produtos e impulsione suas vendas​​\n\nTenha suporte:",
+        "[5] (relevance=0.72) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n3. Duplicidade de transação: única venda é processada mais de uma vez e não é reconhecida pelo portador do cartão.\nNão será considerada uma duplicidade caso seu estabelecimento apresente dois comprovantes distintos.\n\n4. Crédito não processado: quando o portador do cartão cancela a transação junto ao seu estabelecimento e o crédito (estorno) não foi lançado em sua fatura.\n\n5. Pagamento por meio alternativo: quando o portador do cartão alega que efetuou o pagamento da transação por outro meio (outro cartão, cheque ou dinheiro).\n\n**RESUMO DO DIA**\nMostra um resumo das vendas confirmadas do dia anterior. Cumulativo por 5 dias, caso não seja extraído.\nMenu > Mastercard/Visa ou Bandeiras > SUPORTE > Resumo do dia > Digite a senha do lojista > A impressão Resumo do Dia será realizada."
+      ],
+      "verify_note": "revised:8 [Remove the roll and re‑insert it, feeding the paper from the bottom so the roll  | From the Get Smart home screen go to Configurar → Impressão and confirm the prin | Run Teste de impressão in the same menu; a successful test means the roll and pr | Ensure the Wi‑Fi router is on, the SSID/password haven’t changed, and the termin | Restart the terminal (hold the power button, wait a few seconds, then power it b | If possible, move the terminal closer to the router or remove obstacles that may | If the printer test prints but receipts still don’t come out after the terminal  | If the printer test fails or the terminal remains offline after the above checks]; offered_ticket",
+      "verify_raw": "{\"statements\": [{\"statement\": \"The terminal is currently showing as offline (network timeout, weak Wi‑Fi).\", \"evidence_quote\": \"\\\"status\\\":\\\"offline\\\",\\\"connection_type\\\":\\\"wifi\\\",\\\"signal_strength\\\":\\\"weak\\\",\\\"last_error\\\":\\\"NET_TIMEOUT: could not reach the acquirer gateway\\\"\", \"quote_found\": true}, {\"statement\": \"Remove the roll and re‑insert it, feeding the paper from the bottom so the roll sits flat against the guide.\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"From the Get Smart home screen go to Configurar → Impressão and confirm the printer is set to On.\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"Run Teste de impressão in the same menu; a successful test means the roll and printer are OK.\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"Ensure the Wi‑Fi router is on, the SSID/password haven’t changed, and the terminal is within good range.\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"Restart the terminal (hold the power button, wait a few seconds, then power it back on).\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"If possible, move the terminal closer to the router or remove obstacles that may block the signal.\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"If the printer test prints but receipts still don’t come out after the terminal is back online, the issue is likely network‑related.\", \"evidence_quote\": \"\", \"quote_found\": false}, {\"statement\": \"If the printer test fails or the terminal remains offline after the above checks, we should open a support ticket for a technician to investigate further.\", \"evidence_quote\": \"\", \"quote_found\": false}]}",
+      "tool_calls": [
+        {
+          "agent": "support",
+          "name": "get_terminal_status",
+          "args": {}
+        },
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Get Smart terminal paper roll not printing receipts"
+          }
+        },
+        {
+          "agent": "observe",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Remove the roll and re‑insert it, feeding the paper from the bottom so the roll sits flat against the guide. ; From the Get Smart home screen go to Configurar → Impressão and confirm the printer is set to On. ; Run Teste de impressão in the same menu. ; Ensure the Wi‑Fi router is on, the SSID/password haven’t changed, and the terminal is within good range. ; Restart the terminal (hold the power button, wait a few seconds, then power it back on). ; Move the terminal closer to the router or remove obstacles that may block the signal. ; If the printer test prints but receipts still don’t come out"
+          }
+        }
+      ],
+      "replans": [
+        "retry_kb: 8 unsupported -> 5 passages -> 8 still unsupported",
+        "offer_ticket: no step is left"
+      ],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 11228,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 14028,
+        "output_tokens": 2121,
+        "total_tokens": 16149,
+        "cost_usd": 0.0033768,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1084,
+            "output_tokens": 111,
+            "cost_usd": 0.0002292
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 3562,
+            "output_tokens": 242,
+            "cost_usd": 0.0006795
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2700,
+            "output_tokens": 289,
+            "cost_usd": 0.0005784
+          },
+          {
+            "node": "synthesizer",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 614,
+            "output_tokens": 368,
+            "cost_usd": 0.00031289999999999996
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 3,
+            "input_tokens": 6068,
+            "output_tokens": 1111,
+            "cost_usd": 0.0015768000000000002
+          }
+        ]
+      }
+    },
+    {
+      "id": "p08_software_update",
+      "message": "How do I update the software of my Get Smart?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "I couldn't fully resolve this with the information I have, so I've passed your case to a human agent. Your reference is HND-7D36C4 / TKT-C89DC2. They will follow up with you, and you won't need to repeat the details we already have.",
+      "tools_called": [
+        "search_getnet_kb",
+        "search_getnet_kb",
+        "escalate_to_human"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.56) Soluções Get Smart <https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart>\nSoluções Get Smart\n\n#### Recarga de celular\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n# Soluções Get Smart\n\n## O que é Get Smart em modo quiosque?\n\nEsta funcionalidade transforma o terminal em um sistema de autoatendimento com as seguintes características:\n\nO modo quiosque é gerenciado pelo aplicativo \"Configurar\" da Get Smart.\n\n## Como escolher a automação que será usada na Get Smart?\n\nVocê pode escolher diretamente pelo nosso site ou através da Getstore na Get Smart.\n\n## Após receber a Get Smart, como eu começo a usar o aplicativo escolhido?\n\n## Quais aplicativos vêm instalados quando eu recebo o terminal?\n\nOs aplicativos de sistema, como Pagamento, Getstore e Configurar, já estão instalados. Eles não podem ser removidos nem ocultados.\n\n[2] (relevance=0.53) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nÚltima atualização: Junho/2025.\nManual Get Smart Manual Get Smart 2 Índice Índice Como fazer o fechamento de vendas 09 Como fazer a antecipação de vendas 08 Get Ajuda 11 Como reimprimir o comprovante de venda 06 Como fazer um estorno 05 Como fazer uma venda 04 Formas de pagamento 03 Configurações da Get Smart 02 Principais informações 01 Como conferir suas últimas vendas 07 Dicas de segurança 10 Fim » › › Índice « Manual Get Smart 3 Índice « Principais informações 01 Principais informações O que vem na caixa O que significa cada ícone Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos ■Tela touchscreen; ■Leitor de chip; ■Leitor de terja magnética; ■Leitor integrado sem-contato (NFC); ■Comunicação 4G, Wi-Fi e Bluetooth.\n\n[3] (relevance=0.52) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nPrincipais características da Get Smart 1.\tSua maquininha é bivolt; 2.\tUse apenas o carregador original; 3.\tNão use nenhum tipo de produto de limpeza, apenas um pano seco e limpo; 4.\tEvite exposição prolongado à luz do sol; 5.\tNão molhar; 6.\tNão deixar cair; 7.\tO terminal só pode ser aberto por técnicos autorizados.\nCuidados Pagamento por aproximação Bluetooth Sinal 4G Wi-fi Bateria Fim » › › Manual Get Smart 4 Índice « Configurações da Get Smart 02 Configurações da Get Smart Sua Get Smart oferece diversas opções de configuração diretamente na própria maquininha. Para acessá-las, basta tocar em “Configurar” na tela inicial. Confira abaixo as funcionalidades disponíveis: Wi-Fi ■Visualize as redes disponíveis e conecte-se facilmente a uma rede Wi-Fi.\nSistema ■Consulte informações sobre o Auttar (disponível apenas para maquininhas com TEF). ■Restaure o sistema (função restrita ao suporte técnico, com senha de acesso).\n\n[4] (relevance=0.50) The perfect point of sale begins with our POS <https://www.getnet.net/en/our-solutions/in-person-payments>\nThe perfect point of sale begins with our POS\n\n## Get Classic\n\nThe basic POS for your sales.\n\n* All our terminals comply with PCI security standards to make your transactions secure\n* Get paid anywhere in your business in order to offer more comfort and a seanless experience\n* IIt's reliadble, intuitive and allows you to start selling fast.\n* Acceot chip card, magnetic stripe, contactless and mobiile payments\n\n## Get Smart\n\nThe POS to make your business grow.\n\n* From entering the stock to closing the cashier, everything is integrated.\n* Debit, credit card, vouchers, payment by approximation or via apps. The customer chooses the best way to pay.\n* Provide a new experience for your costumers with the Android system.\n* You can integrate the best API that fits your type of business\n\nGet Tap\n\n## Turn your smartphone into a tap-to-pay system\n\n### Fast & Easy\n\nAccept payments on your Android mobile or NFC-enabled tablet. No additional hardware or equipment required.\n\n[5] (relevance=0.49) Get Advance <https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta>\nGet Advance\n\n### Hoteles\n\nOptimiza el tiempo de Chek-in, reautorización y Chek-out de tus huéspedes con el módulo para hoteles.\n\nPREGUNTAS FRECUENTES\n\n## ¡Estamos aquí para apoyarte!\n\nRespondemos las preguntas más frecuentes acerca de Get Advance.\n\n###\n\nGet Advance es un dispositivo que no necesita rollos.\n\n¡Es posible! Para ofrecer esta opción a tus clientes, por favor ponte en contacto con nosotros al siguiente número: 55 9177 9899\n\nNuestras Terminales Getnet cuentan con Internet ilimitado.\n\nEn nuestro canal de YouTube puedes conocer a detalle cómo funciona Get Advance.\n\n## Soluciones para todo tipo de negocio\n\n### Get Advance\n\nLigera y con conexión WI-FI, Bluetooth, 3G o 4G.\n\nDescubre más\n\nEN TU E-COMMERCE\n\n### G Tapp\n\nCobra con tu celular.\n\n### Get Smart\n\nImpresión de vouchers y administración total de tu negocio.",
+        "[search_getnet_kb] [1] (relevance=0.61) Soluções Get Smart <https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart>\nSoluções Get Smart\n\n#### Recarga de celular\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n# Soluções Get Smart\n\n## O que é Get Smart em modo quiosque?\n\nEsta funcionalidade transforma o terminal em um sistema de autoatendimento com as seguintes características:\n\nO modo quiosque é gerenciado pelo aplicativo \"Configurar\" da Get Smart.\n\n## Como escolher a automação que será usada na Get Smart?\n\nVocê pode escolher diretamente pelo nosso site ou através da Getstore na Get Smart.\n\n## Após receber a Get Smart, como eu começo a usar o aplicativo escolhido?\n\n## Quais aplicativos vêm instalados quando eu recebo o terminal?\n\nOs aplicativos de sistema, como Pagamento, Getstore e Configurar, já estão instalados. Eles não podem ser removidos nem ocultados.\n\n[2] (relevance=0.60) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nÚltima atualização: Junho/2025.\nManual Get Smart Manual Get Smart 2 Índice Índice Como fazer o fechamento de vendas 09 Como fazer a antecipação de vendas 08 Get Ajuda 11 Como reimprimir o comprovante de venda 06 Como fazer um estorno 05 Como fazer uma venda 04 Formas de pagamento 03 Configurações da Get Smart 02 Principais informações 01 Como conferir suas últimas vendas 07 Dicas de segurança 10 Fim » › › Índice « Manual Get Smart 3 Índice « Principais informações 01 Principais informações O que vem na caixa O que significa cada ícone Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos ■Tela touchscreen; ■Leitor de chip; ■Leitor de terja magnética; ■Leitor integrado sem-contato (NFC); ■Comunicação 4G, Wi-Fi e Bluetooth.\n\n[3] (relevance=0.58) wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf <https://site.getnet.com.br/wp-content/uploads/2021/09/Manul-SG-3G-wi-fi-LP.pdf>\nwp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf\n\nAgora digite a data da venda que será estornada.\nSelecione (0) MENU > (2) SUPORTE > (1) BANDEIRAS > (1) ESTORNO PARA INSERIR O CHIP NA SUA MÁQUINA: Ź Com a máquina desligada, abra a tampa na parte de trás, • Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo, • Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados, • Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso, • Faça um teste de comunicação para veriﬁcar a conectividade do seu chip, seguindo os passos: 1. Pressione o botão função – F, # ou o da sua máquina, 2. Pressione 60, 3. Selecione a opção 2 – manutenção, 4. Selecione a opção 1 – teste de comunicação.\nCOMPROVANTES: Você recebe no e-mail cadastrado na Getnet.\nSua máquina possui a Senha Padrão 0000. INFORMAÇÕES BÁSICAS: OBRIGADA.\nEsta senha será solicitada em algumas funções como fechamento e estorno de vendas.\nSe o seu cliente quiser, ele recebe via SMS.\n\n[4] (relevance=0.55) Com o Get Tap você prepara seu negócio para Black Friday <https://site.getnet.com.br/get-tap>\nCom o Get Tap você prepara seu negócio para Black Friday\n\n#### Veja como é fácil vender com Get Tap.\n\nVeja como habilitar as vendas com a Getnet no seu Get Tap.\n\nGestão na palma da sua mão\n\nJá tem o seu Get Tap? Aproveite para utilizar o **Aplicativo Getnet Brasil** para facilitar o seu dia a dia e turbinar o seu negócio.\n\nMantenha o seu Aplicativo Getnet Brasil sempre atualizado\n\nAponte a sua cmera para o QR Code ao lado e fique por dentro das novidades da sua conta.\n\n[](https://apps.apple.com/br/app/superget/id1461510055)   [](https://play.google.com/store/apps/details?id=br.com.getnet.supergetmobile&hl=pt-BR)\n\n### **Dúvidas sobre Get Tap?**\n\nVeja o nosso FAQ e conte com a gente para tirar todas a suas dúvidas\n\n veja mais respostas\n\nveja outras respostas\n\nVamos começar o seu atendimento?\n\nAinda não é cliente?\n\nAdquira agora e venda mais!\n\nCENTRAL DE VENDAS\n\nJá é nosso cliente?\n\nCENTRAL DE AJUDA\n\n[5] (relevance=0.55) Get Advance <https://www.getnet.net/mx/nuestras-soluciones/pagos-en-persona/terminal-mas-compacta>\nGet Advance\n\n### Hoteles\n\nOptimiza el tiempo de Chek-in, reautorización y Chek-out de tus huéspedes con el módulo para hoteles.\n\nPREGUNTAS FRECUENTES\n\n## ¡Estamos aquí para apoyarte!\n\nRespondemos las preguntas más frecuentes acerca de Get Advance.\n\n###\n\nGet Advance es un dispositivo que no necesita rollos.\n\n¡Es posible! Para ofrecer esta opción a tus clientes, por favor ponte en contacto con nosotros al siguiente número: 55 9177 9899\n\nNuestras Terminales Getnet cuentan con Internet ilimitado.\n\nEn nuestro canal de YouTube puedes conocer a detalle cómo funciona Get Advance.\n\n## Soluciones para todo tipo de negocio\n\n### Get Advance\n\nLigera y con conexión WI-FI, Bluetooth, 3G o 4G.\n\nDescubre más\n\nEN TU E-COMMERCE\n\n### G Tapp\n\nCobra con tu celular.\n\n### Get Smart\n\nImpresión de vouchers y administración total de tu negocio.",
+        "[escalate_to_human] Escalation registered: a human agent will take over this case. Briefly tell the user you could not resolve it yourself. Do not state any unverified information.",
+        "[handoff system action] a human handoff record and ticket were created: {'id': 'HND-7D36C4', 'reason': 'agent_unresolved', 'priority': 'normal', 'ticket_id': 'TKT-C89DC2', 'status': 'pending'}"
+      ],
+      "verify_note": "",
+      "verify_raw": "",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Update software Get Smart terminal"
+          }
+        },
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "atualizar software Get Smart terminal"
+          }
+        },
+        {
+          "agent": "knowledge",
+          "name": "escalate_to_human",
+          "args": {
+            "reason": "Unable to find instructions for updating Get Smart software in knowledge base"
+          }
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 3483,
+      "handoff": "agent_unresolved",
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 11537,
+        "output_tokens": 284,
+        "total_tokens": 11821,
+        "cost_usd": 0.0019009500000000002,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1073,
+            "output_tokens": 71,
+            "cost_usd": 0.00020355
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 4,
+            "input_tokens": 10464,
+            "output_tokens": 213,
+            "cost_usd": 0.0016974
+          }
+        ]
+      }
+    },
+    {
+      "id": "p09_reinicia_sozinha",
+      "message": "Minha maquininha fica reiniciando sozinha, o que eu faço?",
+      "plan": [
+        "support",
+        "knowledge"
+      ],
+      "answer": "Sua maquininha está online, com sinal forte e bateria em 88 %, e não há nenhum erro registrado que explique o reinício automático. Como não há um procedimento específico para esse sintoma. Não há passos documentados para isso, e estou à disposição para ajudar mais.",
+      "tools_called": [
+        "get_terminal_status",
+        "search_getnet_kb",
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[get_terminal_status] {\"model\":\"Get Clássica\",\"serial\":\"GC-55012-SC\",\"status\":\"online\",\"connection_type\":\"chip 4G\",\"signal_strength\":\"strong\",\"minutes_since_last_seen\":1,\"last_error\":null,\"firmware\":\"3.9.4\",\"battery_percent\":88}",
+        "[search_getnet_kb] [1] (relevance=0.49) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## operacional\n\nConfira o modelo da sua maquininha e siga as instruções como mostra abaixo:\n\nLIGAR: Pressione a tecla verde\nDESLIGAR: Pressione a tecla “ . ” (ponto) e a tecla amarela ao mesmo tempo, durante 2 segundos\n\nDESLIGAR: Pressione a tecla “ . ” (ponto) e a tecla amarela ao mesmo tempo, durante 2 segundos\n\nLIGAR: Pressione a tecla “ ” (seta para cima)\nDESLIGAR: Pressione a tecla “ . ” (ponto) e a tecla amarela ao mesmo tempo, durante 2 segundos\n\nDESLIGAR: Pressione a tecla “ . ” (ponto) e a tecla amarela ao mesmo tempo, durante 2 segundos\n\nLIGAR E DESLIGAR:\nConecte na tomada para ligar e retire da tomada para desligar\n\nLIGAR:\nPressione a tecla verde durante 5 segundos\nDESLIGAR:\nPressione a tecla vermelha durante 5 segundos\n\n[2] (relevance=0.46) wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf <https://site.getnet.com.br/wp-content/uploads/2021/09/Manul-SG-3G-wi-fi-LP.pdf>\nwp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf\n\nAgora digite a data da venda que será estornada.\nSelecione (0) MENU > (2) SUPORTE > (1) BANDEIRAS > (1) ESTORNO PARA INSERIR O CHIP NA SUA MÁQUINA: Ź Com a máquina desligada, abra a tampa na parte de trás, • Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo, • Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados, • Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso, • Faça um teste de comunicação para veriﬁcar a conectividade do seu chip, seguindo os passos: 1. Pressione o botão função – F, # ou o da sua máquina, 2. Pressione 60, 3. Selecione a opção 2 – manutenção, 4. Selecione a opção 1 – teste de comunicação.\nCOMPROVANTES: Você recebe no e-mail cadastrado na Getnet.\nSua máquina possui a Senha Padrão 0000. INFORMAÇÕES BÁSICAS: OBRIGADA.\nEsta senha será solicitada em algumas funções como fechamento e estorno de vendas.\nSe o seu cliente quiser, ele recebe via SMS.\n\n[3] (relevance=0.46) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n### Está com dúvidas?\n\n# nós podemos te ajudar!\n\n## sua maquininha\n\n## sem dúvidas\n\n### Há alguma taxa extra para usar o Aplicativo Getnet Brasil?\n\n### Como faço para baixar o Aplicativo Getnet Brasil?\n\n#### R: Baixe através da App Store ou na Play Store, de acordo com o seu celular.\n\n## confira as dúvidas\n\n## das maquininhas\n\n## Get Smart\n\nSe ocorrerem duas (02) vendas idênticas no mesmo estabelecimento e no período de 5 minutos (mesmo cartão, bandeira, valor), a segunda será cancelada automaticamente. Caso seja necessário repetir uma transação, deve-se aguardar 5 minutos ou informar um valor diferente.\n\nDeixe a bateria carregando sempre que possível e, de preferência, por pelo menos 3 horas seguidas. Não espere a bateria descarregar completamente para recarregá-la. O ideal é carregar a bateria quando o nível estiver em 20%.\n\nSim, basta fazer o processo de pagamento com QR Code, selecionando a opção débito.\n\n## demais\n\n[4] (relevance=0.46) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nPrincipais características da Get Smart 1.\tSua maquininha é bivolt; 2.\tUse apenas o carregador original; 3.\tNão use nenhum tipo de produto de limpeza, apenas um pano seco e limpo; 4.\tEvite exposição prolongado à luz do sol; 5.\tNão molhar; 6.\tNão deixar cair; 7.\tO terminal só pode ser aberto por técnicos autorizados.\nCuidados Pagamento por aproximação Bluetooth Sinal 4G Wi-fi Bateria Fim » › › Manual Get Smart 4 Índice « Configurações da Get Smart 02 Configurações da Get Smart Sua Get Smart oferece diversas opções de configuração diretamente na própria maquininha. Para acessá-las, basta tocar em “Configurar” na tela inicial. Confira abaixo as funcionalidades disponíveis: Wi-Fi ■Visualize as redes disponíveis e conecte-se facilmente a uma rede Wi-Fi.\nSistema ■Consulte informações sobre o Auttar (disponível apenas para maquininhas com TEF). ■Restaure o sistema (função restrita ao suporte técnico, com senha de acesso).\n\n[5] (relevance=0.44) Erros na Maquininha <https://site.getnet.com.br/get-ajuda-erros-maquininha>\nErros na Maquininha\n\n# Erros na Maquininha\n\n## Erros na maquininha\n\n## Veja os nossos vídeos\n\nCom as principais dicas e informações:\n\n#### Ainda não tem o Aplicativo Getnet Brasil?\n\nClique abaixo e baixe agora\n\n[](https://apps.apple.com/br/app/superget-mobile/id1461510055)   [](https://play.google.com/store/apps/details?id=br.com.getnet.supergetmobile&hl=pt_BR)\n\n#### Acesse o manual da sua maquininha\n\nAcesse a nossa lista de manuais navegáveis.\n\n Clique aqui\n\nVamos começar o seu atendimento?\n\nAinda não é cliente?\n\nAdquira agora e venda mais!\n\nCENTRAL DE VENDAS\n\nJá é nosso cliente?\n\nCENTRAL DE AJUDA\n\n#### Não é cliente?\n\nAdquira nossos produtos e impulsione suas vendas​​\n\nwhatsApp   4002-4000\n\nTenha suporte:\n\nPor telefone Ligue 4002-4000 Por WhatsApp Prático e rápido.\n\n**Nossas ofertas imperdíveis te aguardam:** selecione uma opção e acesse agora!\n\nJá sou cliente! Ainda não sou cliente",
+        "[1] (relevance=0.72) Erros na Maquininha <https://site.getnet.com.br/get-ajuda-erros-maquininha>\nErros na Maquininha\n\n# Erros na Maquininha\n\n## Erros na maquininha\n\n## Veja os nossos vídeos\n\nCom as principais dicas e informações:\n\n#### Ainda não tem o Aplicativo Getnet Brasil?\n\nClique abaixo e baixe agora\n\n[](https://apps.apple.com/br/app/superget-mobile/id1461510055)   [](https://play.google.com/store/apps/details?id=br.com.getnet.supergetmobile&hl=pt_BR)\n\n#### Acesse o manual da sua maquininha\n\nAcesse a nossa lista de manuais navegáveis.\n\n Clique aqui\n\nVamos começar o seu atendimento?\n\nAinda não é cliente?\n\nAdquira agora e venda mais!\n\nCENTRAL DE VENDAS\n\nJá é nosso cliente?\n\nCENTRAL DE AJUDA\n\n#### Não é cliente?\n\nAdquira nossos produtos e impulsione suas vendas​​\n\nwhatsApp   4002-4000\n\nTenha suporte:\n\nPor telefone Ligue 4002-4000 Por WhatsApp Prático e rápido.\n\n**Nossas ofertas imperdíveis te aguardam:** selecione uma opção e acesse agora!\n\nJá sou cliente! Ainda não sou cliente",
+        "[2] (relevance=0.71) wp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf <https://site.getnet.com.br/wp-content/uploads/2021/09/Manul-SG-3G-wi-fi-LP.pdf>\nwp content > uploads > 2021 > 09 > Manul SG 3G wi fi LP.pdf\n\nAgora digite a data da venda que será estornada.\nSelecione (0) MENU > (2) SUPORTE > (1) BANDEIRAS > (1) ESTORNO PARA INSERIR O CHIP NA SUA MÁQUINA: Ź Com a máquina desligada, abra a tampa na parte de trás, • Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo, • Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados, • Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso, • Faça um teste de comunicação para veriﬁcar a conectividade do seu chip, seguindo os passos: 1. Pressione o botão função – F, # ou o da sua máquina, 2. Pressione 60, 3. Selecione a opção 2 – manutenção, 4. Selecione a opção 1 – teste de comunicação.\nCOMPROVANTES: Você recebe no e-mail cadastrado na Getnet.\nSua máquina possui a Senha Padrão 0000. INFORMAÇÕES BÁSICAS: OBRIGADA.\nEsta senha será solicitada em algumas funções como fechamento e estorno de vendas.\nSe o seu cliente quiser, ele recebe via SMS.",
+        "[3] (relevance=0.69) Erros na Maquininha <https://site.getnet.com.br/get-ajuda-erros-maquininha>\nErros na Maquininha\n\n#### Como podemos te ajudar?\n\nAVANÇAR\n\nGetnet\n\nSou cliente\n\n* Já sou cliente Get\n  Atendimento - 06h00 às 22h00\n  + #### Capitais e regiões metropolitanas\n\n    ##### 4002-4000 ou 4003-4000\n  + #### Interior e Demais localidades\n\n    ##### 0800-648-8000\n  + Fale no WhatsApp\n  + Fale conosco\n  + Central de ajuda\n  + Minha Conta\n  + BAIXAR APP GETNET BRASIL\n* Baixe o App Getnet Brasil\n\n  Aponte a cmera do seu celular:\n\n  Ou acesse pelas lojas:\n\n  [](https://play.google.com/store/apps/details?id=br.com.getnet.supergetmobile&hl=pt_BR)   [](https://apps.apple.com/br/app/superget-mobile/id1461510055)\n\nQuero ser cliente\n\n* Pelo site, rápido e fácil\n  + #### Cadastro sem produto\n\n    ##### Você não precisa ter um de nossos produtos para se cadastrar.\n  + #### Sou Pessoa Jurídica\n\n    ##### As melhores ofertas para o seu CNPJ\n  + #### Sou Pessoa Física\n\n    ##### As melhores ofertas para o seu CPF\n* Atendimento\n  + #### Pelo WhatsApp",
+        "[4] (relevance=0.69) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nModo Quiosque ■Ative e configure o Modo Quiosque para personalizar a experiência de uso da maquininha.\nConexões ■Gerencie suas conexões de rede: Wi-Fi, chip 4G e Bluetooth. ■Consulte o número do chip e o número da maquininha. ■Verifique o consumo de dados e ative o modo de economia de dados. ■Realize testes de conectividade por meio da opção “Teste de Conexão”.\nBrilho da Tela ■Ajuste o nível de brilho da tela conforme sua preferência.",
+        "[5] (relevance=0.69) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## demais\n\n## dúvidas\n\n## Algar\n\nSiga os passos a seguir:\n– Com a máquina desligada, abra a tampa na parte de trás\n– Insira o chip no local destinado, sinalizado com SIM1 ou SIM2, com a parte metálica voltada para baixo\n– Feche a tampa, ligue a máquina e aguarde a conexão de rede de dados\n– Com a indicação de rede conectada (2G ou 3G), a máquina está pronta para uso\n– Faça um teste de comunicação para verificar a conectividade do seu chip, seguindo os passos:\n• Pressione o botão função – F, # ou o da sua máquina\n• Pressione 60\n• Selecione a opção 2 – manutenção\n• Selecione a opção 1 – teste de comunicação\n\n– Um único Chip que se conecta a várias operadoras\n– Você pode utilizar a sua máquina em qualquer local com cobertura 2G/3G\n– Elimina necessidade de trocas de Chip\n\nO chip algar é um chip multioperadora, ou seja, é uma solução na qual um único chip se conecta a várias operadoras, garantindo a conectividade em todo o Brasil."
+      ],
+      "verify_note": "revised:1 [a melhor solução é abrir um ticket]",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Sua maquininha está online\", \"evidence_quote\": \"status\\\":\\\"online\", \"quote_found\": true}, {\"statement\": \"com sinal forte\", \"evidence_quote\": \"signal_strength\\\":\\\"strong\", \"quote_found\": true}, {\"statement\": \"bateria em 88 %\", \"evidence_quote\": \"battery_percent\\\":88\", \"quote_found\": true}, {\"statement\": \"não há nenhum erro registrado\", \"evidence_quote\": \"last_error\\\":null\", \"quote_found\": true}, {\"statement\": \"a melhor solução é abrir um ticket\", \"evidence_quote\": \"\", \"quote_found\": false}]}",
+      "tool_calls": [
+        {
+          "agent": "support",
+          "name": "get_terminal_status",
+          "args": {}
+        },
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "maquininha reiniciando sozinha"
+          }
+        },
+        {
+          "agent": "observe",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Sua maquininha está online, com sinal forte e bateria em 88 % ; abrir um ticket para que nossa equipe técnica verifique o equipamento"
+          }
+        }
+      ],
+      "replans": [
+        "retry_kb: 2 unsupported -> 5 passages -> 1 still unsupported"
+      ],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 9664,
+      "handoff": null,
+      "handoff_ok": null,
+      "usage": {
+        "input_tokens": 14285,
+        "output_tokens": 1396,
+        "total_tokens": 15681,
+        "cost_usd": 0.0029803499999999997,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1078,
+            "output_tokens": 75,
+            "cost_usd": 0.00020669999999999998
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 3,
+            "input_tokens": 4517,
+            "output_tokens": 300,
+            "cost_usd": 0.0008575499999999999
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2686,
+            "output_tokens": 126,
+            "cost_usd": 0.0004785
+          },
+          {
+            "node": "synthesizer",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 325,
+            "output_tokens": 104,
+            "cost_usd": 0.00011115
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 3,
+            "input_tokens": 5679,
+            "output_tokens": 791,
+            "cost_usd": 0.0013264499999999999
+          }
+        ]
+      }
+    },
+    {
+      "id": "c01_payout_status",
+      "message": "What is the status of my last payouts?",
+      "plan": [
+        "support"
+      ],
+      "answer": "Here’s the current status of your most recent payouts:\n\n- **Sales of yesterday (debit)** – R$ 88.15 net, **scheduled** for 2026‑11‑19 (1 day until deposit).  \n- **Sales of yesterday (credit, 1st installment)** – R$ 95.88 net, **scheduled** for 2026‑12‑18 (30 days until deposit).  \n- **Sales of 2 days ago (Pix)** – R$ 150.00 net, **paid** on 2026‑11‑17.  \n\nLet me know if you need anything else!",
+      "tools_called": [
+        "get_payout_schedule"
+      ],
+      "evidence": [
+        "[get_payout_schedule] [{\"reference\":\"Sales of yesterday (debit)\",\"gross\":89.0,\"fees\":0.85,\"net\":88.15,\"status\":\"scheduled\",\"sales_date\":\"2026-11-17\",\"expected_date\":\"2026-11-19\",\"days_until_deposit\":1},{\"reference\":\"Sales of yesterday (credit, 1st installment)\",\"gross\":99.98,\"fees\":4.1,\"net\":95.88,\"status\":\"scheduled\",\"sales_date\":\"2026-11-17\",\"expected_date\":\"2026-12-18\",\"days_until_deposit\":30},{\"reference\":\"Sales of 2 days ago (Pix)\",\"gross\":150.0,\"fees\":0.0,\"net\":150.0,\"status\":\"paid\",\"sales_date\":\"2026-11-16\",\"expected_date\":\"2026-11-17\",\"days_until_deposit\":-1}]"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Sales of yesterday (debit) – R$ 88.15 net, scheduled for 2026‑11‑19 (1 day until deposit).\", \"evidence_quote\": \"\\\"reference\\\":\\\"Sales of yesterday (debit)\\\",\\\"gross\\\":89.0,\\\"fees\\\":0.85,\\\"net\\\":88.15,\\\"status\\\":\\\"scheduled\\\",\\\"sales_date\\\":\\\"2026-11-17\\\",\\\"expected_date\\\":\\\"2026-11-19\\\",\\\"days_until_deposit\\\":1\", \"quote_found\": true}, {\"statement\": \"Sales of yesterday (credit, 1st installment) – R$ 95.88 net, scheduled for 2026‑12‑18 (30 days until deposit).\", \"evidence_quote\": \"\\\"reference\\\":\\\"Sales of yesterday (credit, 1st installment)\\\",\\\"gross\\\":99.98,\\\"fees\\\":4.1,\\\"net\\\":95.88,\\\"status\\\":\\\"scheduled\\\",\\\"sales_date\\\":\\\"2026-11-17\\\",\\\"expected_date\\\":\\\"2026-12-18\\\",\\\"days_until_deposit\\\":30\", \"quote_found\": true}, {\"statement\": \"Sales of 2 days ago (Pix) – R$ 150.00 net, paid on 2026‑11‑17.\", \"evidence_quote\": \"\\\"reference\\\":\\\"Sales of 2 days ago (Pix)\\\",\\\"gross\\\":150.0,\\\"fees\\\":0.0,\\\"net\\\":150.0,\\\"status\\\":\\\"paid\\\",\\\"sales_date\\\":\\\"2026-11-16\\\",\\\"expected_date\\\":\\\"2026-11-17\\\",\\\"days_until_deposit\\\":-1\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "support",
+          "name": "get_payout_schedule",
+          "args": {}
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 4568,
+      "handoff": null,
+      "handoff_ok": true,
+      "usage": {
+        "input_tokens": 4555,
+        "output_tokens": 924,
+        "total_tokens": 5479,
+        "cost_usd": 0.0012376499999999999,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1071,
+            "output_tokens": 58,
+            "cost_usd": 0.00019544999999999998
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2798,
+            "output_tokens": 182,
+            "cost_usd": 0.0005289
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 686,
+            "output_tokens": 684,
+            "cost_usd": 0.0005133
+          }
+        ]
+      }
+    },
+    {
+      "id": "c02_biggest_sale_yesterday",
+      "message": "What was my biggest approved sale yesterday?",
+      "plan": [
+        "support"
+      ],
+      "answer": "Your largest approved sale from yesterday (2026‑11‑17) was **R$ 310.00** (a Pix transaction).",
+      "tools_called": [
+        "get_recent_transactions"
+      ],
+      "evidence": [
+        "[get_recent_transactions] [{\"id\":\"TX-90112\",\"amount\":184.5,\"method\":\"credit\",\"installments\":3,\"status\":\"approved\",\"date\":\"2026-11-17\"},{\"id\":\"TX-90111\",\"amount\":42.0,\"method\":\"debit\",\"installments\":1,\"status\":\"approved\",\"date\":\"2026-11-17\"},{\"id\":\"TX-90110\",\"amount\":310.0,\"method\":\"pix\",\"installments\":1,\"status\":\"approved\",\"date\":\"2026-11-17\"},{\"id\":\"TX-90098\",\"amount\":76.3,\"method\":\"debit\",\"installments\":1,\"status\":\"approved\",\"date\":\"2026-11-16\"},{\"id\":\"TX-90097\",\"amount\":220.0,\"method\":\"credit\",\"installments\":2,\"status\":\"approved\",\"date\":\"2026-11-16\"},{\"id\":\"TX-90060\",\"amount\":515.8,\"method\":\"pix\",\"installments\":1,\"status\":\"approved\",\"date\":\"2026-11-15\"}]"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"Your largest approved sale from yesterday (2026‑11‑17) was R$ 310.00 (a Pix transaction).\", \"evidence_quote\": \"\\\"amount\\\":310.0,\\\"method\\\":\\\"pix\\\",\\\"installments\\\":1,\\\"status\\\":\\\"approved\\\",\\\"date\\\":\\\"2026-11-17\\\"\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "support",
+          "name": "get_recent_transactions",
+          "args": {
+            "status": "approved",
+            "limit": 20
+          }
+        }
+      ],
+      "replans": [],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 2444,
+      "handoff": null,
+      "handoff_ok": true,
+      "usage": {
+        "input_tokens": 4506,
+        "output_tokens": 404,
+        "total_tokens": 4910,
+        "cost_usd": 0.0009183,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1070,
+            "output_tokens": 82,
+            "cost_usd": 0.0002097
+          },
+          {
+            "node": "support",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2834,
+            "output_tokens": 143,
+            "cost_usd": 0.0005109
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 602,
+            "output_tokens": 179,
+            "cost_usd": 0.00019769999999999998
+          }
+        ]
+      }
+    },
+    {
+      "id": "c03_box_contents",
+      "message": "What comes in the box with the Get Smart, and does it include mobile data?",
+      "plan": [
+        "knowledge"
+      ],
+      "answer": "The Get Smart package arrives with the following items:\n\n- The Get Smart card‑reader terminal (touch‑screen device)  \n- Original bivolt charger  \n- 4G SIM chip that comes with a **free mobile‑data plan** (used for the terminal’s 4G, Wi‑Fi and Bluetooth connections)  \n\nNo additional mobile‑data subscription is required; the included chip provides the data needed for the device to operate.",
+      "tools_called": [
+        "search_getnet_kb",
+        "search_getnet_kb"
+      ],
+      "evidence": [
+        "[search_getnet_kb] [1] (relevance=0.51) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nÚltima atualização: Junho/2025.\nManual Get Smart Manual Get Smart 2 Índice Índice Como fazer o fechamento de vendas 09 Como fazer a antecipação de vendas 08 Get Ajuda 11 Como reimprimir o comprovante de venda 06 Como fazer um estorno 05 Como fazer uma venda 04 Formas de pagamento 03 Configurações da Get Smart 02 Principais informações 01 Como conferir suas últimas vendas 07 Dicas de segurança 10 Fim » › › Índice « Manual Get Smart 3 Índice « Principais informações 01 Principais informações O que vem na caixa O que significa cada ícone Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos ■Tela touchscreen; ■Leitor de chip; ■Leitor de terja magnética; ■Leitor integrado sem-contato (NFC); ■Comunicação 4G, Wi-Fi e Bluetooth.\n\n[2] (relevance=0.44) wp content > uploads > 2025 > 09 > Manul GetSmart.pdf <https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf>\nwp content > uploads > 2025 > 09 > Manul GetSmart.pdf\n\nModo Quiosque ■Ative e configure o Modo Quiosque para personalizar a experiência de uso da maquininha.\nConexões ■Gerencie suas conexões de rede: Wi-Fi, chip 4G e Bluetooth. ■Consulte o número do chip e o número da maquininha. ■Verifique o consumo de dados e ative o modo de economia de dados. ■Realize testes de conectividade por meio da opção “Teste de Conexão”.\nBrilho da Tela ■Ajuste o nível de brilho da tela conforme sua preferência.\n\n[3] (relevance=0.42) Soluções Get Smart <https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart>\nSoluções Get Smart\n\n#### Recarga de celular\n\n##### Mais comodidade para seu cliente\n\n#### Agentic Commerce\n\n##### O futuro das compras com IA\n\n# Soluções Get Smart\n\n## O que é Get Smart em modo quiosque?\n\nEsta funcionalidade transforma o terminal em um sistema de autoatendimento com as seguintes características:\n\nO modo quiosque é gerenciado pelo aplicativo \"Configurar\" da Get Smart.\n\n## Como escolher a automação que será usada na Get Smart?\n\nVocê pode escolher diretamente pelo nosso site ou através da Getstore na Get Smart.\n\n## Após receber a Get Smart, como eu começo a usar o aplicativo escolhido?\n\n## Quais aplicativos vêm instalados quando eu recebo o terminal?\n\nOs aplicativos de sistema, como Pagamento, Getstore e Configurar, já estão instalados. Eles não podem ser removidos nem ocultados.\n\n[4] (relevance=0.41) Com o Get Tap você prepara seu negócio para Black Friday <https://site.getnet.com.br/get-tap>\nCom o Get Tap você prepara seu negócio para Black Friday\n\n## Meu celular é compatível?\n\nDisponível para aparelhos com\n\nNFC\n\nAndroid 12 ou superior\n\nPara saber se tem NFC\n\nPara saber o seu Android\n\nAcesse o menu **\"Configurações\"** do seu aparelho\n\nPesquise por **\"NFC\"** e verifique se há algum resultado.\n\nPesquise por **\"Sobre o dispositivo\"** e localize a **\"Versão do Android\"**\n\nCadastre-se grátis agora\n\nVendeu, ganhou\n\n[5] (relevance=0.40) Como acesso a minha Get Conta? <https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta>\nComo acesso a minha Get Conta?\n\n## Como visualizar as minhas vendas?\n\nPara consultar o extrato das suas vendas, acesse o Aplicativo Getnet Brasil ou Portal Minha Conta.\n\nRespondeu à sua dúvida?\n\n## Veja os nossos vídeos\n\nCom as principais dicas e informações:\n\n#### Ainda não tem o Aplicativo Getnet Brasil?\n\nClique abaixo e baixe agora\n\n[](https://apps.apple.com/br/app/superget-mobile/id1461510055)   [](https://play.google.com/store/apps/details?id=br.com.getnet.supergetmobile&hl=pt_BR)\n\n#### Acesse o manual da sua maquininha\n\nAcesse a nossa lista de manuais navegáveis.\n\n Clique aqui\n\nVamos começar o seu atendimento?\n\nAinda não é cliente?\n\nAdquira agora e venda mais!\n\nCENTRAL DE VENDAS\n\nJá é nosso cliente?\n\nCENTRAL DE AJUDA\n\n#### Não é cliente?\n\nAdquira nossos produtos e impulsione suas vendas​​\n\nwhatsApp   4002-4000\n\nTenha suporte:\n\nPor telefone Ligue 4002-4000 Por WhatsApp Prático e rápido.\n\n**Nossas ofertas imperdíveis te aguardam:** selecione uma opção e acesse agora!\n\nJá sou cliente! Ainda não sou cliente",
+        "[1] (relevance=0.56) nós podemos te ajudar! <https://site.getnet.com.br/duvidas>\nnós podemos te ajudar!\n\n## Aluguel Zero\n\nEssa condição comercial contempla até 3 tecnologias, entretanto, caso o cliente necessite de uma quantidade superior de equipamentos, a contratação está disponível no valor integral mensal de R$69,90, por tecnologia (POS 3G+WIFI ou POS CHIP – GPRS).",
+        "[2] (relevance=0.55) wp content > uploads > 2023 > 12 > Contrato versao Web.pdf <https://site.getnet.com.br/wp-content/uploads/2023/12/Contrato-versao-Web.pdf>\nwp content > uploads > 2023 > 12 > Contrato versao Web.pdf\n\nda motivada e imediata rescisão deste Contrato. 2.7. A Getnet poderá, a depender do Meio de Captura e do plano de dados escolhido pelo Cliente, ao seu exclusivo critério, fornecer o chip do plano de dados móveis. Caso fornecido, o Meio de Captura deverá ser mantido ativo, sob pena de desativação a qualquer momento, em caso inatividade por 90 (noventa) dias. Nesta hipótese, caso o Cliente tenha interesse em reativar o plano de dados móveis, este deverá contatar a Central de Atendimento solicitando essa reativação, ficando a critério exclusivo da Getnet a reativação. A Getnet não se responsabiliza pelos serviços de internet fornecidos pelo respectivo provedor, bem assim por transações eventualmente não efetivadas em razão de indisponibilidade de rede. 2.8. A ativação técnica do Meio de Captura para aceitar Meios de Pagamento estará condicionada ao: (i) credenciamento do Cliente aos Serviços de Adquirência Getnet; (ii) uso de Meio de Captura apto a aceitar Transações com os Meios de",
+        "[3] (relevance=0.53) Como deseja continuar? <https://site.getnet.com.br/todas-as-maquininhas>\nComo deseja continuar?\n\n#### Sua escolha inteligente para vender mais em 2026: Maquininha + conta integrada Getnet\n\nOnde você recebe\n\nGet Conta com cartão grátis\n\nQuando recebe\n\n2 dias úteis\n\nVendendo você ganha máquina grátis\n\n**Venda o quanto quiser de graça pelo celular**\n\n**Acima de R$ 20mil por mês** | Get Clássica\n\n**Acima de R$ 40mil por mês** | Get Clássica ou Get Smart\n\n**Acima de R$ 80mil por mês** | Get Clássica ou Get Smart\n\n\\*As modalidades de Voucher (VA/VR), Crediário não compõem faturamento para isenção do aluguel\n\n \\*Termos e condições\n\nSelecione para ver as taxas\n\nFaturamento:\n\nBandeira:\n\nA partir de:\n\nDébito\n\nCrédito 1x\n\nCrédito 2x\n\nCrédito 3x\n\nCrédito 4x\n\nCrédito 5x\n\nCrédito 6x\n\nCrédito 7x\n\nCrédito 8x\n\nCrédito 9x\n\nCrédito 10x\n\nCrédito 11x\n\nCrédito 12x\n\n**Caso não atinja os faturamentos do quadro acima, segue o valor de utilização:**\n\n**Venda pelo celular**\nR$ 0,00/mês\n\n**Get Clássica**\nR$ 79,90/mês\n\n**Get Smart**\nR$ 129,90/mês",
+        "[4] (relevance=0.52) wp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf <https://site.getnet.com.br/wp-content/uploads/2025/04/getnet_contrato_de_credencimento_04_2025.pdf>\nwp content > uploads > 2025 > 04 > getnet_contrato_de_credencimento_04_2025.pdf\n\nreversa dos códigos, ou ainda, qualquer outro ato que importe na descaracterização original dos Meios de Captura/Equipamentos, sob pena de responder civil e criminalmente por referidos atos, sem prejuízo da motivada e imediata rescisão deste Contrato. Contrato de Credenciamento aos Serviços Getnet e Outras Avenças 2.7. A Getnet poderá, a depender do Meio de Captura e do plano de dados escolhido pelo Cliente, ao seu exclusivo critério, fornecer o chip do plano de dados móveis. Caso fornecido, o Meio de Captura deverá ser mantido ativo, sob pena de desativação a qualquer momento, em caso inatividade por 90 (noventa) dias. Nesta hipótese, caso o Cliente tenha interesse em reativar o plano de dados móveis, este deverá contatar a Central de Atendimento solicitando essa reativação, ficando a critério exclusivo da Getnet a reativação. A Getnet não se responsabiliza pelos serviços de internet fornecidos pelo respectivo provedor, bem assim por transações eventualmente não efetivadas em razão",
+        "[5] (relevance=0.51) Com o Get Tap você prepara seu negócio para Black Friday <https://site.getnet.com.br/get-tap>\nCom o Get Tap você prepara seu negócio para Black Friday\n\n# Com o Get Tap você prepara seu negócio para Black Friday\n\n*  Sem taxa de adesão, manutenção e aluguel\n*  Realize vendas de qualquer valor no débito, crédito, voucher\\*, parcelado em até 12x e Pix\n*  Teclado dinmico\n*  Uso em múltiplos celulares\n*  Selo PCI DSS - Certificação de proteção de dados\n\nCONTRATE AGORA\n\nDisponivel para android 12 ou superior\n \\*voucher disponível conforme elegibilidade e ativação\n\nPARA PF E PJ"
+      ],
+      "verify_note": "",
+      "verify_raw": "{\"statements\": [{\"statement\": \"The Get Smart package arrives with the following items: The Get Smart card‑reader terminal (touch‑screen device), Original bivolt charger, 4G SIM chip that comes with a free mobile‑data plan\", \"evidence_quote\": \"Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos\", \"quote_found\": true}, {\"statement\": \"No additional mobile‑data subscription is required; the included chip provides the data needed for the device to operate.\", \"evidence_quote\": \"Chip 4G Com plano de dados gratuitos\", \"quote_found\": true}]}",
+      "tool_calls": [
+        {
+          "agent": "knowledge",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "Get Smart box contents mobile data"
+          }
+        },
+        {
+          "agent": "observe",
+          "name": "search_getnet_kb",
+          "args": {
+            "query": "No additional mobile‑data subscription is required"
+          }
+        }
+      ],
+      "replans": [
+        "retry_kb: 1 unsupported -> 5 passages -> 0 still unsupported"
+      ],
+      "routing_ok": true,
+      "tools_ok": true,
+      "degraded": false,
+      "latency_ms": 5015,
+      "handoff": null,
+      "handoff_ok": true,
+      "usage": {
+        "input_tokens": 8454,
+        "output_tokens": 878,
+        "total_tokens": 9332,
+        "cost_usd": 0.0017948999999999999,
+        "by_node": [
+          {
+            "node": "router",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 1,
+            "input_tokens": 1079,
+            "output_tokens": 75,
+            "cost_usd": 0.00020684999999999999
+          },
+          {
+            "node": "knowledge",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 2975,
+            "output_tokens": 169,
+            "cost_usd": 0.00054765
+          },
+          {
+            "node": "observe",
+            "model": "accounts/fireworks/models/gpt-oss-120b",
+            "calls": 2,
+            "input_tokens": 4400,
+            "output_tokens": 634,
+            "cost_usd": 0.0010404
+          }
+        ]
+      }
+    }
+  ]
+}
