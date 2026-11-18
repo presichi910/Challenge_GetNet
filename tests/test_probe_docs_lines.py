@@ -8,7 +8,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 REPORT = ROOT / "eval" / "reports" / "REPLAN-PROBE-20261118-133249.md"
-DOCS = ("README.md", "docs/REPLAN_DEMO.md", "docs/REVIEW_RESPONSE.md", "docs/EVIDENCE.md")
+DOCS = ("README.md", "docs/REPLAN_DEMO.md", "docs/REVIEW_RESPONSE.md", "docs/EVIDENCE.md", "docs/FINAL_REPORT.md")
 BLOCK = re.compile(r"<!-- probe:(?P<name>[\w]+):start -->\n(?P<body>.*?)\n<!-- probe:(?P=name):end -->", re.S)
 
 
@@ -33,7 +33,7 @@ def test_every_quoted_line_is_a_line_of_the_generated_report():
 
 def test_each_document_has_the_headline_block_and_the_demo_has_all_the_descriptive_ones():
     names = {doc: {n for n, _ in blocks(doc)} for doc in DOCS}
-    assert "readme_outcome" in names["README.md"]
+    assert "readme_outcome" in names["README.md"] and "fr_outcome" in names["docs/FINAL_REPORT.md"]
     assert "outcome" in names["docs/REPLAN_DEMO.md"] and "rr_outcome" in names["docs/REVIEW_RESPONSE.md"] and "ev_outcome" in names["docs/EVIDENCE.md"]
     assert {"outcome", "pairs", "by_group", "by_on", "noise", "cost", "over", "c03a", "c03b", "p07"} <= names["docs/REPLAN_DEMO.md"]
 

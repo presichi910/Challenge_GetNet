@@ -166,4 +166,5 @@ A record, not an amendment: no rule changed. The four agent runs (OFF 1, ON 1, O
 
 - **The owner's instruction about the false trigger:** the rule does not change. A control (`c03`) made the step act in the ON arm, so the outcome cannot be "benefit suggested"; the outcome that comes out is reported.
 - **A display added after the numbers were seen:** the section of the report that lists the rows where the ON row acted, one by one (verdicts, scores, verifier notes, cost and latency against the OFF mean). It changes no count and not the rule.
+- **The infrastructure that the section "What has to exist before the runs" lists in the future tense was built before any run**: `EVAL_DATASET` and `--dataset`, the preflight and the paired section in commit `b9a4902`; the grouping of amendment 1 in `4192349`. The preregistered text above is left as it was written.
 - **Phase 5 is skipped, by decision of the owner (2026-11-18).** Two more repetitions with the step on over the 27 regular cases were not run. The comparison on the regular cases stays as it is in `eval/reports/REPLAN-AB-20261116-234030.md`, and the probe adds nothing to it and replaces nothing in it.
