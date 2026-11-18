@@ -198,3 +198,19 @@ def test_the_groups_by_what_the_on_row_did_split_the_non_control_pairs_and_keep_
     assert "| ON acted | 2 | 2 | 1 | 1 | +0 | 1 | 1 | add_support 1, retry_kb 1 |" in text  # p01 (retry_kb, fail -> pass) and p04 (add_support, pass -> fail); no control in it
     assert "| ON did not act | 16 | 16 | 15 | 16 | -1 | 0 | 1 | none |" in text  # the 18 other non-control pairs minus the 2 above: p07 repetition 1 went pass -> fail
     assert "| controls | 6 | 6 | 6 | 6 | +0 | 0 | 0 | retry_kb 1 |" in text  # a control that acted stays in the controls, not in `ON acted`
+
+
+def test_the_acted_rows_are_listed_one_by_one_with_scores_notes_cost_and_latency_against_the_off_mean(tmp_path):
+    on, off = pair_runs(tmp_path, {"p01_reprint_receipt": [("pass", ["retry_kb", "offer_ticket"]), "pass"]}, {"p01_reprint_receipt": ["fail", "pass"]})
+    on[0]["rows"]["p01_reprint_receipt"].update({"usage": {"cost_usd": 0.004}, "latency_ms": 9000, "verify_note": "", "judge": {"verdict": "pass", "groundedness": 5, "completeness": 4,
+                                                                                                                              "reason": "the judge's own sentence", "unsupported_claims": []}})
+    off[0]["rows"]["p01_reprint_receipt"].update({"verify_note": "revised:2 [a claim]", "judge": {"verdict": "fail", "groundedness": 2, "completeness": 3, "reason": "another sentence",
+                                                                                                  "unsupported_claims": [{"claim": "x"}, {"claim": "y"}]}})
+    text = build_paired(on, off, GROUPS)
+    assert "## The rows where the ON row acted, one by one (descriptive)" in text and "changes no count and not the rule" in text
+    assert "- **`p01_reprint_receipt`, repetition 1** (B1): ON pass, OFF fail" in text
+    assert "judge scores, groundedness / completeness: ON 5 / 4, OFF 2 / 3; claims the judge listed as unsupported: ON 0, OFF 2" in text
+    assert "note of the verifier: ON ``, OFF `revised:2 [a claim]`" in text
+    assert "agent cost: ON $0.00400 against the OFF mean $0.00200; latency (ms): ON 9,000 against the OFF mean 5,000" in text
+    assert "reason, ON: the judge's own sentence" in text and "retry_kb; offer_ticket" not in text and "replan entries of the ON row: retry_kb: detail; offer_ticket: detail" in text
+    assert "Over the 1 ON rows that acted" in text and "+0.00200 USD per row" in text and "+4,000 ms per row on average and +4,000 ms at the median" in text

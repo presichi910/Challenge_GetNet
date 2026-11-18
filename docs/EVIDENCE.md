@@ -66,6 +66,15 @@ Three kinds of evidence, and a claim below is one of them. **Automatic**: a test
 | The three judged repetitions of the step on, compared with the five base repetitions by a script, without any interpretation | `eval/compare_runs.py` | `tests/test_compare_runs.py` (synthetic files, the headline line, the same bytes twice, and the regeneration of the committed report) | `eval/reports/REPLAN-AB-20261116-234030.md` (inputs: `eval/reports/20261116-234030.judged.json`, `eval/reports/20261116-234325.judged.json`, `eval/reports/20261116-234617.judged.json` and the five judged files of the final run, `eval/reports/20261115-202155.judged.json` and four more) |
 | With the step off, the new code changes nothing | `app/agents/observe.py:129` (the early return) | `tests/test_observe.py:647`, `:661` | `eval/reports/SMOKE-add-support.md` (identity: no replans in any row, agent sets already seen) |
 | The step on: how often it fired, and what it cost | | `tests/test_replan_stats.py` | `eval/reports/20261116-234030.json`, `eval/reports/20261116-234325.json`, `eval/reports/20261116-234617.json`, `eval/reports/ADDSUPPORT-CAPTURE-20261116-233738.jsonl`, `eval/reports/REPEATS-20261116-234617.md`, `eval/reports/REPLAN_ON-20261115.md`. The three repetitions of the `add_support` branch were scored by the judge (see the comparison report below); the earlier branch was not |
+| The step on against the step off, on 12 cases written to make it act, preregistered, paired and scored by the unchanged judge | `eval/compare_runs.py` (`--paired`), `eval/probe_preflight.py`, `eval/run_eval.py` (`--dataset`) | `tests/test_compare_runs_paired.py`, `tests/test_probe_preflight.py`, `tests/test_eval_dataset_env.py`, `tests/test_replan_probe_cases.py`, `tests/test_probe_docs_lines.py` | `docs/REPLAN_PROBE_PREREG.md` (the rule, two amendments and the record of the firing run), `eval/probe/replan_probe.jsonl`, `eval/reports/REPLAN-PROBE-20261118-133249.md` (generated), `eval/reports/20261118-133249.judged.json`, `eval/reports/20261118-133453.judged.json`, `eval/reports/20261118-133646.judged.json`, `eval/reports/20261118-133846.judged.json`, [REPLAN_DEMO.md](REPLAN_DEMO.md#the-replan-probe-2026-11-18-the-step-on-against-the-step-off-on-cases-written-to-make-it-act). The firing run that came first (no judge, diagnostic): `eval/reports/20261118-131849.json`, `eval/reports/20261118-132136.json` |
+
+**The probe's headline.** Copied by a script from the generated report `eval/reports/REPLAN-PROBE-20261118-133249.md`; the rule is the one of the preregistration, and the replan stays off by default whatever it says:
+
+<!-- probe:ev_outcome:start -->
+> **Outcome of the preregistered rule: null.** Net +0, inside +/-2.
+<!-- probe:ev_outcome:end -->
+
+**Findings recorded with it:** the two replan-2 safety nets did not act in the ON rows of the probe (apart from one ticket offer), the cases were not revised to make them act (amendment 1 of the preregistration), and phase 5 of the plan of the day was skipped by decision of the owner.
 
 ## The verifier
 

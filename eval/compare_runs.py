@@ -431,6 +431,50 @@ def build_paired(on_runs: list[dict], off_runs: list[dict], groups: dict[str, li
     if not any(p["acted"] for p in pairs):
         out.append("| none | | | | | |")
 
+    out += ["", "## The rows where the ON row acted, one by one (descriptive)", "",
+            "Added to this report after the numbers of the run were seen, as a display only: it changes no count and not the rule. For each pair in which the ON row has a replan entry: "
+            "the entries as saved, the verdict and the judge's scores in both arms, how many claims the JUDGE listed as unsupported in each, the note of the verifier in each, and the agent cost "
+            "and latency of the ON row against the mean of the same case in the OFF runs. `reason` is the judge's own sentence, cut at 220 characters.", ""]
+    off_by_id = {cid: [off["rows"][cid] for off in off_runs] for cid in ids}
+
+    def jf(row: dict, key: str):
+        return (row.get("judge") or {}).get(key)
+
+    def n_claims(row: dict) -> int | str:
+        c = (row.get("judge") or {}).get("unsupported_claims")
+        return "-" if c is None else len(c)
+
+    def cut(text, n=220):
+        text = " ".join(str(text or "").split())
+        return text if len(text) <= n else text[:n - 3] + "..."
+
+    deltas_c, deltas_l = [], []
+    for p in pairs:
+        if not p["acted"]:
+            continue
+        o, f = p["orow"], p["frow"]
+        offs = off_by_id[p["id"]]
+        mc = mean([(r.get("usage") or {}).get("cost_usd") for r in offs])
+        ml = mean([r.get("latency_ms") for r in offs])
+        oc, ol = (o.get("usage") or {}).get("cost_usd"), o.get("latency_ms")
+        if isinstance(oc, (int, float)) and mc is not None:
+            deltas_c.append(oc - mc)
+        if isinstance(ol, (int, float)) and ml is not None:
+            deltas_l.append(ol - ml)
+        out += [f"- **`{p['id']}`, repetition {p['rep']}** ({p['group']}): ON {p['on']}, OFF {p['off']}",
+                f"  - replan entries of the ON row: {'; '.join(str(r) for r in (o.get('replans') or []))}",
+                f"  - judge scores, groundedness / completeness: ON {jf(o, 'groundedness')} / {jf(o, 'completeness')}, OFF {jf(f, 'groundedness')} / {jf(f, 'completeness')}; "
+                f"claims the judge listed as unsupported: ON {n_claims(o)}, OFF {n_claims(f)}",
+                f"  - note of the verifier: ON `{cut(o.get('verify_note'), 120)}`, OFF `{cut(f.get('verify_note'), 120)}`",
+                f"  - agent cost: ON {fmt_usd(oc)} against the OFF mean {fmt_usd(mc)}; latency (ms): ON {fmt_ms(ol)} against the OFF mean {fmt_ms(ml)}",
+                f"  - reason, ON: {cut(jf(o, 'reason'))}", f"  - reason, OFF: {cut(jf(f, 'reason'))}"]
+    if not deltas_c:
+        out.append("- no pair in which the ON row acted")
+    else:
+        med = lambda v: sorted(v)[len(v) // 2] if len(v) % 2 else (sorted(v)[len(v) // 2 - 1] + sorted(v)[len(v) // 2]) / 2  # noqa: E731
+        out += ["", f"Over the {len(deltas_c)} ON rows that acted, against the mean of the same case in the OFF runs: extra agent cost {sum(deltas_c) / len(deltas_c):+.5f} USD per row on average "
+                f"({sum(deltas_c):+.5f} USD in all); extra latency {sum(deltas_l) / len(deltas_l):+,.0f} ms per row on average and {med(deltas_l):+,.0f} ms at the median "
+                "(a large difference between the two means a few slow rows of the OFF runs weigh on the average)."]
     out += ["", "## Noise baseline: OFF 1 against OFF 2", ""]
     if len(off_runs) < 2:
         out.append("There is only one OFF run: no baseline.")

@@ -108,3 +108,123 @@ The comparison report lists rows whose verdict differs from the baselines althou
 - **`is_account_claim` is a plain lexicon (a possessive or a "you have" form with an account noun or a figure), and it is not validated against labeled data.** Its verdict on the first claim of `q04` is a **debatable false positive**: "You must have a bank account linked to your Getnet profile..." is a general requirement of the product, not a fact about this customer, and the knowledge base had already answered the question. The support agent was run on a question that did not need it. The same point is in the final report (section 4). The lexicon was not changed to fit this case: that would be tuning on the one case that fired.
 - In the record above `retry_kb` went from "1 unsupported" to "3 still unsupported" after the extra passages were added: the audit lists the claims anew on each call, and the cause of the larger count is not established.
 - The branch ran 3 repetitions of the 27 regular cases only (no holdout), and all three repetitions were judged.
+
+## The replan probe (2026-11-18): the step on against the step off, on cases written to make it act
+
+The page above is one case. This section is the preregistered probe ([`REPLAN_PROBE_PREREG.md`](REPLAN_PROBE_PREREG.md), committed with its 12 cases before any run, with two amendments written before the data they refer to). **It is a mechanism diagnostic, not a measure of generalization, and `REPLAN_MAX` stays 0 whatever it shows.** Every number below is a line **copied by a script** from the generated report `eval/reports/REPLAN-PROBE-20261118-133249.md` (`python -m eval.compare_runs --paired ...`); a test fails if a quoted line stops being a line of that report, and no judge rate is typed in this page.
+
+What was run: 12 cases (3 for each of 3 branches, written from the conditions of `observe.py`, and 3 controls), two repetitions with the step off (`REPLAN_MAX=0`) and two with it on (`REPLAN_MAX=2`), agents run interleaved on one day on one clean commit (`4192349`), each run with its own empty folders for tickets and handoffs; then the four runs were scored by the unchanged judge in one process (`eval/reports/20261118-133249.judged.json`, `20261118-133453.judged.json`, `20261118-133646.judged.json`, `20261118-133846.judged.json`). The preflight checked that all rows were to be judged and each found its case before any judge token was spent.
+
+### What the preregistered rule says
+
+<!-- probe:outcome:start -->
+> **Outcome of the preregistered rule: null.** Net +0, inside +/-2.
+<!-- probe:outcome:end -->
+
+The rule is the one fixed before the runs. A control question made the step act in the ON arm, and under the rule a false trigger on a control rules out "benefit suggested" whatever the pass counts are, so the headline cannot be a benefit. The pairs and what they hold:
+
+<!-- probe:pairs:start -->
+> - pairs: 24; valid: 24 (the rule needs at least 20); dropped: 0
+> - ON passes 8, OFF passes 8, **Net +0** over the valid pairs
+> - discordant pairs: OFF fail -> ON pass 2, OFF pass -> ON fail 2
+> - pairs where the ON row acted: 10; among them OFF fail -> ON pass 0, OFF pass -> ON fail 2, **acted-net -2**
+> - exact two-sided sign test on those discordant acted pairs (2): p = 0.5000 (descriptive, no threshold)
+> - false triggers (a control row of the ON arm with a replan entry): 2
+>   - `c03_box_contents` repetition 1: retry_kb
+>   - `c03_box_contents` repetition 2: retry_kb
+<!-- probe:pairs:end -->
+
+### By group, and by what the ON row did
+
+By design branch (the groups preregistered). B3 favors the ON arm by construction (its criterion rewards a concrete way forward and the ticket offer of the step supplies one); the line B1 + B2 is the reading without that bias. The rule above uses all the valid pairs.
+
+<!-- probe:by_group:start -->
+> | group | pairs | valid | ON pass | OFF pass | Net | OFF fail -> ON pass | OFF pass -> ON fail | pairs where ON acted |
+> |---|---|---|---|---|---|---|---|---|
+> | B1 | 6 | 6 | 1 | 0 | +1 | 1 | 0 | 1 |
+> | B2 | 6 | 6 | 0 | 0 | +0 | 0 | 0 | 4 |
+> | B1 + B2 (without the bias of B3) | 12 | 12 | 1 | 0 | +1 | 1 | 0 | 5 |
+> | B3 | 6 | 6 | 3 | 2 | +1 | 1 | 0 | 3 |
+> | control | 6 | 6 | 4 | 6 | -2 | 0 | 2 | 2 |
+<!-- probe:by_group:end -->
+
+By what the ON row did in this run (amendment 1 of the preregistration, which says the `ON acted` line is the main reading):
+
+<!-- probe:by_on:start -->
+> | what the ON row did | pairs | valid | ON pass | OFF pass | Net | OFF fail -> ON pass | OFF pass -> ON fail | replan entries of the ON rows |
+> |---|---|---|---|---|---|---|---|---|
+> | ON acted | 8 | 8 | 0 | 0 | +0 | 0 | 0 | offer_ticket 1, retry_kb 8 |
+> | ON did not act | 10 | 10 | 4 | 2 | +2 | 2 | 0 | none |
+> | controls | 6 | 6 | 4 | 6 | -2 | 0 | 2 | retry_kb 2 |
+<!-- probe:by_on:end -->
+
+### Noise, cost and latency
+
+<!-- probe:noise:start -->
+> The same cases with the same configuration (`20261118-133249.judged.json` and `20261118-133646.judged.json`): 12 cases have a verdict in both, **0 get a different one**.
+<!-- probe:noise:end -->
+
+<!-- probe:cost:start -->
+> | arm | rows | mean agent cost | total agent cost | latency p50 (ms) | latency p95 (ms) | rows with a handoff |
+> |---|---|---|---|---|---|---|
+> | ON | 24 | $0.00198 | $0.04752 | 6,444 | 13,047 | 2 |
+> | OFF | 24 | $0.00172 | $0.04132 | 6,043 | 21,253 | 1 |
+<!-- probe:cost:end -->
+
+<!-- probe:over:start -->
+> Over the 10 ON rows that acted, against the mean of the same case in the OFF runs: extra agent cost +0.00065 USD per row on average (+0.00646 USD in all); extra latency -4,062 ms per row on average and +710 ms at the median (a large difference between the two means a few slow rows of the OFF runs weigh on the average).
+<!-- probe:over:end -->
+
+Cost and latency of the ON arm are above those of the OFF arm on average; the retry adds a knowledge-base search and a second audit to the rows where the step acted. The difference between the mean and the median of the latency is in the line above: a few slow rows of the OFF runs weigh on the mean.
+
+### The control that changed verdict (`c03_box_contents`)
+
+The question asked was whether the retry changed the verdict or only the cost. **It changed the answer, and with it the verdict**, in each ON repetition. The entries and scores of the pair, as saved:
+
+<!-- probe:c03a:start -->
+> - **`c03_box_contents`, repetition 1** (control): ON fail, OFF pass
+>   - replan entries of the ON row: retry_kb: 1 unsupported -> 5 passages -> 0 still unsupported
+>   - judge scores, groundedness / completeness: ON 3 / 4, OFF 4 / 5; claims the judge listed as unsupported: ON 1, OFF 1
+>   - note of the verifier: ON ``, OFF `revised:1 [No additional mobile‑data subscription is required]`
+>   - agent cost: ON $0.00179 against the OFF mean $0.00144; latency (ms): ON 5,015 against the OFF mean 5,643
+>   - reason, ON: The answer is in English while the user asked in Portuguese, and it makes an actionable claim about no subscription being required that is not explicitly supported by the provided documentation.
+>   - reason, OFF: The answer is in English while the user's question and the provided evidence are in Portuguese, violating the language match requirement.
+<!-- probe:c03a:end -->
+
+<!-- probe:c03b:start -->
+> - **`c03_box_contents`, repetition 2** (control): ON fail, OFF pass
+>   - replan entries of the ON row: retry_kb: 1 unsupported -> 5 passages -> 0 still unsupported
+>   - judge scores, groundedness / completeness: ON 3 / 4, OFF 4 / 5; claims the judge listed as unsupported: ON 1, OFF 1
+>   - note of the verifier: ON ``, OFF `revised:1 [No additional mobile‑data subscription is required]`
+>   - agent cost: ON $0.00179 against the OFF mean $0.00144; latency (ms): ON 9,020 against the OFF mean 5,643
+>   - reason, ON: The answer is in English while the user asked in Portuguese, and it makes an actionable claim about no subscription being required that is not explicitly supported by the provided documentation.
+>   - reason, OFF: The answer is written in English while the user's question and the provided evidence are in Portuguese, failing the language match requirement.
+<!-- probe:c03b:end -->
+
+Read from those lines: in the OFF arm the verifier removed one claim as unsupported and put a sentence of its own in its place; in the ON arm the retry searched again, the second audit found the same claim backed, nothing was removed, and the answer kept it. The judge, which is another model with its own reading of the evidence, listed that claim as unsupported and scored the ON answer lower, and the verdict went from pass to fail. So the difference is not cost: it is the retry and the judge disagreeing about whether the passages back the claim. **A limitation of the judge that shows in these lines:** its `reason` for this case says the question was in Portuguese and the answer in English, while the message of the case is in English and `language_match` was true; the sentence does not agree with the fields next to it, so the reason text of this judge is not evidence of what drove the verdict.
+
+### The one ticket offer (`p07_printer_not_printing`, repetition 1)
+
+<!-- probe:p07:start -->
+> - **`p07_printer_not_printing`, repetition 1** (B3): ON fail, OFF fail
+>   - replan entries of the ON row: retry_kb: 8 unsupported -> 5 passages -> 8 still unsupported; offer_ticket: no step is left
+>   - judge scores, groundedness / completeness: ON 3 / 3, OFF 2 / 3; claims the judge listed as unsupported: ON 4, OFF 8
+>   - note of the verifier: ON `revised:8 [Remove the roll and re‑insert it, feeding the paper from the bottom so the roll | From the Get Smart home ...`, OFF ``
+>   - agent cost: ON $0.00338 against the OFF mean $0.00268; latency (ms): ON 11,228 against the OFF mean 9,204
+>   - reason, ON: The answer contains actionable unsupported claims, specifically the diagnostic logic that a successful printer test combined with offline status indicates a network issue, which is not documented in the provided evide...
+>   - reason, OFF: The answer invents specific repair steps (cleaning the print head, paper loading details, and specific menu paths) that are not supported by the provided evidence, violating the case-specific requirement not to invent...
+<!-- probe:p07:end -->
+
+The step appended its one-sentence offer to open a ticket. The verdict was fail in both arms in both repetitions of this case, with or without the offer; the offer is a sentence in the answer, not a ticket (no tool opened one).
+
+### What the probe found, and how far it goes
+
+- **The step acts, and mostly in one way.** The entries of the ON rows are in the table by what the ON row did: they are almost all `retry_kb`, which acted on cases of all three design branches and on one control. `add_support` and the escalation did not act in any ON row, and the ticket offer acted once.
+- **Recorded as a finding (amendment 1):** the two replan-2 safety nets, `add_support` and the ticket offer with the escalation, **did not act in the ON rows of the firing run nor in those of the run that was judged**, apart from the one offer above; on the 27 regular cases `add_support` acted only in `q04`. The cases were not revised to make them act, because that would have meant messages written to mislead the router.
+- **In the pairs where the step acted on the cases designed for it, no verdict changed** (see the line `ON acted` above); the only pairs where it acted and the verdict changed are the control's. The pairs whose verdict differs although the ON row has no replan entry are the same system in both rows, which is what the noise guard of the rule is for.
+- **The number of passes is low in both arms** (the table by group shows it), which leaves the probe little room to show a difference in either direction. The criteria ask for documented steps or a plain "I cannot confirm"; whether the cases, the criteria or the judge's strictness explain the low counts is not established, and it is not a finding about the step.
+- **What it does not show:** how often the step acts on real traffic, whether the answers are better, or anything about the 27 regular cases. 24 pairs and a judge that does not give the same verdict twice are a direction at best. **`REPLAN_MAX=0` stays the default.**
+
+### Decision on Phase 5
+
+Phase 5 of the plan of the day (two more repetitions with the step on over the 27 regular cases, to add to the three judged ones) was **skipped, by decision of the owner on 2026-11-18**. It is a decision, not an omission: the headline numbers of the comparison on the regular cases remain those of `eval/reports/REPLAN-AB-20261116-234030.md` (three judged repetitions), and nothing in this probe adds to or replaces them.
