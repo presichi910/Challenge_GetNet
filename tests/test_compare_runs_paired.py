@@ -187,3 +187,14 @@ def test_it_refuses_what_it_cannot_pair(tmp_path):
     bare = write(tmp_path, "bare.json", {i: {k: v for k, v in row("pass").items() if k != "replans"} for i in IDS})
     with pytest.raises(SystemExit, match="no row of bare.json has a 'replans'"):
         build_paired([bare, bare], off, GROUPS)
+
+
+def test_the_groups_by_what_the_on_row_did_split_the_non_control_pairs_and_keep_the_controls_apart(tmp_path):
+    on = {"p01_reprint_receipt": [acted("pass"), "pass"], "p04_pix_fee": [acted("fail", "add_support"), "pass"], "p07_printer_not_printing": ["fail", "pass"],
+          "c03_box_contents": [acted("pass"), "pass"]}
+    off = {"p01_reprint_receipt": ["fail", "pass"], "p04_pix_fee": ["pass", "pass"], "p07_printer_not_printing": ["pass", "pass"], "c03_box_contents": ["pass", "pass"]}
+    text = text_of(tmp_path, on, off)
+    assert "## By what the ON row did (amendment 1 of the preregistration)" in text and "**The main reading is the `ON acted` line**" in text
+    assert "| ON acted | 2 | 2 | 1 | 1 | +0 | 1 | 1 | add_support 1, retry_kb 1 |" in text  # p01 (retry_kb, fail -> pass) and p04 (add_support, pass -> fail); no control in it
+    assert "| ON did not act | 16 | 16 | 15 | 16 | -1 | 0 | 1 | none |" in text  # the 18 other non-control pairs minus the 2 above: p07 repetition 1 went pass -> fail
+    assert "| controls | 6 | 6 | 6 | 6 | +0 | 0 | 0 | retry_kb 1 |" in text  # a control that acted stays in the controls, not in `ON acted`

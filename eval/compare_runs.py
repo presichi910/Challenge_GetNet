@@ -400,6 +400,18 @@ def build_paired(on_runs: list[dict], off_runs: list[dict], groups: dict[str, li
     out += ["", "B3 favors the ON arm by construction (its criterion rewards a concrete way forward and the ticket offer of the step supplies one); the line B1 + B2 is the reading "
             "without that bias. The rule above uses all the valid pairs.", ""]
 
+    kinds_of = lambda rows: ", ".join(f"{k} {n}" for k, n in sorted(Counter(a for p in rows for a in p["actions"]).items())) or "none"  # noqa: E731
+    noncontrol = [p for p in pairs if p["group"] != "control"]
+    by_on = [("ON acted", [p for p in noncontrol if p["acted"]]), ("ON did not act", [p for p in noncontrol if not p["acted"]]), ("controls", [p for p in pairs if p["group"] == "control"])]
+    out += ["## By what the ON row did (amendment 1 of the preregistration)", "",
+            "The non-control pairs split by whether the ON row has at least one replan entry in THIS run; the controls apart. **The main reading is the `ON acted` line**: it is the only "
+            "place the step can make a difference, and a pair in which it did not act is the same system in both rows. The groups by design branch above stay as preregistered.", "",
+            "| what the ON row did | pairs | valid | ON pass | OFF pass | Net | OFF fail -> ON pass | OFF pass -> ON fail | replan entries of the ON rows |", "|---|---|---|---|---|---|---|---|---|"]
+    for name, rows in by_on:
+        s = paired_stats(rows)
+        out.append(f"| {name} | {s['pairs']} | {s['valid']} | {s['on_pass']} | {s['off_pass']} | {s['net']:+d} | {s['b']} | {s['c']} | {kinds_of(rows)} |")
+    out.append("")
+
     out += ["## Where the step acted (the ON rows)", "", "Each cell is the number of cases of the group whose ON row has an entry of the branch (B1 `retry_kb`, B2 `add_support`, "
             "B3 `offer_ticket` or `escalate`); the rows `any entry` count any replan entry of the ON row, whatever its kind.", "",
             "| group | " + " | ".join(f"repetition {k}" for k in range(1, len(on_runs) + 1)) + " |", "|---|" + "---|" * len(on_runs)]
