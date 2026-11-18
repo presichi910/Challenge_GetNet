@@ -162,11 +162,12 @@ Run on the experimental branch `exp/b-plus`; `app/` is identical to `98ea315` (t
 
 ## Reported by the owner (not verifiable from the checkout)
 
-These are results of runs on GitHub. The repository cannot show them: a checkout has no access to the run, and the tests only check that the workflow keeps its gates (`tests/test_ci_gates.py`). The links are pasted by the owner; until then they are placeholders and **nothing on this page claims a result for them**.
+These are results of runs on GitHub. The repository cannot show them: a checkout has no access to the run, and the tests only check that the workflow keeps its gates (`tests/test_ci_gates.py`). The link is pasted by the owner; until then it is a placeholder and **nothing on this page claims a result for it**.
 
 | What | Commit | Link |
 |---|---|---|
-| The CI run on the delivery remote | `98ea315` | `<CI_URL_DELIVERY_98ea315>` |
-| The CI run on the origin remote | `98ea315` | `<CI_URL_ORIGIN_98ea315>` |
+| The CI run of the delivered commit (run #4) | `98ea315` | `<CI_URL_DELIVERY_98ea315>` |
+
+The CI run of the delivered commit is the latest run on `main` in the Actions tab.
 
 The earlier account of the first run on GitHub (it failed in two jobs, was fixed, and the four jobs passed in the pull request of the branch `ci-fix`) is in [FINAL_REPORT.md](FINAL_REPORT.md), section 7, item 13, and says nothing about `main`.
