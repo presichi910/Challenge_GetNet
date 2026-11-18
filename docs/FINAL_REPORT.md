@@ -247,6 +247,8 @@ This still compares only the checks that need no judge; it says nothing about th
 
 22. **A human check after the fact of one control row: the verifier was more lenient than the judge (one case observed; not generalized).** In the replan probe, for `c03_box_contents`, the owner read the passages that the retry brought in (`docs/evidence/c03_post_hoc_check_2026-11-18.md`) and the claim in dispute, that no additional mobile-data subscription is required, **is not in them**. So the re-audit after `retry_kb` accepted as backed a claim that does not appear in the retrieved passages, and **the judge was right to flag it as unsupported**. It is a check on one row, made after the preregistered result was fixed: it does not change that result, and it is not evidence about other rows or about the verifier in general.
 
+23. **V3b prepared, not labelled in time; withdrawn.** A second human check of the judge (15 more answers of 15 other cases, to add to the 15 of V3) was prepared (a preregistered draw, a blind sheet, a sealed key and a report tool) and was not labelled in time, so this branch has no V3b file and no V3b figure in any document: the agreement of the judge with a human rests on V3 and the V2 re-score alone (section 3). The prepared files are kept apart, on a local branch (`exp/v3b-pending`); the commits that added them are still in the history of this branch, and one later commit removes the files.
+
 ## 8. Not done
 
 Postgres as the checkpointer; Alertmanager; hash-pinned installs; push notifications to the customer; the judge's own retry logic inside `eval/judge.py` (a wrapper does it, because the judge is frozen); type checking of
