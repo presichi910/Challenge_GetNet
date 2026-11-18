@@ -311,7 +311,7 @@ Every `/chat` turn is measured without touching a prompt or a node: `ChatService
 ## Tests and evaluation
 
 ```bash
-pytest -q                            # No network or keys needed (also: pytest -m "not eval"). At the time of this submission, the CI test job reports 1260 passed and 4 skipped; the 4 skipped need a running Keycloak (RUN_KEYCLOAK_TESTS=1, tests/test_keycloak_live.py)
+pytest -q                            # No network or keys needed (also: pytest -m "not eval"). 1260 passed, 4 skipped in CI at `98ea315` (run #4), as the owner reports it (not verifiable from a checkout, see docs/EVIDENCE.md); the 4 skipped need a running Keycloak (RUN_KEYCLOAK_TESTS=1, tests/test_keycloak_live.py)
 docker compose run --rm eval         # full evaluation (needs keys + knowledge base)
 python -m eval.run_eval --only q05   # just some cases
 ```

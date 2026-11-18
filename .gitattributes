@@ -1,0 +1,2 @@
+# Generated reports that tests compare byte for byte (tests/test_compare_runs.py) must be LF in every checkout, Windows included.
+eval/reports/*.md text eol=lf
