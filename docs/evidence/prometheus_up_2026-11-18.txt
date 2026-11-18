@@ -1,0 +1,50 @@
+# Prometheus scraping the API of docker-compose.yml (captured, not typed)
+# date: 2026-11-18 12:14:11 -0600   stack: docker compose, profile observability (keycloak, api, jaeger, prometheus); prom/prometheus:v3.0.1; infra/observability/prometheus.yml
+# the API's /metrics is behind a bearer token that Prometheus reads from a file (credentials_file); no token is in this capture
+# the unix timestamps inside the JSON are the server's own
+
+$ curl -s 'http://127.0.0.1:9090/api/v1/query?query=up'
+{
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            {
+                "metric": {
+                    "__name__": "up",
+                    "instance": "api:8000",
+                    "job": "getnet-api"
+                },
+                "value": [
+                    1795025651.981,
+                    "1"
+                ]
+            }
+        ]
+    }
+}
+
+$ curl -s 'http://127.0.0.1:9090/api/v1/query?query=getnet_turns_total'
+{
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            {
+                "metric": {
+                    "__name__": "getnet_turns_total",
+                    "instance": "api:8000",
+                    "job": "getnet-api",
+                    "outcome": "ok"
+                },
+                "value": [
+                    1795025652.189,
+                    "1"
+                ]
+            }
+        ]
+    }
+}
+
+$ curl -s http://127.0.0.1:9090/api/v1/targets   (job, scrapeUrl, health, lastError)
+getnet-api http://api:8000/metrics health=up lastError=''

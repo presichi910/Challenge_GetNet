@@ -1,0 +1,228 @@
+{
+  "_capture": {
+    "what": "one trace of the Getnet API as Jaeger 1.62.0 returned it (GET /api/traces?service=getnet-agents), exported by the owner's stack of docker-compose.yml, profile observability",
+    "date": "2026-11-18",
+    "code": "exp/b-plus, app/ identical to 98ea315",
+    "request": "ONE POST /chat with a synthetic greeting and no customer data; the no-LLM requests tried first (GET /health, GET /conversations, GET /metrics) produced no trace of the API",
+    "redaction": [
+      "absolute timestamps replaced by offsets from the start of the turn (startOffsetMicros)",
+      "process tag service.instance.id replaced by <redacted>",
+      "no token, header, message text, customer id or conversation id is in the spans (checked by grep, see docs/EVIDENCE.md)"
+    ]
+  },
+  "traceID": "15a3e57dd6aa9b81409d63a45d996951",
+  "spans": [
+    {
+      "spanID": "931b9c350075eacc",
+      "parentSpanID": null,
+      "operationName": "chat.turn",
+      "startOffsetMicros": 0,
+      "durationMicros": 3764000,
+      "tags": [
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1323
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 97
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.00025665
+        },
+        {
+          "key": "getnet.degraded",
+          "type": "bool",
+          "value": false
+        },
+        {
+          "key": "getnet.handoff_reason",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "key": "getnet.latency_ms",
+          "type": "int64",
+          "value": 3764
+        },
+        {
+          "key": "getnet.plan",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "key": "getnet.trace_id",
+          "type": "string",
+          "value": "e50d3adada6e"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "3815fcff9a164799",
+      "parentSpanID": "931b9c350075eacc",
+      "operationName": "llm router",
+      "startOffsetMicros": 2487877,
+      "durationMicros": 716999,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1069
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 56
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.00019395
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "router"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "bc88bfa8057839e8",
+      "parentSpanID": "931b9c350075eacc",
+      "operationName": "llm synthesizer",
+      "startOffsetMicros": 3253765,
+      "durationMicros": 490000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 254
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 41
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 6.27e-05
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "synthesizer"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    }
+  ],
+  "processes": {
+    "p1": {
+      "serviceName": "getnet-agents",
+      "tags": [
+        {
+          "key": "service.instance.id",
+          "type": "string",
+          "value": "<redacted>"
+        },
+        {
+          "key": "telemetry.sdk.language",
+          "type": "string",
+          "value": "python"
+        },
+        {
+          "key": "telemetry.sdk.name",
+          "type": "string",
+          "value": "opentelemetry"
+        },
+        {
+          "key": "telemetry.sdk.version",
+          "type": "string",
+          "value": "1.45.2"
+        }
+      ]
+    }
+  }
+}

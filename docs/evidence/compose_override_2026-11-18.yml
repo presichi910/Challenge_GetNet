@@ -1,0 +1,13 @@
+# Scratch override for the phase-2 evidence run (not in the repo): traces and metrics on for the API without editing .env,
+# and an image tagged apart so the owner's getnet-agents:latest is not overwritten.
+services:
+  api:
+    image: getnet-agents:exp-b-plus-98ea315
+    build:
+      context: .
+      args:
+        REVISION: 98ea315
+        VERSION: exp-b-plus
+    environment:
+      OTLP_ENDPOINT: http://jaeger:4317
+      METRICS_TOKEN: ${METRICS_TOKEN}

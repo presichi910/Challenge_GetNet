@@ -1,0 +1,17 @@
+# promtool on the alert rules (captured, not typed)
+# date: 2026-11-18 12:13:56 -0600   code: branch exp/b-plus, infra/observability identical to 98ea315
+# image: prom/prometheus:v3.0.1 (digest prom/prometheus@sha256:565ee86501224ebbb98fc10b332fa54440b100469924003359edf49cbce374bd)
+# commands (the same two the CI job 'alerts' runs):
+#   docker run --rm --entrypoint promtool -v "$PWD/infra/observability:/w" prom/prometheus:v3.0.1 check rules /w/alerts.yml
+#   docker run --rm --entrypoint promtool -v "$PWD/infra/observability:/w" prom/prometheus:v3.0.1 test rules /w/alerts_test.yml
+
+$ promtool check rules /w/alerts.yml
+Checking /w/alerts.yml
+  SUCCESS: 9 rules found
+
+exit code: 0
+
+$ promtool test rules /w/alerts_test.yml
+  SUCCESS
+
+exit code: 0

@@ -1,0 +1,19 @@
+# Live Keycloak test run (captured, not typed)
+# date: 2026-11-18 12:11:39 -0600
+# code: branch exp/b-plus, app/ identical to 98ea315 (git diff 98ea315 -- app is empty); Keycloak 26.2 from docker-compose.yml (image digest pinned there), realms from infra/keycloak
+# command: RUN_KEYCLOAK_TESTS=1 DEMO_USER_PASSWORD=<redacted> python -m pytest tests/test_keycloak_live.py -rs -v
+# the password was generated for this run and is not recorded anywhere in the repository
+
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\User\OneDrive - Instituto Tecnologico y de Estudios Superiores de Monterrey\Documents\Proyecto_GetNet\.venv\Scripts\python.exe
+rootdir: C:\Users\User\OneDrive - Instituto Tecnologico y de Estudios Superiores de Monterrey\Documents\Proyecto_GetNet
+configfile: pytest.ini
+plugins: anyio-4.16.0, langsmith-0.14.17, platformdirs-4.14.5
+collecting ... collected 4 items
+
+tests/test_keycloak_live.py::test_a_merchant_token_from_keycloak_is_accepted_with_the_realm_identity PASSED [ 25%]
+tests/test_keycloak_live.py::test_an_operator_token_from_keycloak_is_an_operator_and_only_that PASSED [ 50%]
+tests/test_keycloak_live.py::test_a_tampered_keycloak_token_is_refused PASSED [ 75%]
+tests/test_keycloak_live.py::test_the_keys_are_fetched_once_and_the_encryption_key_is_ignored PASSED [100%]
+
+============================= 4 passed in 20.93s ==============================
