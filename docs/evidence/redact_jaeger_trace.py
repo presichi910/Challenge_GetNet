@@ -1,16 +1,20 @@
-"""Redacts one Jaeger trace for docs/evidence/jaeger_trace_2026-11-18.json (the same logic as the script that was run, tidied for the repository: the raw export was not kept, so this copy was not re-run on it).
+"""Redacts one Jaeger trace for docs/evidence/jaeger_trace_2026-11-18.json and docs/evidence/jaeger_trace_tools_2026-11-18.json.
+
+Who ran what: the FIRST file (the greeting) was made by a scratch version of this logic whose raw export was not kept, so this copy was not re-run on that one.
+The SECOND file (the read-only turn with tools) was made by THIS script, run on its raw export, which was then deleted.
 
     curl -s "http://127.0.0.1:16686/api/traces?service=getnet-agents&limit=5" > raw.json
-    python docs/evidence/redact_jaeger_trace.py raw.json out.json
+    python docs/evidence/redact_jaeger_trace.py raw.json out.json "<what the one request was>"
 
-What it changes: absolute timestamps become offsets from the start of the turn, and the process tag service.instance.id becomes <redacted>.
+What it changes: absolute timestamps become offsets from the start of the turn, the process tag service.instance.id becomes <redacted>, and float tags
+(the cost) are rounded to 8 decimals (floating-point noise such as 0.0029363999999999996 is not data and looks like a long number).
 It keeps every span tag as Jaeger returned it: the API puts no message text, token, header or customer id in a span (tests/test_telemetry.py),
 and the capture was checked with a grep for those patterns (docs/EVIDENCE.md).
 """
 import json
 import sys
 
-src, dst = sys.argv[1], sys.argv[2]
+src, dst, request = sys.argv[1], sys.argv[2], sys.argv[3]
 with open(src, encoding="utf-8") as f:
     raw = json.load(f)
 assert len(raw["data"]) == 1, "expects exactly one trace"
@@ -23,7 +27,7 @@ spans = [
         "operationName": s["operationName"],
         "startOffsetMicros": s["startTime"] - t0,
         "durationMicros": s["duration"],
-        "tags": list(s["tags"]),
+        "tags": [{**x, "value": round(x["value"], 8)} if isinstance(x["value"], float) else x for x in s["tags"]],
         "logs": s.get("logs", []),
     }
     for s in sorted(t["spans"], key=lambda s: s["startTime"])
@@ -37,10 +41,11 @@ out = {
         "what": "one trace of the Getnet API as Jaeger 1.62.0 returned it (GET /api/traces?service=getnet-agents), exported by the owner's stack of docker-compose.yml, profile observability",
         "date": "2026-11-18",
         "code": "exp/b-plus, app/ identical to 98ea315",
-        "request": "ONE POST /chat with a synthetic greeting and no customer data; the no-LLM requests tried first (GET /health, GET /conversations, GET /metrics) produced no trace of the API",
+        "request": request,
         "redaction": [
             "absolute timestamps replaced by offsets from the start of the turn (startOffsetMicros)",
             "process tag service.instance.id replaced by <redacted>",
+            "float tags (cost_usd) rounded to 8 decimals: floating-point noise, not data",
             "no token, header, message text, customer id or conversation id is in the spans (checked by grep, see docs/EVIDENCE.md)",
         ],
     },

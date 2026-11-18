@@ -1,0 +1,709 @@
+{
+  "_capture": {
+    "what": "one trace of the Getnet API as Jaeger 1.62.0 returned it (GET /api/traces?service=getnet-agents), exported by the owner's stack of docker-compose.yml, profile observability",
+    "date": "2026-11-18",
+    "code": "exp/b-plus, app/ identical to 98ea315",
+    "request": "ONE POST /chat as the demo customer with a synthetic read-only question (a payout date and a product question: support and knowledge, one lookup tool, no ticket, no approval, no handoff)",
+    "redaction": [
+      "absolute timestamps replaced by offsets from the start of the turn (startOffsetMicros)",
+      "process tag service.instance.id replaced by <redacted>",
+      "float tags (cost_usd) rounded to 8 decimals: floating-point noise, not data",
+      "no token, header, message text, customer id or conversation id is in the spans (checked by grep, see docs/EVIDENCE.md)"
+    ]
+  },
+  "traceID": "71720d8ae477757b3102ed294d2b096f",
+  "spans": [
+    {
+      "spanID": "5f2d1b66c145904a",
+      "parentSpanID": null,
+      "operationName": "chat.turn",
+      "startOffsetMicros": 0,
+      "durationMicros": 14604000,
+      "tags": [
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 11912
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 1916
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.0029364
+        },
+        {
+          "key": "getnet.degraded",
+          "type": "bool",
+          "value": false
+        },
+        {
+          "key": "getnet.handoff_reason",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "key": "getnet.latency_ms",
+          "type": "int64",
+          "value": 14604
+        },
+        {
+          "key": "getnet.plan",
+          "type": "string",
+          "value": "support,knowledge"
+        },
+        {
+          "key": "getnet.trace_id",
+          "type": "string",
+          "value": "79604b0fbcb7"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "7242ab46f1b5cfb4",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm router",
+      "startOffsetMicros": 989097,
+      "durationMicros": 911000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1083
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 94
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.00021885
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "router"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "46e82ea929aadf1e",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm support",
+      "startOffsetMicros": 1945328,
+      "durationMicros": 486000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1313
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 44
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.00022335
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "support"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "cf2f108676fbfa03",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "tool support",
+      "startOffsetMicros": 2434335,
+      "durationMicros": 0,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 0
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 0
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "tool"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "get_payout_schedule"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "support"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "9d28d6111a5e64a3",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm support",
+      "startOffsetMicros": 2437815,
+      "durationMicros": 1573999,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1594
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 385
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.0004701
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "support"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "be0ec776274bf0b5",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm knowledge",
+      "startOffsetMicros": 4063871,
+      "durationMicros": 1479000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1290
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 325
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.0003885
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "knowledge"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "77f5ac4071c9e5c1",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm knowledge",
+      "startOffsetMicros": 5554990,
+      "durationMicros": 641000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1318
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 79
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.0002451
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "knowledge"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "268367a07b6f6ca6",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "tool knowledge",
+      "startOffsetMicros": 6198529,
+      "durationMicros": 1460000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": ""
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 0
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 0
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "tool"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "search_getnet_kb"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "knowledge"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "12e49a0005663922",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm knowledge",
+      "startOffsetMicros": 7662599,
+      "durationMicros": 3328999,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 2542
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 232
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.0005205
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "knowledge"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "51dc37ed0277d488",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm synthesizer",
+      "startOffsetMicros": 11021870,
+      "durationMicros": 823999,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 775
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 214
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.00024465
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "synthesizer"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    },
+    {
+      "spanID": "cddc1e0053219c2e",
+      "parentSpanID": "5f2d1b66c145904a",
+      "operationName": "llm verify",
+      "startOffsetMicros": 11878611,
+      "durationMicros": 2755000,
+      "tags": [
+        {
+          "key": "gen_ai.request.model",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "gen_ai.usage.input_tokens",
+          "type": "int64",
+          "value": 1997
+        },
+        {
+          "key": "gen_ai.usage.output_tokens",
+          "type": "int64",
+          "value": 543
+        },
+        {
+          "key": "getnet.cost_usd",
+          "type": "float64",
+          "value": 0.00062535
+        },
+        {
+          "key": "getnet.kind",
+          "type": "string",
+          "value": "llm"
+        },
+        {
+          "key": "getnet.name",
+          "type": "string",
+          "value": "accounts/fireworks/models/gpt-oss-120b"
+        },
+        {
+          "key": "getnet.node",
+          "type": "string",
+          "value": "verify"
+        },
+        {
+          "key": "internal.span.format",
+          "type": "string",
+          "value": "otlp"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "getnet.turns"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "internal"
+        }
+      ],
+      "logs": []
+    }
+  ],
+  "processes": {
+    "p1": {
+      "serviceName": "getnet-agents",
+      "tags": [
+        {
+          "key": "service.instance.id",
+          "type": "string",
+          "value": "<redacted>"
+        },
+        {
+          "key": "telemetry.sdk.language",
+          "type": "string",
+          "value": "python"
+        },
+        {
+          "key": "telemetry.sdk.name",
+          "type": "string",
+          "value": "opentelemetry"
+        },
+        {
+          "key": "telemetry.sdk.version",
+          "type": "string",
+          "value": "1.45.2"
+        }
+      ]
+    }
+  }
+}
