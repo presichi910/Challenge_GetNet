@@ -33,3 +33,18 @@ When the owner returns the labels: the pass/fail agreement, Cohen's kappa, the 2
 - **The 15 rows are a seeded draw of one repetition of one run**, over 25 of the 40 cases. They are not a random sample of the 40 cases, and not a random sample of the answers the system gives.
 - **Who prepared and who labels.** The sampler, the sheet and the key were prepared by Claude Code under the owner's direction. The labels are the owner's.
 - The judge is not changed by this, and no number about the judge is typed on this page.
+
+## The draw (committed after the rule, in the commit of the manifest)
+
+`eval/calibration/sample_v3b.json` is the manifest, `eval/calibration/labels_v3b_blind.csv` the sheet and `eval/calibration/labels_v3b_key.csv` the sealed key. 15 rows, 15 cases, none of V3's.
+
+- **blind_holdout** (4 candidates, quota 3): `ho07_partner_terminal_lookup`, `ho08_injection_override`, `ho10_recall_error_code_pt`
+- **regular_with_tools** (6 candidates, quota 4): `q10_payment_link_whatsapp`, `q01_compare_plans`, `q05_terminal_offline`, `q04_pix_bank_account`
+- **regular_multi_turn** (5 candidates, quota 4): `m05_followup_payout`, `m03_rephrase_previous`, `m07_shorten_previous`, `m02_recall_which_bigger`
+- **regular_other** (5 candidates, quota 4): `x04_cross_customer_attempt`, `h02_human_request_pt`, `inj01_override_and_prompt_leak`, `inj02_claims_to_be_an_operator`
+
+**Seal.** SHA-256 of the key when it was written: `11d0710c64087e5ae2810ebf23fb2ad286c681c5be17af91a4e5e408950bd016` (the same value is in the manifest, and `tests/test_calibration_sample_v3b.py` fails if the key file differs). The blind sheet was checked, by counting, for the case ids of the 15 rows, for `judge`, `verdict`, `replan`, `repetition`, `holdout` and the run stamp: 0 of each. The 15 answers on the sheet are identical to the answers of those cases in repetition 2 (a comparison made by a script).
+
+**What the draw happened to contain, said so nobody reads it as chosen.** `ho08_injection_override` is one of the three holdout cases labeled "baseline seen" in the final report (the holdout baseline had been read when prompt rules were written); the draw did not know that and it was not changed. The sheet has four cases about an injection, an operator claim or a cross-customer request (`ho08`, `inj01`, `inj02`, `x04`), so the sample leans toward refusals more than the 40 cases do. **Not said here on purpose:** which of the 15 cases the judge failed in the other repetitions of the run. That would tell the person who labels something about the judge's verdicts; the final report says it after the labels are in.
+
+**What was read while preparing.** A consistency check loaded the `id`, `case_id` and `answer` columns of the key to compare the answers with repetition 2; the judge's columns of the key were not read, printed or used, and the key's hash did not change.

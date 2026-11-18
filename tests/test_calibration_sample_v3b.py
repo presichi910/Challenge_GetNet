@@ -98,3 +98,35 @@ def test_the_sheet_a_human_fills_in_has_opaque_ids_and_nothing_of_the_judge_and_
 def test_the_v3_ids_are_the_fifteen_of_the_v3_manifest():
     ids = mod.v3_ids()
     assert len(ids) == 15 == len(set(ids))
+
+
+# ---- the real manifest, the real sheet and the sealed key ----
+
+CAL = mod.Path(__file__).resolve().parent.parent / "eval" / "calibration"
+
+
+def test_the_committed_manifest_is_what_the_sampler_gives_for_the_real_dataset_and_the_real_source():
+    from eval.calibration.sample import load_cases
+
+    source = mod.ROOT.parent / mod.SOURCE
+    if not source.exists():
+        import pytest
+
+        pytest.skip(f"{mod.SOURCE} is not in this checkout")
+    saved = mod.json.loads((CAL / "sample_v3b.json").read_text(encoding="utf-8"))
+    available = set(mod.available_rows(source, mod.load_criteria()))
+    fresh = mod.choose(load_cases(), set(mod.v3_ids()), available)
+    for key in ("seed", "source", "excluded_v3", "note", "total", "strata", "ids"):
+        assert saved[key] == fresh[key], key
+    assert saved["total"] == 15 and not set(saved["ids"]) & set(mod.v3_ids())
+
+
+def test_the_key_is_sealed_its_hash_is_the_one_in_the_manifest_and_the_blind_sheet_has_no_judge_and_no_case_id():
+    saved = mod.json.loads((CAL / "sample_v3b.json").read_text(encoding="utf-8"))
+    assert mod.sha256(CAL / "labels_v3b_key.csv") == saved["key_sha256"], "the key was edited after the draw"
+    rows = mod.read_csv(CAL / "labels_v3b_blind.csv")
+    assert len(rows) == 15 == saved["sheet_rows"] and [r["id"] for r in rows] == [f"v3b-{n:02d}" for n in range(1, 16)]
+    assert list(rows[0]) == ["id", "question", "criteria", "answer", "evidence", "human_grounded", "human_complete", "human_pass", "notes"]
+    text = "\n".join(" ".join(r[c] for c in ("id", "question", "criteria", "answer", "evidence")) for r in rows).lower()  # what the owner reads, not what the owner writes
+    for leak in [*saved["ids"], "verdict", "replan", "repetition", "holdout", "20261115"]:
+        assert leak.lower() not in text, leak

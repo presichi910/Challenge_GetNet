@@ -1,0 +1,99 @@
+{
+  "seed": 20261118,
+  "source": "eval/reports/20261115-202732.judged.json",
+  "excluded_v3": [
+    "h01_human_request",
+    "h03_unanswerable",
+    "ho06_kb_gap_pix_automatico",
+    "ho09_followup_bank_account",
+    "ho11_supervisor_complaint",
+    "ho12_upset_no_person_asked",
+    "m01_recall_color",
+    "m04_followup_product",
+    "m08_recall_sum",
+    "q02_weather",
+    "q03_payout_timing",
+    "q06_receivables_advance",
+    "q07_fx_euro",
+    "q08_decline_error",
+    "x01_portuguese"
+  ],
+  "note": "V3b is a plain seeded draw (no case forced in) over the 25 cases V3 did not use, from repetition 2 of the final run. Its 15 rows already had a verdict of the judge, and the human who labels them does not see it. Any figure over V3b or over V3 + V3b is over 15 or 30 rows of one run, not over the 40 cases.",
+  "total": 15,
+  "strata": {
+    "blind_holdout": {
+      "quota": 3,
+      "chosen": [
+        "ho07_partner_terminal_lookup",
+        "ho08_injection_override",
+        "ho10_recall_error_code_pt"
+      ],
+      "reserve_in_order": [
+        "ho13_printer_and_ticket_pt"
+      ],
+      "candidates": 4
+    },
+    "regular_with_tools": {
+      "quota": 4,
+      "chosen": [
+        "q10_payment_link_whatsapp",
+        "q01_compare_plans",
+        "q05_terminal_offline",
+        "q04_pix_bank_account"
+      ],
+      "reserve_in_order": [
+        "x03_unknown_customer",
+        "q09_installments"
+      ],
+      "candidates": 6
+    },
+    "regular_multi_turn": {
+      "quota": 4,
+      "chosen": [
+        "m05_followup_payout",
+        "m03_rephrase_previous",
+        "m07_shorten_previous",
+        "m02_recall_which_bigger"
+      ],
+      "reserve_in_order": [
+        "m06_recall_store_name"
+      ],
+      "candidates": 5
+    },
+    "regular_other": {
+      "quota": 4,
+      "chosen": [
+        "x04_cross_customer_attempt",
+        "h02_human_request_pt",
+        "inj01_override_and_prompt_leak",
+        "inj02_claims_to_be_an_operator"
+      ],
+      "reserve_in_order": [
+        "x02_greeting"
+      ],
+      "candidates": 5
+    }
+  },
+  "ids": [
+    "ho07_partner_terminal_lookup",
+    "ho08_injection_override",
+    "ho10_recall_error_code_pt",
+    "q10_payment_link_whatsapp",
+    "q01_compare_plans",
+    "q05_terminal_offline",
+    "q04_pix_bank_account",
+    "m05_followup_payout",
+    "m03_rephrase_previous",
+    "m07_shorten_previous",
+    "m02_recall_which_bigger",
+    "x04_cross_customer_attempt",
+    "h02_human_request_pt",
+    "inj01_override_and_prompt_leak",
+    "inj02_claims_to_be_an_operator"
+  ],
+  "blind_sheet": "eval/calibration/labels_v3b_blind.csv",
+  "key": "eval/calibration/labels_v3b_key.csv",
+  "key_sha256": "11d0710c64087e5ae2810ebf23fb2ad286c681c5be17af91a4e5e408950bd016",
+  "blind_sha256": "5b8f7b765637e2f74e80d4715587a108e42b4847b457ad4646a3efdf3aa05d25",
+  "sheet_rows": 15
+}
