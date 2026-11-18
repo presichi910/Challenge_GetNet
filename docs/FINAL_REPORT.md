@@ -245,6 +245,8 @@ This still compares only the checks that need no judge; it says nothing about th
 
 21. **The judge's `reason` can disagree with its own fields (one case observed, not generalized).** In the replan probe (`docs/REPLAN_DEMO.md`, `eval/reports/REPLAN-PROBE-20261118-133249.md`), for `c03_box_contents` the judge's reason says the question was in Portuguese and the answer in English, while the message of the case is in English and the judge's `language_match` was true. It was seen in that one case; no other row was checked for it. What it does say is that the reason sentence of this judge is not, by itself, evidence of what decided a verdict.
 
+22. **A human check after the fact of one control row: the verifier was more lenient than the judge (one case observed; not generalized).** In the replan probe, for `c03_box_contents`, the owner read the passages that the retry brought in (`docs/evidence/c03_post_hoc_check_2026-11-18.md`) and the claim in dispute, that no additional mobile-data subscription is required, **is not in them**. So the re-audit after `retry_kb` accepted as backed a claim that does not appear in the retrieved passages, and **the judge was right to flag it as unsupported**. It is a check on one row, made after the preregistered result was fixed: it does not change that result, and it is not evidence about other rows or about the verifier in general.
+
 ## 8. Not done
 
 Postgres as the checkpointer; Alertmanager; hash-pinned installs; push notifications to the customer; the judge's own retry logic inside `eval/judge.py` (a wrapper does it, because the judge is frozen); type checking of
