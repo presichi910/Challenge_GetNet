@@ -40,10 +40,20 @@ def test_no_judged_rate_is_typed_by_hand_outside_the_generated_blocks():
 
 
 def test_it_carries_the_disclosures_the_project_notes_require():
-    for phrase in ("DRAFT", "ho06", "ho12", "ON PURPOSE", "20261116", "not independent", "first scoring sessions", "paid reset of the daily limit", "--daily-limit 391000", "first run on GitHub",
+    for phrase in ("ho06", "ho12", "ON PURPOSE", "20261116", "not independent", "first scoring sessions", "paid reset of the daily limit", "--daily-limit 391000", "first run on GitHub",
                    "REPLAN_MAX=0", "false fails", "m04_followup_product", "m08_recall_sum", "0835e91f81556587124e12aa81fe82556f775c24",
                    "22423e2f10249eb38bcaa8e8583bdaac49b5b35a", "PYSEC", "not comparable"):
         assert phrase.lower() in TEXT.lower() or phrase in TEXT, phrase
+
+
+def test_it_is_the_final_report_not_a_draft():
+    """The banner used to say DRAFT and the test asked for the word; the state it checks now is the opposite: the banner says it is the final report,
+    and the word DRAFT (upper case: the prose says 'drafts' of answers) is nowhere in the document or in the README's and the review response's pointers to it."""
+    assert "> **Final report. The numbers are generated.**" in TEXT
+    assert not re.search(r"\bDRAFT\b", TEXT)
+    for rel in ("README.md", "docs/REVIEW_RESPONSE.md"):
+        pointer = (ROOT / rel).read_text(encoding="utf-8")
+        assert not re.search(r"FINAL_REPORT\.md\]\([^)]*\)\s*\((?:a )?draft", pointer, re.I), rel
 
 
 def test_the_files_it_cites_exist():

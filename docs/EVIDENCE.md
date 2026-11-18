@@ -5,6 +5,22 @@ A test named here is in the file next to it. Reports are in `eval/reports/` and 
 
 To run the tests without keys or network: `pytest -m "not eval"`.
 
+## What the CI checks and what is manual
+
+Three kinds of evidence, and a claim below is one of them. **Automatic**: a test or a generated report that anybody can re-run from a checkout. **Manual**: somebody did it by hand, once; it may have left no artifact, and a reader cannot re-run it from this checkout without the infrastructure it names. **Reported by the owner**: a result that lives outside the repository (the last section of this page).
+
+| Claim | Kind | What there is in this checkout |
+|---|---|---|
+| The unit and integration tests (no keys, no network) | Automatic | `pytest -m "not eval"`; the workflow's job `test` runs them (what the runs on GitHub said is in the last section) |
+| The quality gates (ruff, mypy, bandit, pip-audit, promtool, trivy) are blocking in the workflow | Automatic (that the gates exist) | `tests/test_ci_gates.py`; whether they passed on GitHub is in the last section |
+| The alert rules fire and stay quiet when they should | Automatic | `infra/observability/alerts_test.yml`, run by `promtool test rules` in the job `alerts` and in `tests/test_observability_infra.py` |
+| The auth code against a REAL Keycloak | **Manual** (`RUN_KEYCLOAK_TESTS=1`; the CI has no Keycloak, so the 4 tests are skipped there) | `tests/test_keycloak_live.py` (the code that is run by hand) |
+| A turn arrives in a REAL Jaeger as one trace with child spans and no customer data | **Manual** (one run by hand while building it) | the code that exports it (`app/telemetry.py`) and `tests/test_telemetry.py` (an in-memory exporter, automatic); no artifact of the real Jaeger run |
+| The Grafana dashboard loads with its provisioned data source | **Manual** | `infra/observability/grafana/dashboards/getnet.json` and `tests/test_observability_infra.py` (the files are well formed, automatic); no artifact of Grafana itself, and it was not looked at under live traffic |
+| A ticket approval with the REAL model (a turn that asks for a ticket becomes `pending_approval`, approving it opens the ticket, the next turn says so) | **Manual** (one run by hand) | `tests/test_approvals.py` covers the mechanism with scripted models (automatic); no artifact of the real-model run |
+| Provider failover | **Test doubles only** (automatic, but nobody caused a real outage) | `tests/test_failover.py` simulates a 503 and a 429; the repository holds no artifact of a real provider outage |
+| Every judge-based rate | Generated | the blocks of the [README](../README.md#results) and of [FINAL_REPORT.md](FINAL_REPORT.md); none is typed on this page |
+
 ## Security
 
 | Claim | Where in the code | Test | Other evidence |
@@ -78,7 +94,7 @@ To run the tests without keys or network: `pytest -m "not eval"`.
 |---|---|---|---|
 | `/metrics` exists only with a token, and carries no text or customer id | `app/telemetry.py:30` (`Metrics`), `app/main.py:466-468` | `tests/test_telemetry.py:82`, `:201`, `:209`, `:214`, `:222` | |
 | One OTLP trace per turn, a child span per model or tool call, with no text | `app/telemetry.py:86` (`Tracing`), `app/config.py:146` | `tests/test_telemetry.py:102`, `:114`, `:128`, `:142` | `docker-compose.yml:93` (Jaeger), the `observability` profile |
-| Prometheus, Grafana and the dashboard are provisioned and bound to localhost | `docker-compose.yml:102` (Prometheus) and `:116` (Grafana), `infra/observability/prometheus.yml`, `infra/observability/grafana/dashboards/getnet.json` | `tests/test_observability_infra.py:43`, `:54`, `:70`, `:78` | The checks against a real Jaeger and Grafana were made by hand while building it; they are not in the repository |
+| Prometheus, Grafana and the dashboard are provisioned and bound to localhost | `docker-compose.yml:102` (Prometheus) and `:116` (Grafana), `infra/observability/prometheus.yml`, `infra/observability/grafana/dashboards/getnet.json` | `tests/test_observability_infra.py:43`, `:54`, `:70`, `:78` | **Manual** (see [the section below](#what-the-ci-checks-and-what-is-manual)): the checks against a real Jaeger and Grafana were made by hand while building it; they are not in the repository |
 | 9 alert rules, each with a unit test that fires it and one that keeps it quiet | `infra/observability/alerts.yml` | `tests/test_observability_infra.py:36`, `:59`, `infra/observability/alerts_test.yml` (run by `promtool`) | `.github/workflows/ci.yml:80` (job `alerts`) |
 
 ## Retrieval
@@ -113,3 +129,14 @@ To run the tests without keys or network: `pytest -m "not eval"`.
 | The final run is five full repetitions of the 40 cases on one commit with a clean tree, scored by the judge afterwards | `eval/run_eval.py`, `eval/rejudge.py`, `eval/judge_budget.py` | `tests/test_rejudge.py`, `tests/test_repeats.py`, `tests/test_provenance.py` | `eval/reports/REPEATS-20261115-204526.md` (the spread over the five), `eval/reports/20261115-202155.judged.json` (and four more), [FINAL_REPORT.md](FINAL_REPORT.md) |
 | The results in the README and the final report are generated from the saved runs, with the number of rows each rate is over | `eval/results_block.py` | `tests/test_results_block.py`, `tests/test_final_report.py` | |
 | The later code behaves like the final run on the checks that need no judge | `eval/same_behavior.py` | `tests/test_same_behavior.py` | `eval/reports/SMOKE-0835e91.md`, `eval/reports/SMOKE-add-support.md` |
+
+## Reported by the owner (not verifiable from the checkout)
+
+These are results of runs on GitHub. The repository cannot show them: a checkout has no access to the run, and the tests only check that the workflow keeps its gates (`tests/test_ci_gates.py`). The links are pasted by the owner; until then they are placeholders and **nothing on this page claims a result for them**.
+
+| What | Commit | Link |
+|---|---|---|
+| The CI run on the delivery remote | `98ea315` | `<CI_URL_DELIVERY_98ea315>` |
+| The CI run on the origin remote | `98ea315` | `<CI_URL_ORIGIN_98ea315>` |
+
+The earlier account of the first run on GitHub (it failed in two jobs, was fixed, and the four jobs passed in the pull request of the branch `ci-fix`) is in [FINAL_REPORT.md](FINAL_REPORT.md), section 7, item 13, and says nothing about `main`.
