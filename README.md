@@ -7,7 +7,11 @@ A multi-agent assistant for Getnet customers. A router reads each message and de
 Demo video: https://youtu.be/bnBYBmf2AlQ
 
 **Read first (three things a reader of the numbers needs):**
-- **`REPLAN_MAX=0` is the default** because the replan step has no demonstrated quality benefit and adds cost and latency when it acts: [the review response, "Why `REPLAN_MAX=0` is the default"](docs/REVIEW_RESPONSE.md#notes-under-the-table) and the generated comparison [`REPLAN-AB-20261116-234030.md`](eval/reports/REPLAN-AB-20261116-234030.md).
+- **`REPLAN_MAX=0` is the default** because the replan step has no demonstrated quality benefit and adds cost and latency when it acts. Two sources, neither of which shows a benefit: the comparison on the regular cases ([the review response, "Why `REPLAN_MAX=0` is the default"](docs/REVIEW_RESPONSE.md#notes-under-the-table) and the generated [`REPLAN-AB-20261116-234030.md`](eval/reports/REPLAN-AB-20261116-234030.md)) and the preregistered probe of 2026-11-18, whose headline under its rule is generated ([`REPLAN-PROBE-20261118-133249.md`](eval/reports/REPLAN-PROBE-20261118-133249.md); the detail is in [the replan demo](docs/REPLAN_DEMO.md#the-replan-probe-2026-11-18-the-step-on-against-the-step-off-on-cases-written-to-make-it-act)):
+
+<!-- probe:readme_outcome:start -->
+> **Outcome of the preregistered rule: null.** Net +0, inside +/-2.
+<!-- probe:readme_outcome:end -->
 - **The regular pass rate of the results block is not comparable with the one of 12 November.** The judge changed (another, stricter one) and the answers, cases and prompts changed too; the three calibrations used different judges and samples: [final report, section 3](docs/FINAL_REPORT.md#3-does-the-judge-agree-with-a-human-v3) and [section 7, item 2](docs/FINAL_REPORT.md#7-disclosures-and-limitations), [`CALIBRATION_V3.md`](eval/calibration/CALIBRATION_V3.md). No judge rate is typed in these lines: they are generated, see [Results](#results).
 - **What is verified in CI, what was captured and what was checked by hand** (captured on 2026-11-18 with the output saved in `docs/evidence/`: Keycloak, one Jaeger trace, Prometheus, promtool; by hand, with no artifact: Grafana and a ticket approval with a real model; failover only with test doubles): [the evidence map, "What the CI checks and what is manual"](docs/EVIDENCE.md#what-the-ci-checks-and-what-is-manual). Results of runs on GitHub are the owner's account and are not verifiable from a checkout.
 
@@ -460,6 +464,7 @@ These are single full runs plus three repeats, and the judge is not ground truth
 - **`add_support` (`REPLAN_MAX=2`) is triggered by `is_account_claim`, a plain lexicon that is not validated against labeled data.** The one time it fired in the judged branch (`q04`) was a debatable false positive: the claim it marked is a general requirement of the product, not data about the customer. `REPLAN_MAX=0` is the default (no benefit is demonstrated; see `docs/REVIEW_RESPONSE.md`).
 - `ho13` (tool use) failed its tool check in all five final repetitions and passed it in the later smoke (`eval/reports/SMOKE-add-support.md`): one case in one run, not attributed to any change.
 - `qwen/qwen3.8-27b` works as the judge but not as an agent: it fails with "Request too large ... output tokens per minute" because the agents do not set `max_tokens`.
+- The judge's `reason` text can disagree with its own fields: in the replan probe, for `c03_box_contents` (an English message), it said the question was in Portuguese while `language_match` was true ([the replan demo](docs/REPLAN_DEMO.md)). **One case observed; not generalized**, and not checked on other rows.
 - The LLM judge is not ground truth, and judge self-agreement is not measured (`run_eval` does not store the evidence the judge saw).
 
 ## Layout

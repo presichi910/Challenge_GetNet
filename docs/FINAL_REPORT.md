@@ -235,6 +235,8 @@ This still compares only the checks that need no judge; it says nothing about th
     No evaluation was re-run on 3.12 with the pinned versions: the numbers of this report belong to the virtualenv, not to the image. What was checked on the image's side is the code, not the judged numbers: in a `python:3.12-slim` container the test suite, ruff, mypy and bandit pass
     with the CI's install and with the install pinned by `constraints.txt` (the two differ in two packages, `httpx2` and `httpcore2`, 2.16.2 against 2.16.0; the three provenance tests need `git`, which that container lacks).
 
+21. **The judge's `reason` can disagree with its own fields (one case observed, not generalized).** In the replan probe (`docs/REPLAN_DEMO.md`, `eval/reports/REPLAN-PROBE-20261118-133249.md`), for `c03_box_contents` the judge's reason says the question was in Portuguese and the answer in English, while the message of the case is in English and the judge's `language_match` was true. It was seen in that one case; no other row was checked for it. What it does say is that the reason sentence of this judge is not, by itself, evidence of what decided a verdict.
+
 ## 8. Not done
 
 Postgres as the checkpointer; Alertmanager; hash-pinned installs; push notifications to the customer; the judge's own retry logic inside `eval/judge.py` (a wrapper does it, because the judge is frozen); type checking of
