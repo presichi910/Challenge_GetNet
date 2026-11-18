@@ -162,11 +162,11 @@ Run on the experimental branch `exp/b-plus`; `app/` is identical to `98ea315` (t
 
 ## Reported by the owner (not verifiable from the checkout)
 
-These are results of runs on GitHub. The repository cannot show them: a checkout has no access to the run, and the tests only check that the workflow keeps its gates (`tests/test_ci_gates.py`). The link is pasted by the owner; until then it is a placeholder and **nothing on this page claims a result for it**.
+These are results of runs on GitHub. The repository cannot show them: a checkout has no access to the run, and the tests only check that the workflow keeps its gates (`tests/test_ci_gates.py`). The link was pasted by the owner; it is the owner's account of that run, and **this page claims nothing about it beyond the link**.
 
 | What | Commit | Link |
 |---|---|---|
-| The CI run of the delivered commit (run #4) | `98ea315` | `<CI_URL_DELIVERY_98ea315>` |
+| CI run of the previous delivery (run #4) | `98ea315` | https://github.com/presichi910/Challenge_GetNet/actions/runs/44189949082 |
 
 The CI run of the delivered commit is the latest run on `main` in the Actions tab.
 
