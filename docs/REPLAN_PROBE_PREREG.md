@@ -104,6 +104,24 @@ A first run with no judge and the step on (2 repetitions of the 12 cases, about 
 - **The cases are not independent of the mechanism**: they were designed from its conditions. A benefit seen here would say the step can help when it acts; it would not say how often it acts on real traffic, and a null would not say the step is useless.
 - **The default stays at `REPLAN_MAX=0`** whatever the result.
 
+## Record of the firing run (4d), 2026-11-18
+
+A record, not an amendment: it changes no rule. Two runs of the 12 cases, **no judge**, `REPLAN_MAX=2`, on commit `b9a4902` with a clean tree (command: `python -m eval.run_eval --dataset eval/probe/replan_probe.jsonl --replan-max 2 --no-judge --pause 3 --retries 3 --require-clean`, with `TICKETS_FILE`, `HANDOFFS_FILE` and `HANDOFFS_DB_PATH` pointing at an empty folder per run). The raw files are `eval/reports/20261118-131849.json` and `eval/reports/20261118-132136.json` (diagnostic only: they are the input of no report and are not the ON arm). Nothing below says anything about the quality of an answer.
+
+| Branch (the entry that shows it acted) | Cases that fire, repetition 1 | repetition 2 | Cases that fire in at least one | Under-firing? (fewer than half) |
+|---|---|---|---|---|
+| B1 `retry_kb` | 1 of 3 (`p01`) | 1 of 3 (`p01`) | 1 of 3 | yes |
+| B2 `add_support` | 0 of 3 | 0 of 3 | 0 of 3 | yes |
+| B3 `offer_ticket` or `escalate` | 0 of 3 | 0 of 3 | 0 of 3 | yes |
+
+- **Entries seen:** only `retry_kb`, 10 in all (5 cases in each repetition: `p01`, `p04`, `p06`, `p07`, `p09`). No `add_support`, `offer_ticket`, `escalate` or `*_failed` entry in any of the 24 rows.
+- **After the retry,** 7 of the 10 rows had no unsupported claim left (so a second action had nothing to act on); the 3 other kinds of leftovers were `p04` (1 claim, both repetitions) and `p09` (1 and 2 claims). `p04` had a router plan with the knowledge agent only, so the router condition of `add_support` held; its leftover claim does not match `is_account_claim` (no possessive). `p09` had the support agent in the plan, so `add_support` could not apply (`observe.py:164`, `can_add_support` `:95`).
+- **`p08_software_update`** ended in a handoff (`agent_unresolved`) in both repetitions before the step ran: a turn with a handoff is left alone by `observe` (`observe.py:129`).
+- **False triggers on the controls:** none (0 of 3 in each repetition, no entry of any kind).
+- **Agent cost:** 0.0233 USD per run (0.0467 USD for both); about 116,500 tokens per run; latency p50 11.2 s and 8.5 s, p95 18.1 s and 17.8 s. Mean cost per row: B1 0.0021, B2 0.0019, B3 0.0026, controls 0.0011 USD.
+- **Written, per run:** 1 handoff and 1 ticket (`human_handoff`, for `p08`) in each run's own folder, 2 and 2 in all; no ticket was opened by a tool. The project's `data/tickets.jsonl` and `data/handoffs.jsonl` were not touched (their modification dates are 15 and 16 November). `data/rag_cache.sqlite` grew (hashed queries) and the modification time of `data/chroma/chroma.sqlite3` changed (the store was opened for reading by the retrieval); nothing else under `data/`.
+- **What the prereg says to do next:** all three branches under-fire, so **one** revision of the cases of those branches is allowed, as an amendment with its own commit before anything is judged, followed by one more firing run of the revised cases; if a branch still under-fires after that, stop and report it as a finding.
+
 ## Amendments
 
 ### Amendment 0 (written before any row of the probe was run, judged or read; commit of its own)
